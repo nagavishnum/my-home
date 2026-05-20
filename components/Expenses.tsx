@@ -28,8 +28,9 @@ export default function Expenses() {
       setData(e.data.data);
       setCats(c.data);
       setError(null);
-    } catch {
+    } catch(e) {
       setError('Failed to load expenses');
+      console.warn(e);
     } finally {
       setLoading(false);
     }
