@@ -24,10 +24,7 @@ export default function Dashboard() {
   const [appliedExp, setAppliedExp] = useState({ month: expMonth, year: expYear });
   const [appliedTodo, setAppliedTodo] = useState({ date: todoDate, month: '', year: '' });
 
-  const mounted = useRef(false);
   useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
     Promise.all([
       api.get<PaginatedResponse<Expense>>('/expenses?limit=200'),
       api.get<PaginatedResponse<Finance>>('/finance?limit=200'),
@@ -57,7 +54,6 @@ export default function Dashboard() {
   const totalInvested = sipInvested + lumpInvested;
   const totalCurrentValue = finance.reduce((s, f) => s + (Number(f.cv) || Number(f.a) || 0), 0);
   const totalTodos = todos.length;
-  const doneTodos = todos.filter(t => t.s).length;
   const todayStr = now.toISOString().split('T')[0];
   const pendingToday = todos.filter(t => !t.s && t.da?.startsWith(todayStr)).length;
   const todayExpenses = expenses.filter(e => e.d?.startsWith(todayStr)).reduce((s, e) => s + (Number(e.a) || 0), 0);
@@ -176,14 +172,9 @@ export default function Dashboard() {
         </div>
 
         <div className="metrics-divider" />
-
-        <div className="metric-card">
-          <div className="metric-label">Tasks Done</div>
-          <div className="metric-value">{doneTodos}/{totalTodos}</div>
-        </div>
         <div className="metric-card highlight-card">
           <div className="metric-label">Pending Today</div>
-          <div className="metric-value">{pendingToday}</div>
+          <div className="metric-value">{totalTodos}</div>
         </div>
       </div>
 

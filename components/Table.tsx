@@ -1,5 +1,5 @@
 type Props = {
-  head: string[];
+  head: any[];
   children: React.ReactNode;
   filterPanel?: React.ReactNode;
 };

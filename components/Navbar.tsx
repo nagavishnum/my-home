@@ -31,6 +31,8 @@ export default function Tabs() {
         <Link
           key={tab.path}
           href={tab.path}
+          prefetch={false}
+          scroll={false}
           className={
             pathname === tab.path
               ? 'tab active-tab'

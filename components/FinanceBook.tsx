@@ -18,7 +18,7 @@ export default function FinanceBook() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  const load = async () => {
     try {
       setLoading(true);
       const [f, c] = await Promise.all([
@@ -33,7 +33,7 @@ export default function FinanceBook() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const mounted = useRef(false);
   useEffect(() => {
@@ -78,7 +78,6 @@ export default function FinanceBook() {
   const set = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
   const filtered = applyFilters(data, filters, 'md');
 
-  if (loading) return <p>Loading...</p>;
 
   return (
     <div>
@@ -104,7 +103,8 @@ export default function FinanceBook() {
         <input placeholder='Returns %' type='number' value={form.rt} onChange={(e) => set('rt', e.target.value)} />
         <input placeholder='Current Value' type='number' value={form.cv} onChange={(e) => set('cv', e.target.value)} />
         <input placeholder='Notes' type='text' value={form.no} onChange={(e) => set('no', e.target.value)} />
-        <button className='btn-primary' onClick={submit}>Save</button>
+        <button className='btn-primary' onClick={submit}           disabled={loading}
+>Save</button>
       </div>
 
       <Table
@@ -123,7 +123,8 @@ export default function FinanceBook() {
             <td>{i.rt}%</td>
             <td>{i.md ? new Date(i.md).toLocaleDateString() : '-'}</td>
             <td>
-              <button className='btn-danger' onClick={() => remove(i._id)}>Delete</button>
+              <button className='btn-danger' onClick={() => remove(i._id)}           disabled={loading}
+>Delete</button>
             </td>
           </tr>
         ))}

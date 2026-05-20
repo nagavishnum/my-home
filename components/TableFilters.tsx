@@ -9,6 +9,8 @@ type FilterConfig = {
   priorities?: string[];
   statuses?: string[];
   showDateRange?: boolean;
+  month?:boolean;
+  year?:boolean
 };
 
 type FilterValues = {
@@ -107,7 +109,7 @@ export default function TableFilters({
         </div>
       )}
 
-      <div className="filter-group">
+{config.month && (      <div className="filter-group">
         <label>Month</label>
         <select value={local.month} onChange={(e) => set('month', e.target.value)}>
           <option value="">All</option>
@@ -115,9 +117,9 @@ export default function TableFilters({
             <option key={m} value={String(i)}>{m}</option>
           ))}
         </select>
-      </div>
+      </div>)}
 
-      <div className="filter-group">
+    {config.year &&(  <div className="filter-group">
         <label>Year</label>
         <select value={local.year} onChange={(e) => set('year', e.target.value)}>
           <option value="">All</option>
@@ -125,7 +127,7 @@ export default function TableFilters({
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
-      </div>
+      </div>)}
 
       {config.showDateRange && (
         <>
