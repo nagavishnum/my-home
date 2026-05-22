@@ -29,7 +29,7 @@ import Loader from './Loader';
 import { FinanceForm } from './forms/FinanceForm';
 import { useMediaQuery } from '@/lib/hooks';
 import TablePlusFiltersLayout from './TablePlusFilters';
-import { CommonTable } from './CommonTable';
+import { Column, CommonTable } from './CommonTable';
 
 const initial = {
   n: '',
@@ -51,7 +51,7 @@ const initial = {
 
   no: '',
 };
-export const financeColumns = [
+export const financeColumns: Column<Finance>[] = [
   {
     key: "n",
     label: "Name",

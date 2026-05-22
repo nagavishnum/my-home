@@ -3,23 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { Todo, PaginatedResponse } from "@/lib/types";
-import Table from "./Table";
 import Goals from "./Goals";
-import { today, tomorrow, yesterday } from "@/lib/helpers";
+import { today } from "@/lib/helpers";
 import TableFilters, {
   applyFilters,
   emptyFilters,
   FilterValues,
 } from "./TableFilters";
-import { PRIORITY_COLORS } from "@/lib/constants";
 import Loader from "./Loader";
 import { TodosForm } from "./forms/TodosForm";
 import { useMediaQuery } from "@/lib/hooks";
 import TablePlusFiltersLayout from "./TablePlusFilters";
-import { CommonTable } from "./CommonTable";
+import { Column, CommonTable } from "./CommonTable";
 
 const initial = { t: "", da: today(), p: "medium" };
-export const todoColumns = [
+export const todoColumns: Column<Todo>[] = [
   {
     key: "t",
     label: "Task",
@@ -104,8 +102,8 @@ export default function Todos() {
     setAddTodoModel(false);
   };
 
-  const handleEditClick = (i) => {
-    setEditingId(i._id);
+const handleEditClick = (i: Todo) => {   
+   setEditingId(i._id);
     setAddTodoModel(true);
     setForm({
       t: i.t,

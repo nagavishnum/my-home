@@ -29,7 +29,7 @@ import TableFilters, {
 import { GoalsForm } from './forms/GoalsForm';
 import { useMediaQuery } from '@/lib/hooks';
 import TablePlusFiltersLayout from './TablePlusFilters';
-import { CommonTable } from './CommonTable';
+import { Column, CommonTable } from './CommonTable';
 const initial = {
   t: '',
   d: '',
@@ -40,7 +40,7 @@ const initial = {
   tv: '',
   cv: '',
 };
-export const goalsColumns = [
+export const goalsColumns: Column<Goal>[] = [
   {
     key: "t",
     label: "Goal",
@@ -150,7 +150,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
   const isFinance =
     selectedCategory?.n
       ?.toLowerCase()
-      .includes('finance');
+      .includes('finance') || false;
 
   const submit = async () => {
     if (

@@ -16,7 +16,7 @@ import TableFilters, {
 
 import Loader from "./Loader";
 import { ExpensesForm } from "./forms/ExpensesForm";
-import { CommonTable } from "./CommonTable";
+import { Column, CommonTable } from "./CommonTable";
 import TablePlusFiltersLayout from "./TablePlusFilters";
 
 const initial = {
@@ -25,11 +25,12 @@ const initial = {
   c: "",
   d: today(),
 };
-export const expenseColumns = [
+export const expenseColumns: Column<Expense>[] = [
   {
     key: "a",
     label: "Amount",
-    render: (row) => `₹${Number(row.a || 0).toLocaleString()}`,
+    render: (row) =>
+      `₹${Number(row.a || 0).toLocaleString()}`,
   },
   {
     key: "r",
