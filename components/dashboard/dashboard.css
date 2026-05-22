@@ -1,0 +1,62 @@
+.dashboard {
+  padding: 16px;
+}
+
+.metrics-grid {
+  gap: 10px;
+}
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.metric-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;        /* reduced */
+  text-align: center;
+  flex: 1;
+  min-width: 140px;     /* smaller */
+}
+/* ✅ MOBILE */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+.metric-value {
+  font-size: 18px;  /* was 24px */
+  font-weight: 700;
+}
+.metric-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+  .dash-section {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-value {
+    font-size: 13px;
+  }
+
+  .chart-card {
+    padding: 10px;
+  }
+}
+.finance-overview {
+  grid-column: 1 / -1; /* spans full row */
+}

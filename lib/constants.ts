@@ -15,3 +15,16 @@ export const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export const CHART_COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+export const ALLOWED_FINANCE_CATEGORIES = [
+  'INVESTMENTS',
+  'EMERGENCY F',
+  'SAVINGS',
+  'HEALTH F',
+  'RETIREMENT F',
+  'CHILD EDUC F',
+  'ENTERTAINEMENT F',
+  'ASSETS',
+  'LENT',
+  'CASH'
+];

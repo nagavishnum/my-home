@@ -16,13 +16,17 @@ export interface Finance {
   _id: string;
   n: string;
   a: number;
-  c: Category | null;
-  ty: string;
-  md: string;
-  lp: number;
-  rt: number;
-  cv: number;
-  no: string;
+  cv?: number;
+  sv?: number; // SIP total invested value
+  c?: {
+    _id: string;
+    n: string;
+  };
+  ty: 'Monthly' | 'OneTime';
+  md?: string;
+  lp?: number;
+  rt?: number;
+  no?: string;
 }
 
 export interface Todo {
@@ -40,3 +44,26 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+
+export type Goal = {
+  _id: string;
+
+  t: string;
+
+  d?: string;
+
+  td: string;
+
+  p: string;
+
+  s: string;
+
+  tv?: number;
+
+  cv?: number;
+
+  c?: {
+    _id: string;
+    n: string;
+  };
+};

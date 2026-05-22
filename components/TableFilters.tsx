@@ -5,21 +5,33 @@ import { useState } from 'react';
 import { MONTHS, YEARS } from '@/lib/constants';
 
 type FilterConfig = {
-  categories?: { _id: string; n: string }[];
+  categories?: {
+    _id: string;
+    n: string;
+  }[];
   priorities?: string[];
   statuses?: string[];
+  types?: string[];
   showDateRange?: boolean;
-  month?:boolean;
-  year?:boolean
+  month?: boolean;
+  year?: boolean;
 };
 
 type FilterValues = {
   category: string;
+
   priority: string;
+
   status: string;
+
+  type: string;
+
   dateFrom: string;
+
   dateTo: string;
+
   month: string;
+
   year: string;
 };
 
@@ -27,6 +39,7 @@ const emptyFilters: FilterValues = {
   category: '',
   priority: '',
   status: '',
+  type: '',
   dateFrom: '',
   dateTo: '',
   month: '',
@@ -97,17 +110,65 @@ export default function TableFilters({
         </div>
       )}
 
-      {config.priorities && (
-        <div className="filter-group">
-          <label>Priority</label>
-          <select value={local.priority} onChange={(e) => set('priority', e.target.value)}>
-            <option value="">All</option>
-            {config.priorities.map((p) => (
-              <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-            ))}
-          </select>
-        </div>
+{config.types && (
+  <div className="filter-group">
+    <label>Type</label>
+
+    <select
+      value={local.type}
+      onChange={(e) =>
+        set('type', e.target.value)
+      }
+    >
+      <option value="">
+        All
+      </option>
+
+      {config.types.map((t) => (
+        <option
+          key={t}
+          value={t}
+        >
+          {t}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
+{config.priorities && (
+  <div className="filter-group">
+    <label>Priority</label>
+
+    <select
+      value={local.priority}
+      onChange={(e) =>
+        set(
+          'priority',
+          e.target.value
+        )
+      }
+    >
+      <option value="">
+        All
+      </option>
+
+      {config.priorities.map(
+        (p) => (
+          <option
+            key={p}
+            value={p}
+          >
+            {p
+              .charAt(0)
+              .toUpperCase() +
+              p.slice(1)}
+          </option>
+        )
       )}
+    </select>
+  </div>
+)}
 
 {config.month && (      <div className="filter-group">
         <label>Month</label>
@@ -171,6 +232,12 @@ export function applyFilters<T extends Record<string, any>>(
       const done = item.s ? 'Done' : 'Pending';
       if (done !== filters.status) return false;
     }
+    if (
+  filters.type &&
+  item.ty !== filters.type
+) {
+  return false;
+}
 
     const rawDate = item[dateField];
     const dateVal = rawDate ? new Date(rawDate as string | number) : null;
