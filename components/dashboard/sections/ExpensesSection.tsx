@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 
 import { MONTHS, CHART_COLORS } from '@/lib/constants';
+import { useGlobalApiLoading } from '@/lib/hooks';
 
 type AppliedExp = {
   month: string;
@@ -34,7 +35,8 @@ export default function ExpensesSection({ expenses }: Props) {
   const [expYear, setExpYear] = useState(String(new Date().getFullYear()));
 
   const [appliedExp, setAppliedExp] = useState<AppliedExp>(initialAppliedExp);
-
+      const isApiLoading = useGlobalApiLoading();
+  
   const filteredExpenses = useMemo(() => {
     return expenses.filter((e) => {
       if (!e.d) return false;
@@ -75,7 +77,7 @@ export default function ExpensesSection({ expenses }: Props) {
       : String(new Date().getFullYear());
 
   return (
-    <div className="dash-section">
+    <div className="dash-section" id="expenses-section">
       <h3>📊 Expenses</h3>
 
       <div className="dash-filter-row">
@@ -106,6 +108,7 @@ export default function ExpensesSection({ expenses }: Props) {
               year: expYear,
             })
           }
+          disabled={isApiLoading}
         >
           Apply
         </button>

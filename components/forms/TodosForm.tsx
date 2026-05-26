@@ -1,5 +1,6 @@
 'use client';
 
+import { useGlobalApiLoading } from "@/lib/hooks";
 import React from "react";
 
 type TodosFormState = {
@@ -13,6 +14,8 @@ type Props = {
   setForm: React.Dispatch<React.SetStateAction<TodosFormState>>;
   submit: () => void;
   editingId: string | null;
+  setEditingId: (id: string | null) => void;
+  initial: TodosFormState;
 };
 
 export const TodosForm = ({
@@ -20,7 +23,14 @@ export const TodosForm = ({
   setForm,
   submit,
   editingId,
+  setEditingId,
+  initial,
 }: Props) => {
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm(initial);
+  };
+  const isApiLoading = useGlobalApiLoading();
   return (
     <div className="form">
       <input
@@ -51,9 +61,18 @@ export const TodosForm = ({
         }
       />
 
-      <button className="btn-primary" onClick={submit}>
+      <button className="btn-primary" onClick={submit} disabled={isApiLoading}>
         {editingId ? "Update" : "Save"}
       </button>
+                  {editingId && (
+        <button
+          className="btn-secondary"
+          onClick={handleCancelEdit}
+          disabled={isApiLoading}
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 };

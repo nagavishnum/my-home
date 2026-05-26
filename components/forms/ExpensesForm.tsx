@@ -1,9 +1,10 @@
 'use client';
 
+import { useGlobalApiLoading } from "@/lib/hooks";
+
 type ExpenseFormState = {
   a: string;
   c: string;
-  r: string;
   d: string;
 };
 
@@ -17,6 +18,9 @@ type Props = {
   setForm: React.Dispatch<React.SetStateAction<ExpenseFormState>>;
   submit: () => void;
   cats: Category[];
+  setEditingId: (id: string | null) => void;
+  initial: ExpenseFormState;
+  editingId: string | null;
 };
 
 export const ExpensesForm = ({
@@ -24,7 +28,16 @@ export const ExpensesForm = ({
   setForm,
   submit,
   cats,
+  setEditingId,
+  initial,
+  editingId
 }: Props) => {
+      const handleCancelEdit = () => {
+      setEditingId(null);
+      setForm(initial);
+    };
+        const isApiLoading = useGlobalApiLoading();
+  
   return (
     <div className="form">
       <input
@@ -51,14 +64,6 @@ export const ExpensesForm = ({
       </select>
 
       <input
-        placeholder="Reason"
-        value={form.r}
-        onChange={(e) =>
-          setForm((f) => ({ ...f, r: e.target.value }))
-        }
-      />
-
-      <input
         type="date"
         value={form.d}
         onChange={(e) =>
@@ -66,9 +71,18 @@ export const ExpensesForm = ({
         }
       />
 
-      <button className="btn-primary" onClick={submit}>
-        Save
+      <button className="btn-primary" onClick={submit} disabled={isApiLoading}>
+        {editingId ? "Update" : "Save"}
       </button>
+            {editingId && (
+        <button
+          className="btn-secondary"
+          onClick={handleCancelEdit}
+          disabled={isApiLoading}
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 };

@@ -15,8 +15,6 @@ import {
   PaginatedResponse,
 } from '@/lib/types';
 
-import Categories from './Categories';
-
 import { today } from '@/lib/helpers';
 
 import TableFilters, {
@@ -27,9 +25,11 @@ import TableFilters, {
 
 import Loader from './Loader';
 import { FinanceForm } from './forms/FinanceForm';
-import { useMediaQuery } from '@/lib/hooks';
+import { useGlobalApiLoading, useMediaQuery } from '@/lib/hooks';
 import TablePlusFiltersLayout from './TablePlusFilters';
 import { Column, CommonTable } from './CommonTable';
+import { X } from 'lucide-react';
+import CategoriesModal from './CategoriesModel';
 
 const initial = {
   n: '',
@@ -56,10 +56,24 @@ export const financeColumns: Column<Finance>[] = [
     key: "n",
     label: "Name",
   },
+    {
+    key: "c",
+    label: "Category",
+    render: (row) => row.c?.n ?? "-",
+  },
   {
     key: "a",
     label: "Total Invested",
     render: (row) => `₹${Number(row.a || 0).toLocaleString()}`,
+  },
+    {
+    key: "cv",
+    label: "Current Value",
+    render: (row) => `₹${Number(row.cv || row.a || 0).toLocaleString()}`,
+  },
+    {
+    key: "ty",
+    label: "Type",
   },
   {
     key: "sv",
@@ -69,20 +83,9 @@ export const financeColumns: Column<Finance>[] = [
         ? `₹${Number(row.sv || 0).toLocaleString()}`
         : "-",
   },
-  {
-    key: "cv",
-    label: "Current Value",
-    render: (row) => `₹${Number(row.cv || row.a || 0).toLocaleString()}`,
-  },
-  {
-    key: "c",
-    label: "Category",
-    render: (row) => row.c?.n ?? "-",
-  },
-  {
-    key: "ty",
-    label: "Type",
-  },
+
+
+
   {
     key: "rt",
     label: "Returns",
@@ -106,8 +109,6 @@ export default function FinanceBook() {
       ...emptyFilters,
     });
 
-  const [loading, setLoading] =
-    useState(true);
 
   const [error, setError] = useState<
     string | null
@@ -118,11 +119,12 @@ export default function FinanceBook() {
     const [showCategories, setShowCategories] = useState(false);
 
     const [addFinanceModel, setAddFinanceModel] = useState(false);
+    const isApiLoading = useGlobalApiLoading();
+
   const isMobile = useMediaQuery("(max-width: 768px)");
     
   const load = useCallback(async () => {
     try {
-      setLoading(true);
 
       const [f, c] = await Promise.all([
         api.get<
@@ -143,9 +145,7 @@ export default function FinanceBook() {
       setError(
         'Failed to load finance data'
       );
-    } finally {
-      setLoading(false);
-    }
+    } 
   }, []);
 
   const mounted = useRef(false);
@@ -287,7 +287,8 @@ const payload = {
     setEditingId(row._id);
     setAddFinanceModel(true);
   }
-  if (loading) return <Loader />;
+
+  if (isApiLoading) return <Loader />;
 
   return (
     <div>
@@ -298,47 +299,18 @@ const payload = {
         className="btn-primary"
         onClick={() => setShowCategories(true)}
         style={{marginRight: 8}}
+        disabled={isApiLoading}
       >
         View Categories
       </button>
+{showCategories && <CategoriesModal type="finance" categories={cats} onCategoriesChange={setCats} reload={load} onClose={() => setShowCategories(false)} />}
 
 
-      {/* ✅ MODAL WRAPPER */}
-      {showCategories && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowCategories(false)}
-        >
-          <div
-            className="modal-container"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* HEADER */}
-            <div className="modal-header">
-              <h3>Categories</h3>
-
-              <button
-                className="btn-secondary"
-                onClick={() => setShowCategories(false)}
-              >
-                Close
-              </button>
-            </div>
-
-            {/* BODY */}
-            <Categories
-              type="finance"
-              categories={cats}
-              onCategoriesChange={setCats}
-              reload={load}
-            />
-          </div>
-        </div>
-      )}
                 {isMobile && (
                   <button
                     className="btn-primary"
                     onClick={() => setAddFinanceModel(true)}
+                    disabled={isApiLoading}
                   >
                     Add Finance
                   </button>
@@ -354,27 +326,27 @@ const payload = {
                         <h3>{editingId ? "Edit Finance" : "Add Finance"}</h3>
       
                         <button
-                          className="btn-secondary"
+                          className="btn-danger"
                           onClick={handleFormModelClose}
+                          disabled={isApiLoading}
                         >
-                          Close
+            <X/>
                         </button>
                       </div>
       
-<FinanceForm form={form} setForm={setForm} submit={submit} cats={cats} editingId={editingId} setEditingId={setEditingId} set={set} loading={loading} initial={initial} />
+<FinanceForm form={form} setForm={setForm} submit={submit} cats={cats} editingId={editingId} setEditingId={setEditingId} set={set} initial={initial} />
                     </div>
                   </div>
                 )}
-{!isMobile && <FinanceForm form={form} setForm={setForm} submit={submit} cats={cats} editingId={editingId} setEditingId={setEditingId} set={set} loading={loading} initial={initial} />}
+{!isMobile && <FinanceForm form={form} setForm={setForm} submit={submit} cats={cats} editingId={editingId} setEditingId={setEditingId} set={set} initial={initial} />}
         <div className="table-wrapper">
 <TablePlusFiltersLayout
   isMobile={isMobile}
   filtersPanel={
     <TableFilters
       config={{
-        showDateRange: true,
-        month: true,
-        year: true,
+        categories: cats,
+        types:["Monthly", "OneTime"],
       }}
       filters={filters}
       onChange={setFilters}

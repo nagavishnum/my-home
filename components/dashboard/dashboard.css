@@ -60,3 +60,21 @@
 .finance-overview {
   grid-column: 1 / -1; /* spans full row */
 }
+.dashboard-wrapper {
+  position: relative;
+}
+
+.disabled-section {
+  pointer-events: none;
+  opacity: 0.6;
+}
+.recharts-wrapper:focus,
+.recharts-sector:focus,
+.recharts-rectangle:focus,
+.recharts-layer:focus,
+.recharts-surface:focus,
+.recharts-bar-rectangle:focus,
+.recharts-rectangle:focus,
+.recharts-tooltip-wrapper:focus {
+  outline: none !important;
+}

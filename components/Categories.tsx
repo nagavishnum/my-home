@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { Category } from '@/lib/types';
+import { useGlobalApiLoading } from '@/lib/hooks';
+import { Pencil, Trash } from 'lucide-react';
 
 type Props = {
   type: string;
@@ -21,6 +23,9 @@ export default function Categories({
   const [editId, setEditId] = useState('');
   const [editName, setEditName] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const isApiLoading = useGlobalApiLoading();
+
 
   const submit = async () => {
     const trimmed = name.trim();
@@ -75,7 +80,7 @@ export default function Categories({
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
         />
-        <button className='btn-primary' onClick={submit}>Add</button>
+        <button className='btn-primary' onClick={submit} disabled={isApiLoading}>Add</button>
       </div>
 
       <div className='chips'>
@@ -88,14 +93,14 @@ export default function Categories({
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && update()}
                 />
-                <button className='btn-primary' onClick={update}>Save</button>
-                <button onClick={() => setEditId('')}>Cancel</button>
+                <button className='btn-primary' onClick={update} disabled={isApiLoading}>Save</button>
+                <button onClick={() => setEditId('')} disabled={isApiLoading}>Cancel</button>
               </>
             ) : (
               <>
                 <span>{i.n}</span>
-                <button onClick={() => startEdit(i)} className='edit-btn'>Edit</button>
-                <button className='delete-btn' onClick={() => remove(i._id)}>Delete</button>
+                <button onClick={() => startEdit(i)} className='edit-btn' disabled={isApiLoading}><Pencil/></button>
+                <button className='delete-btn' onClick={() => remove(i._id)} disabled={isApiLoading}><Trash/></button>
               </>
             )}
           </div>

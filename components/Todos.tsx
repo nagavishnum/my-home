@@ -1,131 +1,326 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { api } from "@/lib/api";
-import { Todo, PaginatedResponse } from "@/lib/types";
+
+import {
+  Todo,
+  PaginatedResponse,
+} from "@/lib/types";
+
 import Goals from "./Goals";
+
 import { today } from "@/lib/helpers";
+
 import TableFilters, {
   applyFilters,
   emptyFilters,
   FilterValues,
 } from "./TableFilters";
+
 import Loader from "./Loader";
+
 import { TodosForm } from "./forms/TodosForm";
-import { useMediaQuery } from "@/lib/hooks";
+
+import {
+  useGlobalApiLoading,
+  useMediaQuery,
+} from "@/lib/hooks";
+
 import TablePlusFiltersLayout from "./TablePlusFilters";
-import { Column, CommonTable } from "./CommonTable";
 
-const initial = { t: "", da: today(), p: "medium" };
-export const todoColumns: Column<Todo>[] = [
-  {
-    key: "t",
-    label: "Task",
-  },
-  {
-    key: "da",
-    label: "Date",
-    render: (row) =>
-      new Date(row.da).toLocaleDateString(),
-  },
-  {
-    key: "p",
-    label: "Priority",
-    render: (row) => row.p,
-  },
-];
+import {
+  Column,
+  CommonTable,
+} from "./CommonTable";
+
+import { X } from "lucide-react";
+
+const initial = {
+  t: "",
+  da: today(),
+  p: "medium",
+};
+
+export const todoColumns: Column<Todo>[] =
+  [
+    {
+      key: "t",
+      label: "Task",
+    },
+        {
+      key: "p",
+      label: "Priority",
+      render: (row) => row.p,
+    },
+    {
+      key: "da",
+      label: "Date",
+      render: (row) =>
+        new Date(
+          row.da
+        ).toLocaleDateString(),
+    },
+
+  ];
+
 export default function Todos() {
-  const [activeTab, setActiveTab] = useState<"todo" | "goal">("todo");
-  const [data, setData] = useState<Todo[]>([]);
-  const [form, setForm] = useState(initial);
-  const [filters, setFilters] = useState<FilterValues>({ ...emptyFilters });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [addTodoModel, setAddTodoModel] = useState(false);
+  const [activeTab, setActiveTab] =
+    useState<"todo" | "goal">(
+      "todo"
+    );
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [data, setData] = useState<
+    Todo[]
+  >([]);
+
+  const [form, setForm] =
+    useState(initial);
+
+  const [filters, setFilters] =
+    useState<FilterValues>({
+      ...emptyFilters,
+    });
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
+
+  const [addTodoModel, setAddTodoModel] =
+    useState(false);
+
+  const [pageLoading, setPageLoading] =
+    useState(true);
+
+  const isApiLoading =
+    useGlobalApiLoading();
+
+  const isMobile = useMediaQuery(
+    "(max-width: 768px)"
+  );
 
   const mounted = useRef(false);
 
   useEffect(() => {
     if (mounted.current) return;
+
     mounted.current = true;
 
-    api
-      .get<PaginatedResponse<Todo>>("/todos?limit=200")
-      .then((t) => {
-        setData(t.data.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load todos");
-        setLoading(false);
-      });
-  }, []);
+    const loadTodos = async () => {
+      try {
+        setPageLoading(true);
 
+        const t =
+          await api.get<
+            PaginatedResponse<Todo>
+          >("/todos?limit=200");
+
+        setData(t.data.data);
+
+        setError(null);
+      } catch {
+        setError(
+          "Failed to load todos"
+        );
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    loadTodos();
+  }, []);
+useEffect(() => {
+  if (!('Notification' in window)) {
+    return;
+  }
+
+  Notification.requestPermission();
+
+  const interval = setInterval(() => {
+    const todayTodos = data.filter(
+      (todo) => {
+        const todoDate =
+          new Date(todo.da);
+
+        const now = new Date();
+
+        return (
+          todoDate.toDateString() ===
+          now.toDateString()
+        );
+      }
+    );
+
+    if (
+      todayTodos.length > 0 &&
+      Notification.permission ===
+        'granted'
+    ) {
+      new Notification(
+        'Pending Todos',
+        {
+          body: `You have ${todayTodos.length} pending todos`,
+        }
+      );
+    }
+  }, 60 * 60 * 1000); // every 1 hour
+
+  return () =>
+    clearInterval(interval);
+}, [data]);
   const submit = async () => {
-    if (!form.t.trim() || !form.da || !form.p) {
-      alert("Please fill all fields");
+    if (
+      !form.t.trim() ||
+      !form.da ||
+      !form.p
+    ) {
+      alert(
+        "Please fill all fields"
+      );
+
       return;
     }
 
     try {
-      const payload = { t: form.t.trim(), da: form.da, p: form.p };
+      const payload = {
+        t: form.t.trim(),
+        da: form.da,
+        p: form.p,
+      };
 
       if (editingId) {
-        const res = await api.put(`/todos/${editingId}`, payload);
-        setData((p) => p.map((i) => (i._id === editingId ? res.data : i)));
+        const res = await api.put(
+          `/todos/${editingId}`,
+          payload
+        );
+
+        setData((p) =>
+          p.map((i) =>
+            i._id === editingId
+              ? res.data
+              : i
+          )
+        );
+
         setEditingId(null);
+
         setAddTodoModel(false);
       } else {
-        const res = await api.post("/todos", payload);
-        setData((p) => [res.data, ...p]);
+        const res = await api.post(
+          "/todos",
+          payload
+        );
+
+        setData((p) => [
+          res.data,
+          ...p,
+        ]);
+
         setAddTodoModel(false);
       }
 
       setForm(initial);
     } catch {
-      setError("Failed to save todo");
+      setError(
+        "Failed to save todo"
+      );
     }
   };
 
-  const remove = async (id: string) => {
-    await api.delete(`/todos/${id}`);
-    setData((p) => p.filter((i) => i._id !== id));
+  const remove = async (
+    id: string
+  ) => {
+    try {
+      await api.delete(
+        `/todos/${id}`
+      );
+
+      setData((p) =>
+        p.filter(
+          (i) => i._id !== id
+        )
+      );
+    } catch {
+      setError(
+        "Failed to delete todo"
+      );
+    }
   };
 
-  const filtered = applyFilters(data, filters, "da");
-  const handleFormModelClose = () => {
-    setForm(initial);
-    setAddTodoModel(false);
-  };
+  const filtered = applyFilters(
+    data,
+    filters,
+    "da"
+  );
 
-const handleEditClick = (i: Todo) => {   
-   setEditingId(i._id);
+  const handleFormModelClose =
+    () => {
+      setForm(initial);
+
+      setEditingId(null);
+
+      setAddTodoModel(false);
+    };
+
+  const handleEditClick = (
+    i: Todo
+  ) => {
+    setEditingId(i._id);
+
     setAddTodoModel(true);
+
     setForm({
       t: i.t,
-      da: i.da ? new Date(i.da).toISOString().split("T")[0] : today(),
+      da: i.da
+        ? new Date(i.da)
+            .toISOString()
+            .split("T")[0]
+        : today(),
       p: i.p,
     });
   };
-  if (loading) return <Loader />;
+
+  if (pageLoading) {
+    return <Loader />;
+  }
 
   return (
-    <div className="page">
+    <div
+      className={
+        isApiLoading
+          ? "disabled-section"
+          : ""
+      }
+    >
       {/* TABS */}
       <div className="tabs">
         <button
-          className={activeTab === "todo" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setActiveTab("todo")}
+          className={
+            activeTab === "todo"
+              ? "tab active-tab"
+              : "tab"
+          }
+          onClick={() =>
+            setActiveTab("todo")
+          }
+          disabled={isApiLoading}
         >
           Todos
         </button>
+
         <button
-          className={activeTab === "goal" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setActiveTab("goal")}
+          className={
+            activeTab === "goal"
+              ? "tab active-tab"
+              : "tab"
+          }
+          onClick={() =>
+            setActiveTab("goal")
+          }
+          disabled={isApiLoading}
         >
           Goals
         </button>
@@ -135,74 +330,113 @@ const handleEditClick = (i: Todo) => {
         <Goals />
       ) : (
         <>
-          {error && <p className="error">{error}</p>}
+          {error && (
+            <p className="error">
+              {error}
+            </p>
+          )}
+
           {isMobile && (
             <button
               className="btn-primary"
-              onClick={() => setAddTodoModel(true)}
+              onClick={() =>
+                setAddTodoModel(true)
+              }
+              disabled={isApiLoading}
             >
               Add Todo
             </button>
           )}
-          {addTodoModel && isMobile && (
-            <div className="modal-overlay" onClick={handleFormModelClose}>
+
+          {addTodoModel &&
+            isMobile && (
               <div
-                className="modal-container"
-                onClick={(e) => e.stopPropagation()}
+                className="modal-overlay"
+                onClick={
+                  handleFormModelClose
+                }
               >
-                {/* HEADER */}
-                <div className="modal-header">
-                  <h3>{editingId ? "Edit Todo" : "Add Todo"}</h3>
+                <div
+                  className="modal-container"
+                  onClick={(e) =>
+                    e.stopPropagation()
+                  }
+                >
+                  <div className="modal-header">
+                    <h3>
+                      {editingId
+                        ? "Edit Todo"
+                        : "Add Todo"}
+                    </h3>
 
-                  <button
-                    className="btn-secondary"
-                    onClick={handleFormModelClose}
-                  >
-                    Close
-                  </button>
+                    <button
+                      className="btn-danger"
+                      onClick={
+                        handleFormModelClose
+                      }
+                      disabled={
+                        isApiLoading
+                      }
+                    >
+                      <X />
+                    </button>
+                  </div>
+
+                  <TodosForm
+                    form={form}
+                    setForm={setForm}
+                    submit={submit}
+                    editingId={
+                      editingId
+                    }
+                    setEditingId={setEditingId}
+                    initial={initial}
+                  />
                 </div>
-
-                {/* BODY */}
-                <TodosForm
-                  form={form}
-                  setForm={setForm}
-                  submit={submit}
-                  editingId={editingId}
-                />
               </div>
-            </div>
-          )}
+            )}
+
           {!isMobile && (
             <TodosForm
               form={form}
               setForm={setForm}
               submit={submit}
-              editingId={editingId}
+              editingId={
+                editingId
+              }
+              setEditingId={setEditingId}
+              initial={initial}
             />
           )}
 
-<TablePlusFiltersLayout
-  isMobile={isMobile}
-  filtersPanel={
-    <TableFilters
-      config={{
-        showDateRange: true,
-        month: true,
-        year: true,
-      }}
-      filters={filters}
-      onChange={setFilters}
-    />
-  }
-  tablePanel={
-    <CommonTable
-      data={filtered}
-      columns={todoColumns}
-      onDeleteClick={remove}
-      onEditClick={handleEditClick}
-    />
-  }
-/>
+          <TablePlusFiltersLayout
+            isMobile={isMobile}
+            filtersPanel={
+              <TableFilters
+                config={{
+                  showDateRange: true,
+                  month: true,
+                  year: true,
+                }}
+                filters={filters}
+                onChange={setFilters}
+              />
+            }
+            tablePanel={
+              <CommonTable
+                data={filtered}
+                columns={
+                  todoColumns
+                }
+                onDeleteClick={
+                  remove
+                }
+                onEditClick={
+                  handleEditClick
+                }
+              />
+            }
+          />
         </>
       )}
     </div>

@@ -16,10 +16,11 @@ import {
 } from 'recharts';
 import { CHART_COLORS, PRIORITY_COLORS } from '@/lib/constants';
 import Loader from '@/components/Loader';
+import { useGlobalApiLoading } from '@/lib/hooks';
 
 export default function GoalsSection() {
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
+      const isApiLoading = useGlobalApiLoading();
 
   useEffect(() => {
     api
@@ -27,10 +28,9 @@ export default function GoalsSection() {
       .then((g) => {
         setGoals(g?.data?.data ?? []);
       })
-      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Loader />;
+  if (isApiLoading) return <Loader />;
 
   const safeGoals = goals ?? [];
 

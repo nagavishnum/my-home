@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { MONTHS, YEARS } from '@/lib/constants';
+import { useGlobalApiLoading } from '@/lib/hooks';
 
 type FilterConfig = {
   categories?: {
@@ -58,7 +59,8 @@ export default function TableFilters({
   onChange: (f: FilterValues) => void;
 }) {
   const [local, setLocal] = useState<FilterValues>({ ...filters });
-
+      const isApiLoading = useGlobalApiLoading();
+  
   const set = (key: keyof FilterValues, val: string) => {
     const next = { ...local, [key]: val };
     if (key === 'month' || key === 'year') {
@@ -204,9 +206,9 @@ export default function TableFilters({
       )}
 
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-        <button className="btn-primary" onClick={apply}>Apply</button>
+        <button className="btn-primary" onClick={apply} disabled={isApiLoading}>Apply</button>
         {hasAny && (
-          <button className="btn-danger" style={{ marginLeft: 0 }} onClick={clear}>Clear</button>
+          <button className="btn-secondary" style={{ marginLeft: 0 }} onClick={clear} disabled={isApiLoading}>Clear</button>
         )}
       </div>
     </div>

@@ -5,7 +5,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { Expense, Category, PaginatedResponse } from "@/lib/types";
 
-import Categories from "./Categories";
 import { today } from "@/lib/helpers";
 
 import TableFilters, {
@@ -18,10 +17,12 @@ import Loader from "./Loader";
 import { ExpensesForm } from "./forms/ExpensesForm";
 import { Column, CommonTable } from "./CommonTable";
 import TablePlusFiltersLayout from "./TablePlusFilters";
+import { useGlobalApiLoading } from "@/lib/hooks";
+import { X } from "lucide-react";
+import CategoriesModal from "./CategoriesModel";
 
 const initial = {
   a: "",
-  r: "",
   c: "",
   d: today(),
 };
@@ -29,13 +30,7 @@ export const expenseColumns: Column<Expense>[] = [
   {
     key: "a",
     label: "Amount",
-    render: (row) =>
-      `₹${Number(row.a || 0).toLocaleString()}`,
-  },
-  {
-    key: "r",
-    label: "Reason",
-    render: (row) => row.r ?? "-",
+    render: (row) => `₹${Number(row.a || 0).toLocaleString()}`,
   },
   {
     key: "c",
@@ -45,8 +40,7 @@ export const expenseColumns: Column<Expense>[] = [
   {
     key: "d",
     label: "Date",
-    render: (row) =>
-      new Date(row.d).toLocaleDateString(),
+    render: (row) => new Date(row.d).toLocaleDateString(),
   },
 ];
 export default function Expenses() {
@@ -54,7 +48,6 @@ export default function Expenses() {
   const [cats, setCats] = useState<Category[]>([]);
   const [form, setForm] = useState(initial);
   const [filters, setFilters] = useState<FilterValues>({ ...emptyFilters });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,6 +57,7 @@ export default function Expenses() {
 
   // ✅ MOBILE DETECTION
   const [isMobile, setIsMobile] = useState(false);
+  const isApiLoading = useGlobalApiLoading();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
@@ -74,8 +68,6 @@ export default function Expenses() {
 
   const load = useCallback(async () => {
     try {
-      setLoading(true);
-
       const [e, c] = await Promise.all([
         api.get<PaginatedResponse<Expense>>("/expenses?limit=200"),
         api.get<Category[]>("/categories/expense"),
@@ -87,7 +79,6 @@ export default function Expenses() {
     } catch {
       setError("Failed to load expenses");
     } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -100,7 +91,7 @@ export default function Expenses() {
   }, [load]);
 
   const submit = async () => {
-    if (!form.a || !form.r.trim() || !form.c || !form.d) {
+    if (!form.a || !form.c || !form.d) {
       alert("Please fill all fields");
       return;
     }
@@ -108,7 +99,6 @@ export default function Expenses() {
     try {
       const payload = {
         a: Number(form.a),
-        r: form.r.trim(),
         c: form.c,
         d: form.d,
       };
@@ -150,14 +140,18 @@ export default function Expenses() {
   const handleEditClick = (row: Expense) => {
     setForm({
       a: String(row.a),
-      r: row.r,
-      c: row.c ? (typeof row.c === "string" ? row.c : (row.c as any)._id ?? "") : "",
+      c: row.c
+        ? typeof row.c === "string"
+          ? row.c
+          : ((row.c as any)._id ?? "")
+        : "",
       d: row.d.slice(0, 10),
     });
     setEditingId(row._id);
     setAddExpenseModel(true);
-  }
-  if (loading) return <Loader />;
+  };
+
+  if (isApiLoading) return <Loader />;
 
   return (
     <div className="page">
@@ -166,37 +160,25 @@ export default function Expenses() {
         className="btn-primary"
         onClick={() => setShowCategories(true)}
         style={{ marginRight: 8 }}
+        disabled={isApiLoading}
       >
         View Categories
       </button>
 
       {showCategories && (
-        <div className="modal-overlay" onClick={() => setShowCategories(false)}>
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Categories</h3>
-
-              <button
-                className="btn-secondary"
-                onClick={() => setShowCategories(false)}
-              >
-                Close
-              </button>
-            </div>
-
-            <Categories
-              type="expense"
-              categories={cats}
-              onCategoriesChange={setCats}
-              reload={load}
-            />
-          </div>
-        </div>
+        <CategoriesModal
+          type="expense"
+          categories={cats}
+          onCategoriesChange={setCats}
+          reload={load}
+          onClose={() => setShowCategories(false)}
+        />
       )}
       {isMobile && (
         <button
           className="btn-primary"
           onClick={() => setAddExpenseModel(true)}
+          disabled={isApiLoading}
         >
           Add Expense
         </button>
@@ -208,8 +190,12 @@ export default function Expenses() {
             <div className="modal-header">
               <h3>{editingId ? "Edit Expense" : "Add Expense"}</h3>
 
-              <button className="btn-secondary" onClick={handleFormModelClose}>
-                Close
+              <button
+                className="btn-danger"
+                onClick={handleFormModelClose}
+                disabled={isApiLoading}
+              >
+                <X />
               </button>
             </div>
 
@@ -218,6 +204,9 @@ export default function Expenses() {
               setForm={setForm}
               submit={submit}
               cats={cats}
+              setEditingId={setEditingId}
+              initial={initial}
+              editingId={editingId}
             />
           </div>
         </div>
@@ -228,35 +217,36 @@ export default function Expenses() {
           setForm={setForm}
           submit={submit}
           cats={cats}
+          setEditingId={setEditingId}
+          initial={initial}
+          editingId={editingId}
         />
       )}
-        <div className="table-wrapper">
-
-<TablePlusFiltersLayout
-  isMobile={isMobile}
-  filtersPanel={
-    <TableFilters
-      config={{
-        categories: cats,
-        showDateRange: true,
-        month: true,
-        year: true,
-      }}
-      filters={filters}
-      onChange={setFilters}
-    />
-  }
-  tablePanel={
-    <CommonTable
-      data={filtered}
-      columns={expenseColumns}
-      onDeleteClick={remove}
-      onEditClick={handleEditClick}
-    />
-  }
-/>
-        </div>
-
+      <div className="table-wrapper">
+        <TablePlusFiltersLayout
+          isMobile={isMobile}
+          filtersPanel={
+            <TableFilters
+              config={{
+                categories: cats,
+                showDateRange: true,
+                month: true,
+                year: true,
+              }}
+              filters={filters}
+              onChange={setFilters}
+            />
+          }
+          tablePanel={
+            <CommonTable
+              data={filtered}
+              columns={expenseColumns}
+              onDeleteClick={remove}
+              onEditClick={handleEditClick}
+            />
+          }
+        />
+      </div>
     </div>
   );
 }

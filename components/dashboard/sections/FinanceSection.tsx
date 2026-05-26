@@ -49,7 +49,7 @@ export default function FinanceSection({ finance }: Props) {
   );
 
 return (
-  <div className="dash-section">
+  <div className="dash-section" id="finance-section">
     <h3>📈 Finance Performance</h3>
 
     <div className="finance-grid">

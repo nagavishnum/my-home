@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { getToken, removeToken } from './auth';
+import { startLoading, stopLoading } from './apiLoader';
 
 export const api = axios.create({
   baseURL:
@@ -10,6 +11,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  startLoading();
   const token = getToken();
 
   if (token) {
@@ -21,9 +23,12 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => 
+  {  stopLoading();
+    return res
+  },
   (error) => {
-
+stopLoading();
     const status = error?.response?.status;
 
     const url =

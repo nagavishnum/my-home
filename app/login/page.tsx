@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { api } from '@/lib/api';
 import { isLoggedIn, setLoginData } from '@/lib/auth';
+import { useGlobalApiLoading } from '@/lib/hooks';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,9 +13,8 @@ export default function LoginPage() {
   const [u, setU] = useState('');
   const [p, setP] = useState('');
 
-  const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState('');
+  const isApiLoading = useGlobalApiLoading();
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -41,8 +41,6 @@ export default function LoginPage() {
     }
 
     try {
-      setLoading(true);
-
       const res = await api.post(
         '/auth/login',
         {
@@ -84,8 +82,6 @@ export default function LoginPage() {
       }
 
       setError(msg);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -149,9 +145,9 @@ export default function LoginPage() {
 
         <button
           className='btn-primary'
-          disabled={loading}
+          disabled={isApiLoading}
         >
-          {loading
+          {isApiLoading
             ? 'Loading...'
             : 'Login'}
         </button>

@@ -1,3 +1,7 @@
+import { useGlobalApiLoading } from "@/lib/hooks";
+import '../app/globals.css';
+import { Pencil, Trash } from "lucide-react";
+
 export type Column<T> = {
   key: keyof T;
   label: string;
@@ -17,6 +21,8 @@ export function CommonTable<T extends { _id: string }>({
   onEditClick,
   onDeleteClick,
 }: CommonTableProps<T>) {
+      const isApiLoading = useGlobalApiLoading();
+  
   return (
     <div className="table-wrapper">
       <table>
@@ -41,10 +47,10 @@ export function CommonTable<T extends { _id: string }>({
               ))}
 
               <td>
-                <button onClick={() => onEditClick(row)}>Edit</button>
-                <button onClick={() => onDeleteClick(row._id)}>
-                  Delete
-                </button>
+                <div className="action-buttons">
+                <button onClick={() => onEditClick(row)} className="edit-btn" disabled={isApiLoading}><Pencil /></button>
+                <button onClick={() => onDeleteClick(row._id)} className="delete-btn" disabled={isApiLoading}><Trash/></button>
+                </div>
               </td>
             </tr>
           ))}

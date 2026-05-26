@@ -34,7 +34,7 @@ export default function TodosSection({ todos }: Props) {
   }, [safeTodos]);
 
   return (
-    <div className="dash-section">
+    <div className="dash-section" id="todo-section">
       <h3>✅ Todos</h3>
 
       <div className="chart-card">

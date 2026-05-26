@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Category } from "@/lib/types";
+import { useGlobalApiLoading } from "@/lib/hooks";
 
 type GoalsFormState = {
   t: string;
@@ -21,6 +22,9 @@ type Props = {
   isFinance: boolean;
   submit: () => void;
   editingId: string | null;
+  setEditingId: (id: string | null) => void;
+  setForm: React.Dispatch<React.SetStateAction<GoalsFormState>>;
+  initial: GoalsFormState;
 };
 
 export const GoalsForm = ({
@@ -30,7 +34,15 @@ export const GoalsForm = ({
   isFinance,
   submit,
   editingId,
+  setEditingId,
+  setForm,
+  initial
 }: Props) => {
+    const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm(initial);
+  };
+  const isApiLoading = useGlobalApiLoading();
   return (
     <div className="form">
       <input
@@ -94,9 +106,18 @@ export const GoalsForm = ({
         </>
       )}
 
-      <button className="btn-primary" onClick={submit}>
+      <button className="btn-primary" onClick={submit} disabled={isApiLoading}>
         {editingId ? "Update" : "Save"}
       </button>
+                        {editingId && (
+        <button
+          className="btn-secondary"
+          onClick={handleCancelEdit}
+          disabled={isApiLoading}
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Category } from "@/lib/types";
+import { useGlobalApiLoading } from "@/lib/hooks";
 
 type FinanceFormState = {
   n: string;
@@ -25,7 +26,6 @@ type Props = {
   editingId: string | null;
   setEditingId: (id: string | null) => void;
 
-  loading: boolean;
   initial: FinanceFormState;
 
   set: (key: keyof FinanceFormState, value: string) => void;
@@ -33,14 +33,20 @@ type Props = {
 
 export const FinanceForm = ({
   form,
+  setForm,
   submit,
   cats,
   editingId,
   setEditingId,
   set,
-  loading,
-  initial,
+  initial
 }: Props) => {
+    const handleCancelEdit = () => {
+      setEditingId(null);
+      setForm(initial);
+    };
+        const isApiLoading = useGlobalApiLoading();
+  
   return (
     <div className="form">
       <input
@@ -116,18 +122,15 @@ export const FinanceForm = ({
         onChange={(e) => set("no", e.target.value)}
       />
 
-      <button className="btn-primary" onClick={submit} disabled={loading}>
+      <button className="btn-primary" onClick={submit} disabled={isApiLoading} >
         {editingId ? "Update" : "Save"}
       </button>
 
       {editingId && (
         <button
           className="btn-secondary"
-          onClick={() => {
-            setEditingId(null);
-            // reset should be handled outside ideally
-          }}
-          disabled={loading}
+          onClick={handleCancelEdit}
+          disabled={isApiLoading}
         >
           Cancel
         </button>

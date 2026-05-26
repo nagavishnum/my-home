@@ -25,11 +25,6 @@ body {
   gap: 12px;
 }
 
-.metric-card {
-  padding: 12px;
-  border-radius: 10px;
-}
-
 /* =======================
    CHART LAYOUT
 ======================= */
@@ -50,11 +45,6 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 table th,
@@ -121,9 +111,6 @@ table td {
   padding: 16px;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-}
 
 .tabs {
   display: flex;
@@ -228,10 +215,7 @@ table td {
     font-size: 13px;
   }
 }
-.table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+
 
 table {
   min-width: 900px;
@@ -310,15 +294,24 @@ button:hover {
 }
 
 .btn-danger {
-  background: #dc2626;
-  color: white;
-  margin-left: 20px;
+  background: grey;
+  color: black;
+  width: 25px;
+  height: 25px;
+  padding: 2px;
+  border: none;
+  border-radius: 2px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .table-wrapper {
-  margin-top: 24px;
+  margin-top: 10px;
   overflow-x: auto;
-  padding-top: 20px;
+    overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -349,6 +342,7 @@ tr:nth-child(even) {
 }
 
 .tab {
+  cursor: pointer;
   text-decoration: none;
   padding: 12px 18px;
   border-radius: 8px;
@@ -356,8 +350,6 @@ tr:nth-child(even) {
   color: #111;
   font-weight: 600;
 }
-
-
 
 .active-tab {
   background: #111;
@@ -387,6 +379,15 @@ tr:nth-child(even) {
 .delete-btn {
   background: #ef4444;
   color: white;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .table-with-filters {
@@ -433,6 +434,15 @@ tr:nth-child(even) {
 .edit-btn {
   color: white;
   background-color: #6c757d;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Dashboard */
@@ -448,10 +458,11 @@ tr:nth-child(even) {
 }
 
 .metric-card {
+  cursor: pointer;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
+  padding: 12px;
+  border-radius: 10px;
   text-align: center;
   min-width: 170px;
   flex: 1;
@@ -701,4 +712,12 @@ tr:nth-child(even) {
   .desktop-only {
     display: none;
   }
+}
+
+.action-buttons{
+  display: flex;
+  gap: 8px;
+}
+html {
+  scroll-behavior: smooth;
 }

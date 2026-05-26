@@ -30,3 +30,10 @@ export const tomorrow = () => {
   return d.toISOString().split('T')[0];
 };
 
+export const scrollToView = (id: string) => {
+  const el = document.getElementById(id);
+
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+};
