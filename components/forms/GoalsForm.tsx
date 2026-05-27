@@ -51,7 +51,9 @@ export const GoalsForm = ({
         onChange={(e) => set("t", e.target.value)}
       />
 
-      <select value={form.c} onChange={(e) => set("c", e.target.value)}>
+      <select value={form.c} onChange={(e) => set("c", e.target.value)}         onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}>
         <option value="">Category</option>
 
         {cats.map((i) => (
@@ -73,13 +75,17 @@ export const GoalsForm = ({
         onChange={(e) => set("td", e.target.value)}
       />
 
-      <select value={form.p} onChange={(e) => set("p", e.target.value)}>
+      <select value={form.p} onChange={(e) => set("p", e.target.value)}         onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}>
         <option value="low">Low</option>
         <option value="medium">Medium</option>
         <option value="high">High</option>
       </select>
 
-      <select value={form.s} onChange={(e) => set("s", e.target.value)}>
+      <select value={form.s} onChange={(e) => set("s", e.target.value)}         onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}>
         <option value="pending">Pending</option>
         <option value="inprogress">In Progress</option>
         <option value="completed">Completed</option>

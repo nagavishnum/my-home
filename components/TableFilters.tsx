@@ -52,10 +52,12 @@ const emptyFilters: FilterValues = {
 export default function TableFilters({
   config,
   filters,
+  close,
   onChange,
 }: {
   config: FilterConfig;
   filters: FilterValues;
+  close?: () => void;
   onChange: (f: FilterValues) => void;
 }) {
   const [local, setLocal] = useState<FilterValues>({ ...filters });
@@ -74,7 +76,10 @@ export default function TableFilters({
     setLocal(next);
   };
 
-  const apply = () => onChange({ ...local });
+  const apply = () => {
+    onChange({ ...local });
+    if (close) close();
+  };
 
   const clear = () => {
     const empty = { ...emptyFilters };

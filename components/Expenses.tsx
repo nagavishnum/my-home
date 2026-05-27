@@ -18,7 +18,7 @@ import { ExpensesForm } from "./forms/ExpensesForm";
 import { Column, CommonTable } from "./CommonTable";
 import TablePlusFiltersLayout from "./TablePlusFilters";
 import { useGlobalApiLoading } from "@/lib/hooks";
-import { X } from "lucide-react";
+import { ListFilter, X } from "lucide-react";
 import CategoriesModal from "./CategoriesModel";
 
 const initial = {
@@ -57,6 +57,7 @@ export default function Expenses() {
 
   // ✅ MOBILE DETECTION
   const [isMobile, setIsMobile] = useState(false);
+  const [openFilterModel, setOpenFilterModel] = useState(false);
   const isApiLoading = useGlobalApiLoading();
 
   useEffect(() => {
@@ -150,7 +151,6 @@ export default function Expenses() {
     setEditingId(row._id);
     setAddExpenseModel(true);
   };
-
   if (isApiLoading) return <Loader />;
 
   return (
@@ -175,13 +175,32 @@ export default function Expenses() {
         />
       )}
       {isMobile && (
-        <button
-          className="btn-primary"
-          onClick={() => setAddExpenseModel(true)}
-          disabled={isApiLoading}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginTop: 16,
+          }}
         >
-          Add Expense
-        </button>
+          <button
+            className="btn-primary"
+            onClick={() => setAddExpenseModel(true)}
+            disabled={isApiLoading}
+          >
+            Add Expense
+          </button>
+          <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} />
+          {Object.values(filters).some((v) => v !== "") && (
+            <button
+              className="btn-secondary"
+              onClick={() => setFilters({ ...emptyFilters })}
+              disabled={isApiLoading}
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
       )}
       {addExpenseModel && isMobile && (
         <div className="modal-overlay" onClick={handleFormModelClose}>
@@ -211,6 +230,38 @@ export default function Expenses() {
           </div>
         </div>
       )}
+      {openFilterModel && isMobile && (
+        <div
+          className="modal-overlay"
+          onClick={() => setOpenFilterModel(!openFilterModel)}
+        >
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Filter Expenses</h3>
+
+              <button
+                className="btn-danger"
+                onClick={() => setOpenFilterModel(!openFilterModel)}
+                disabled={isApiLoading}
+              >
+                <X />
+              </button>
+            </div>
+
+            <TableFilters
+              config={{
+                categories: cats,
+                showDateRange: true,
+                month: true,
+                year: true,
+              }}
+              filters={filters}
+              close={() => setOpenFilterModel(false)}
+              onChange={setFilters}
+            />
+          </div>
+        </div>
+      )}
       {!isMobile && (
         <ExpensesForm
           form={form}
@@ -226,16 +277,18 @@ export default function Expenses() {
         <TablePlusFiltersLayout
           isMobile={isMobile}
           filtersPanel={
-            <TableFilters
-              config={{
-                categories: cats,
-                showDateRange: true,
-                month: true,
-                year: true,
-              }}
-              filters={filters}
-              onChange={setFilters}
-            />
+            isMobile ? null : (
+              <TableFilters
+                config={{
+                  categories: cats,
+                  showDateRange: true,
+                  month: true,
+                  year: true,
+                }}
+                filters={filters}
+                onChange={setFilters}
+              />
+            )
           }
           tablePanel={
             <CommonTable

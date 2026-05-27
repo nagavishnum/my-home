@@ -53,6 +53,9 @@ export const ExpensesForm = ({
         onChange={(e) =>
           setForm((f) => ({ ...f, c: e.target.value }))
         }
+                onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}
       >
         <option value="">Category</option>
 

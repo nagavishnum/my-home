@@ -107,16 +107,7 @@ table td {
     padding: 10px;
   }
 }
-.page {
-  padding: 16px;
-}
 
-
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
 .finance-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -223,10 +214,6 @@ table {
 .container {
   margin: auto;
   padding: 24px;
-}
-
-.page-title {
-  margin-bottom: 24px;
 }
 
 .form {
@@ -338,7 +325,7 @@ tr:nth-child(even) {
 .tabs {
   display: flex;
   gap: 12px;
-  margin-bottom: 28px;
+  margin-bottom: 10px;
 }
 
 .tab {
@@ -510,7 +497,7 @@ tr:nth-child(even) {
 }
 
 .dash-filter-row select {
-  min-width: 140px;
+  min-width: 100px;
 }
 
 .dash-subtitle {

@@ -35,7 +35,7 @@ import {
   CommonTable,
 } from "./CommonTable";
 
-import { X } from "lucide-react";
+import { ListFilter, X } from "lucide-react";
 
 const initial = {
   t: "",
@@ -94,6 +94,8 @@ export default function Todos() {
 
   const [pageLoading, setPageLoading] =
     useState(true);
+          const [openFilterModel, setOpenFilterModel] = useState(false);
+
 
   const isApiLoading =
     useGlobalApiLoading();
@@ -335,8 +337,45 @@ useEffect(() => {
               {error}
             </p>
           )}
+      {openFilterModel && isMobile && (
+        <div
+          className="modal-overlay"
+          onClick={() => setOpenFilterModel(!openFilterModel)}
+        >
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Filter Todo</h3>
 
+              <button
+                className="btn-danger"
+                onClick={() => setOpenFilterModel(!openFilterModel)}
+                disabled={isApiLoading}
+              >
+                <X />
+              </button>
+            </div>
+    <TableFilters
+                    config={{
+                  showDateRange: true,
+                  month: true,
+                  year: true,
+                }}
+                filters={filters}
+                    close={() => setOpenFilterModel(false)}
+      onChange={setFilters}
+    />
+          </div>
+        </div>
+      )}
           {isMobile && (
+                                      <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
             <button
               className="btn-primary"
               onClick={() =>
@@ -346,7 +385,18 @@ useEffect(() => {
             >
               Add Todo
             </button>
+                                        <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} />
+          {Object.values(filters).some((v) => v !== "") && (
+            <button
+              className="btn-secondary"
+              onClick={() => setFilters({ ...emptyFilters })}
+              disabled={isApiLoading}
+            >
+              Clear Filters
+            </button>
           )}
+                  </div>
+                )}
 
           {addTodoModel &&
             isMobile && (
@@ -411,7 +461,8 @@ useEffect(() => {
 
           <TablePlusFiltersLayout
             isMobile={isMobile}
-            filtersPanel={
+            filtersPanel={            isMobile ? null : (
+
               <TableFilters
                 config={{
                   showDateRange: true,
@@ -420,7 +471,7 @@ useEffect(() => {
                 }}
                 filters={filters}
                 onChange={setFilters}
-              />
+              />)
             }
             tablePanel={
               <CommonTable

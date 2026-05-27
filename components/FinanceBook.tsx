@@ -28,7 +28,7 @@ import { FinanceForm } from './forms/FinanceForm';
 import { useGlobalApiLoading, useMediaQuery } from '@/lib/hooks';
 import TablePlusFiltersLayout from './TablePlusFilters';
 import { Column, CommonTable } from './CommonTable';
-import { X } from 'lucide-react';
+import { ListFilter, X } from 'lucide-react';
 import CategoriesModal from './CategoriesModel';
 
 const initial = {
@@ -119,6 +119,8 @@ export default function FinanceBook() {
     const [showCategories, setShowCategories] = useState(false);
 
     const [addFinanceModel, setAddFinanceModel] = useState(false);
+      const [openFilterModel, setOpenFilterModel] = useState(false);
+
     const isApiLoading = useGlobalApiLoading();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -304,9 +306,45 @@ const payload = {
         View Categories
       </button>
 {showCategories && <CategoriesModal type="finance" categories={cats} onCategoriesChange={setCats} reload={load} onClose={() => setShowCategories(false)} />}
+      {openFilterModel && isMobile && (
+        <div
+          className="modal-overlay"
+          onClick={() => setOpenFilterModel(!openFilterModel)}
+        >
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Filter Finances</h3>
 
+              <button
+                className="btn-danger"
+                onClick={() => setOpenFilterModel(!openFilterModel)}
+                disabled={isApiLoading}
+              >
+                <X />
+              </button>
+            </div>
+    <TableFilters
+      config={{
+        categories: cats,
+        types:["Monthly", "OneTime"],
+      }}
+      filters={filters}
+                    close={() => setOpenFilterModel(false)}
+      onChange={setFilters}
+    />
+          </div>
+        </div>
+      )}
 
                 {isMobile && (
+                          <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
                   <button
                     className="btn-primary"
                     onClick={() => setAddFinanceModel(true)}
@@ -314,6 +352,17 @@ const payload = {
                   >
                     Add Finance
                   </button>
+                            <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} />
+          {Object.values(filters).some((v) => v !== "") && (
+            <button
+              className="btn-secondary"
+              onClick={() => setFilters({ ...emptyFilters })}
+              disabled={isApiLoading}
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
                 )}
                 {addFinanceModel && isMobile && (
                   <div className="modal-overlay" onClick={handleFormModelClose}>
@@ -342,7 +391,8 @@ const payload = {
         <div className="table-wrapper">
 <TablePlusFiltersLayout
   isMobile={isMobile}
-  filtersPanel={
+  filtersPanel={            isMobile ? null : (
+
     <TableFilters
       config={{
         categories: cats,
@@ -350,7 +400,8 @@ const payload = {
       }}
       filters={filters}
       onChange={setFilters}
-    />
+    />            )
+
   }
   tablePanel={
     <CommonTable

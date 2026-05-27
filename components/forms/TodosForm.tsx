@@ -46,6 +46,9 @@ export const TodosForm = ({
         onChange={(e) =>
           setForm((f) => ({ ...f, p: e.target.value }))
         }
+                onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}
       >
         <option value="low">Low</option>
         <option value="medium">Medium</option>

@@ -21,10 +21,11 @@ export default function TablePlusFiltersLayout({
         gap: 20,
         marginTop: 20,
       }}
-    >
+    >{filtersPanel && (
       <div className="table-filters-sidebar">
         {filtersPanel}
       </div>
+    )}
 
       <div style={{ flex: 1 }}>
         {tablePanel}
