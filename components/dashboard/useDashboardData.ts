@@ -1,121 +1,349 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { api } from '@/lib/api';
+
 import {
-  Expense,
   Finance,
   Todo,
   Goal,
-  PaginatedResponse
+  PaginatedResponse,
+  DashboardExpenseResponse
 } from '@/lib/types';
+
 import {
   ALLOWED_FINANCE_CATEGORIES
 } from '@/lib/constants';
 
 export function useDashboardData() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [finance, setFinance] = useState<Finance[]>([]);
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const currentDate =
+    new Date();
+
+  const initialYear =
+    currentDate.getFullYear();
+
+  const initialMonth =
+    currentDate.getMonth() + 1;
+
+  // -----------------------------------
+  // FILTER STATE
+  // -----------------------------------
+
+  const [selectedYear,
+    setSelectedYear] =
+    useState(initialYear);
+
+  const [selectedMonth,
+    setSelectedMonth] =
+    useState(initialMonth);
+
+  // -----------------------------------
+  // DATA STATE
+  // -----------------------------------
+
+  const [expensesSummaryData,
+    setExpensesSummaryData] =
+    useState<DashboardExpenseResponse | null>(
+      null
+    );
+
+  const [finance, setFinance] =
+    useState<Finance[]>([]);
+
+  const [todos, setTodos] =
+    useState<Todo[]>([]);
+
+  const [goals, setGoals] =
+    useState<Goal[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  // -----------------------------------
+  // ONLY EXPENSE DASHBOARD API
+  // -----------------------------------
+
+  const fetchExpenseDashboard =
+    async (
+      year: number,
+      month: number
+    ) => {
+
+      try {
+
+        const response =
+          await api.get<DashboardExpenseResponse>(
+
+            `/expenses/dashboard?year=${year}&month=${month}`
+          );
+
+        setExpensesSummaryData(
+          response.data
+        );
+
+      } catch (err) {
+
+        console.error(err);
+      }
+    };
+
+  // -----------------------------------
+  // INITIAL DASHBOARD LOAD
+  // -----------------------------------
 
   useEffect(() => {
-    Promise.all([
-      api.get<PaginatedResponse<Expense>>('/expenses?limit=200'),
-      api.get<PaginatedResponse<Finance>>('/finance?limit=200'),
-      api.get<PaginatedResponse<Todo>>('/todos?limit=200'),
-      api.get<PaginatedResponse<Goal>>('/goal?limit=200'),
-    ])
-      .then(([e, f, t, g]) => {
-        setExpenses(e.data.data);
-        setFinance(f.data.data);
-        setTodos(t.data.data);
-        setGoals(g.data.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+
+    const loadDashboard =
+      async () => {
+
+        try {
+
+          setLoading(true);
+
+          const [
+            expenseResponse,
+            financeResponse,
+            todoResponse,
+            goalResponse
+          ] = await Promise.all([
+
+            api.get<DashboardExpenseResponse>(
+
+              `/expenses/dashboard?year=${initialYear}&month=${initialMonth}`
+            ),
+
+            api.get<PaginatedResponse<Finance>>(
+
+              '/finance?limit=200'
+            ),
+
+            api.get<PaginatedResponse<Todo>>(
+
+              '/todos?limit=200'
+            ),
+
+            api.get<PaginatedResponse<Goal>>(
+
+              '/goal?limit=200'
+            ),
+
+          ]);
+
+          setExpensesSummaryData(
+            expenseResponse.data
+          );
+
+          setFinance(
+            financeResponse.data.data
+          );
+
+          setTodos(
+            todoResponse.data.data
+          );
+
+          setGoals(
+            goalResponse.data.data
+          );
+
+        } catch (err) {
+
+          console.error(err);
+
+        } finally {
+
+          setLoading(false);
+        }
+      };
+
+    loadDashboard();
+
   }, []);
 
-  const validFinance = finance.filter(
-    (f) => ALLOWED_FINANCE_CATEGORIES.includes(f.c?.n || '')
-  );
+  // -----------------------------------
+  // APPLY FILTER
+  // ONLY EXPENSE API CALL
+  // -----------------------------------
 
-  const totalInvested = validFinance.reduce((s, f) => s + (Number(f.a) || 0), 0);
-  const totalCurrentValue = validFinance.reduce((s, f) => s + (Number(f.cv) || 0), 0);
-  const totalMonthlySip = validFinance.reduce((s, f) => s + (Number(f.sv) || 0), 0);
+  const onApplyFilter = async (
+    year: number,
+    month: number
+  ) => {
 
-  const financeCategoryMap: Record<string, any> = {};
+    setSelectedYear(year);
+
+    setSelectedMonth(month);
+
+    await fetchExpenseDashboard(
+      year,
+      month
+    );
+  };
+
+  // -----------------------------------
+  // FINANCE
+  // -----------------------------------
+
+  const validFinance =
+    finance.filter(
+
+      (f) =>
+
+        ALLOWED_FINANCE_CATEGORIES
+        .includes(
+          f.c?.n || ''
+        )
+    );
+
+  const totalInvested =
+    validFinance.reduce(
+
+      (s, f) =>
+
+        s + (
+          Number(f.a) || 0
+        ),
+
+      0
+    );
+
+  const totalCurrentValue =
+    validFinance.reduce(
+
+      (s, f) =>
+
+        s + (
+          Number(f.cv) || 0
+        ),
+
+      0
+    );
+
+  const totalMonthlySip =
+    validFinance.reduce(
+
+      (s, f) =>
+
+        s + (
+          Number(f.sv) || 0
+        ),
+
+      0
+    );
+
+  const financeCategoryMap:
+    Record<string, any> = {};
 
   validFinance.forEach((f) => {
-    const name = f.c?.n || 'Other';
 
-    const invested = Number(f.a) || 0;
-    const current = Number(f.cv) || 0;
-    const profit = current - invested;
+    const name =
+      f.c?.n || 'Other';
+
+    const invested =
+      Number(f.a) || 0;
+
+    const current =
+      Number(f.cv) || 0;
+
+    const profit =
+      current - invested;
 
     if (!financeCategoryMap[name]) {
-      financeCategoryMap[name] = { invested: 0, current: 0, profit: 0 };
+
+      financeCategoryMap[name] = {
+
+        invested: 0,
+
+        current: 0,
+
+        profit: 0
+      };
     }
 
-    financeCategoryMap[name].invested += invested;
-    financeCategoryMap[name].current += current;
-    financeCategoryMap[name].profit += profit;
+    financeCategoryMap[name]
+      .invested += invested;
+
+    financeCategoryMap[name]
+      .current += current;
+
+    financeCategoryMap[name]
+      .profit += profit;
   });
 
-  const financePerformance = Object.entries(financeCategoryMap).map(
-    ([name, val]: any) => ({
-      name,
-      invested: val.invested,
-      current: val.current,
-      profit: val.profit,
-    })
-  );
+  const financePerformance =
+    Object.entries(
+      financeCategoryMap
+    ).map(
 
-  const now = new Date();
+      ([name, val]: any) => ({
 
-const totalExpenses = (expenses ?? []).reduce(
-  (s, e) => s + (Number(e.a) || 0),
-  0
-);
+        name,
 
-const todayStr = now.toISOString().split('T')[0];
+        invested:
+          val.invested,
 
-const todayExpenses = (expenses ?? [])
-  .filter((e) => e.d?.startsWith(todayStr))
-  .reduce((s, e) => s + (Number(e.a) || 0), 0);
+        current:
+          val.current,
 
-const thisMonthExpenses = (expenses ?? [])
-  .filter((e) => {
-    if (!e.d) return false;
-    const d = new Date(e.d);
-    return (
-      d.getMonth() === now.getMonth() &&
-      d.getFullYear() === now.getFullYear()
+        profit:
+          val.profit,
+      })
     );
-  })
-  .reduce((s, e) => s + (Number(e.a) || 0), 0);
 
-const totalTodos = (todos ?? []).length;
+  // -----------------------------------
+  // EXPENSES
+  // -----------------------------------
 
-return {
-  expenses,
-  finance,
-  todos,
-  goals,
-  loading,
+  const totalExpenses =
+    expensesSummaryData
+      ?.totalExpenseValue || 0;
 
-  validFinance,
-  financePerformance,
+  const thisMonthExpenses =
+    expensesSummaryData
+      ?.selectedMonthExpenseValue || 0;
 
-  totalInvested,
-  totalCurrentValue,
-  totalMonthlySip,
+  const expenseCategoryTotals =
+    expensesSummaryData
+      ?.categoryTotals || [];
 
-  // ✅ ADD THIS (FIX)
-  totalExpenses,
-  todayExpenses,
-  thisMonthExpenses,
-  totalTodos,
-};  
+  // -----------------------------------
+  // TODOS
+  // -----------------------------------
+
+  const totalTodos =
+    (todos ?? []).length;
+
+  return {
+
+    // filters
+    selectedYear,
+    selectedMonth,
+
+    // expenses
+    expensesSummaryData,
+    totalExpenses,
+    thisMonthExpenses,
+    expenseCategoryTotals,
+
+    // finance
+    finance,
+    validFinance,
+    financePerformance,
+
+    totalInvested,
+    totalCurrentValue,
+    totalMonthlySip,
+
+    // todos/goals
+    todos,
+    goals,
+    totalTodos,
+
+    // loading
+    loading,
+
+    // actions
+    onApplyFilter,
+  };
 }

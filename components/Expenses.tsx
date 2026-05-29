@@ -151,11 +151,33 @@ export default function Expenses() {
     setEditingId(row._id);
     setAddExpenseModel(true);
   };
+
+  const handleCompressExpenses = async () => {
+    if (!confirm("Are you sure you want to compress expenses? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await api.post("/expenses/compress");
+      await load();
+    } catch {
+      alert("Failed to compress expenses");
+    }
+  };
   if (isApiLoading) return <Loader />;
 
   return (
     <div className="page">
       {error && <p className="error">{error}</p>}
+              <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
       <button
         className="btn-primary"
         onClick={() => setShowCategories(true)}
@@ -164,7 +186,14 @@ export default function Expenses() {
       >
         View Categories
       </button>
-
+                <button
+            className="btn-primary"
+            onClick={handleCompressExpenses}
+            disabled={isApiLoading}
+          >
+            Compress Expenses
+          </button>
+</div>
       {showCategories && (
         <CategoriesModal
           type="expense"
@@ -179,6 +208,7 @@ export default function Expenses() {
           style={{
             display: "flex",
             alignItems: "center",
+                        justifyContent: "space-between",
             gap: 10,
             marginTop: 16,
           }}
@@ -237,7 +267,6 @@ export default function Expenses() {
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Filter Expenses</h3>
 
               <button
                 className="btn-danger"

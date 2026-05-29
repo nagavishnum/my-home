@@ -5,7 +5,6 @@ import { scrollToView } from "@/lib/helpers";
 export default function MetricsSection({
   totalExpenses,
   thisMonthExpenses,
-  todayExpenses,
   totalInvested,
   totalCurrentValue,
   totalMonthlySip,
@@ -14,18 +13,13 @@ export default function MetricsSection({
   return (
     <div className="metrics-grid">
       <div className="metric-card" onClick={()=> scrollToView('expenses-section')}>
-        <div className="metric-label">Total Expenses</div>
+        <div className="metric-label">Expenses wrt Year</div>
         <div className="metric-value">₹{totalExpenses}</div>
       </div>
 
       <div className="metric-card" onClick={()=> scrollToView('expenses-section')}>
-        <div className="metric-label">This Month Expenses</div>
+        <div className="metric-label">Expenses wrt Month</div>
         <div className="metric-value">₹{thisMonthExpenses}</div>
-      </div>
-
-      <div className="metric-card highlight-card" onClick={()=> scrollToView('expenses-section')}>
-        <div className="metric-label">Today Expenses</div>
-        <div className="metric-value">₹{todayExpenses}</div>
       </div>
 
       <div className="metric-card" onClick={()=> scrollToView('finance-section')}>

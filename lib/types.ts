@@ -44,6 +44,17 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+export type DashboardExpenseResponse = {
+  totalExpenseValue: number;
+  selectedMonthExpenseValue: number;
+
+  categoryTotals: {
+    categoryId: string;
+    categoryName: string;
+    amount: number;
+  }[];
+};
+
 
 export type Goal = {
   _id: string;

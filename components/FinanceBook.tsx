@@ -313,8 +313,6 @@ const payload = {
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Filter Finances</h3>
-
               <button
                 className="btn-danger"
                 onClick={() => setOpenFilterModel(!openFilterModel)}
@@ -341,6 +339,7 @@ const payload = {
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             gap: 10,
             marginTop: 16,
           }}

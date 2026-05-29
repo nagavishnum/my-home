@@ -344,7 +344,6 @@ useEffect(() => {
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Filter Todo</h3>
 
               <button
                 className="btn-danger"
@@ -372,6 +371,8 @@ useEffect(() => {
           style={{
             display: "flex",
             alignItems: "center",
+                        justifyContent: "space-between",
+
             gap: 10,
             marginTop: 16,
           }}

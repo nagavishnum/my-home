@@ -1,174 +1,400 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+} from 'react';
+
 import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from 'recharts';
 
-import { MONTHS, CHART_COLORS } from '@/lib/constants';
+import {
+  MONTHS,
+  CHART_COLORS,
+} from '@/lib/constants';
+
 import { useGlobalApiLoading } from '@/lib/hooks';
 
-type AppliedExp = {
-  month: string;
-  year: string;
+type ExpenseCategoryTotal = {
+  categoryId: string;
+  categoryName: string;
+  amount: number;
+};
+
+type ExpensesSummaryData = {
+  totalExpenseValue: number;
+  selectedMonthExpenseValue: number;
+  categoryTotals: ExpenseCategoryTotal[];
 };
 
 type Props = {
-  expenses: any[];
+  expensesSummaryData: ExpensesSummaryData | null;
+
+  onApplyFilter?: (
+    year: number,
+    month: number
+  ) => void;
 };
 
-const initialAppliedExp: AppliedExp = {
-  month: String(new Date().getMonth()),
-  year: String(new Date().getFullYear()),
-};
+const initialMonth =
+  String(new Date().getMonth() + 1);
 
-export default function ExpensesSection({ expenses }: Props) {
-  const [expMonth, setExpMonth] = useState(String(new Date().getMonth()));
-  const [expYear, setExpYear] = useState(String(new Date().getFullYear()));
+const initialYear =
+  String(new Date().getFullYear());
 
-  const [appliedExp, setAppliedExp] = useState<AppliedExp>(initialAppliedExp);
-      const isApiLoading = useGlobalApiLoading();
-  
-  const filteredExpenses = useMemo(() => {
-    return expenses.filter((e) => {
-      if (!e.d) return false;
-      const d = new Date(e.d);
+export default function ExpensesSection({
+  expensesSummaryData,
+  onApplyFilter,
+}: Props) {
 
-      return (
-        d.getMonth() === Number(appliedExp.month) &&
-        d.getFullYear() === Number(appliedExp.year)
+  const [expMonth, setExpMonth] =
+    useState(initialMonth);
+
+  const [expYear, setExpYear] =
+    useState(initialYear);
+
+  const [windowWidth,
+    setWindowWidth] =
+    useState(1200);
+
+  const isApiLoading =
+    useGlobalApiLoading();
+
+  // -----------------------------------
+  // WINDOW WIDTH
+  // -----------------------------------
+
+  useEffect(() => {
+
+    const updateWidth = () => {
+      setWindowWidth(
+        window.innerWidth
       );
-    });
-  }, [expenses, appliedExp]);
+    };
 
-  const filteredExpTotal = useMemo(() => {
-    return filteredExpenses.reduce((s, e) => s + (Number(e.a) || 0), 0);
-  }, [filteredExpenses]);
+    updateWidth();
 
-  const catMap: Record<string, number> = {};
+    window.addEventListener(
+      'resize',
+      updateWidth
+    );
 
-  filteredExpenses.forEach((e) => {
-    const name = e.c?.n || 'Uncategorized';
-    catMap[name] = (catMap[name] || 0) + Number(e.a || 0);
-  });
+    return () => {
 
-  const expByCat = Object.entries(catMap).map(([name, value]) => ({
-    name,
-    value,
-  }));
+      window.removeEventListener(
+        'resize',
+        updateWidth
+      );
+    };
 
-  // 🔥 SAFE GUARDS (this fixes your crash permanently)
-  const safeMonth =
-    appliedExp?.month !== undefined && appliedExp?.month !== null
-      ? appliedExp.month
-      : String(new Date().getMonth());
+  }, []);
 
-  const safeYear =
-    appliedExp?.year !== undefined && appliedExp?.year !== null
-      ? appliedExp.year
-      : String(new Date().getFullYear());
+
+
+  const isMobile =
+    windowWidth < 740;
+
+  const isTablet =
+    windowWidth >= 640 &&
+    windowWidth < 1024;
+
+  const chartSize =
+    isMobile
+      ? 260
+      : isTablet
+      ? 360
+      : 520;
+
+  const outerRadius =
+    isMobile
+      ? 70
+      : isTablet
+      ? 110
+      : 170;
+
+  const innerRadius =
+    isMobile
+      ? 35
+      : isTablet
+      ? 60
+      : 80;
+
+  const labelFontSize =
+    isMobile
+      ? 9
+      : isTablet
+      ? 11
+      : 13;
+
+  const legendFontSize =
+    isMobile
+      ? 10
+      : isTablet
+      ? 12
+      : 14;
+
+  const titleFontSize =
+    isMobile
+      ? '16px'
+      : '20px';
+  const expByCat = useMemo(() =>
+    expensesSummaryData
+      ?.categoryTotals
+      ?.map(item => ({
+
+        name:
+          item.categoryName,
+
+        value:
+          item.amount,
+      })) || []
+  , [expensesSummaryData]);
+
+
+
+  const sortedData =
+    useMemo(() => {
+
+      return [...expByCat]
+        .sort(
+          (a, b) =>
+            b.value - a.value
+        );
+
+    }, [expByCat]);
+
+
+
+  const handleApply = () => {
+
+    onApplyFilter?.(
+      Number(expYear),
+      Number(expMonth)
+    );
+  };
 
   return (
-    <div className="dash-section" id="expenses-section">
-      <h3>📊 Expenses</h3>
+
+    <div
+      className="dash-section"
+      id="expenses-section"
+    >
+
+      {/* TITLE */}
+
+      <h3
+        style={{
+          fontSize: titleFontSize
+        }}
+      >
+        📊 Expenses
+      </h3>
+
+      {/* FILTERS */}
 
       <div className="dash-filter-row">
-        <select value={expMonth} onChange={(e) => setExpMonth(e.target.value)}>
+
+        <select
+          value={expMonth}
+          onChange={(e) =>
+            setExpMonth(
+              e.target.value
+            )
+          }
+        >
+
           {MONTHS.map((m, i) => (
-            <option key={m} value={String(i)}>
+
+            <option
+              key={m}
+              value={String(i + 1)}
+            >
               {m}
             </option>
           ))}
+
         </select>
 
-        <select value={expYear} onChange={(e) => setExpYear(e.target.value)}>
-          {Array.from({ length: 5 }).map((_, i) => {
-            const y = new Date().getFullYear() - i;
+        <select
+          value={expYear}
+          onChange={(e) =>
+            setExpYear(
+              e.target.value
+            )
+          }
+        >
+
+          {Array.from({
+            length: 5
+          }).map((_, i) => {
+
+            const y =
+              new Date()
+              .getFullYear() - i;
+
             return (
-              <option key={y} value={String(y)}>
+
+              <option
+                key={y}
+                value={String(y)}
+              >
                 {y}
               </option>
             );
           })}
+
         </select>
 
         <button
           className="btn-primary"
-          onClick={() =>
-            setAppliedExp({
-              month: expMonth,
-              year: expYear,
-            })
-          }
+          onClick={handleApply}
           disabled={isApiLoading}
         >
           Apply
         </button>
-      </div>
 
-      {/* ✅ FIXED LINE (NO CRASH EVER) */}
-      <p className="dash-subtitle">
-        Spending in {MONTHS[Number(safeMonth)]} {safeYear}:{' '}
-        <strong>₹{filteredExpTotal.toLocaleString()}</strong>
-      </p>
+      </div>
 
       <div className="charts-row">
-        <div className="chart-card">
-          <h4>Category-wise Spending</h4>
 
-          {expByCat.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={expByCat}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label={({ name, percent }) =>
-                    `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                  }
-                >
-                  {expByCat.map((_, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
+        <div className="chart-card large-chart">
 
-                <Tooltip formatter={(v) => `₹${Number(v).toLocaleString()}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="no-data">No expenses this period</p>
-          )}
-        </div>
+          <h4
+            style={{
+              fontSize:
+                isMobile
+                  ? '14px'
+                  : '18px'
+            }}
+          >
+            Category-wise Spending
+          </h4>
 
-        <div className="chart-card">
-          <h4>Daily Trend</h4>
+          {sortedData.length > 0 ? (
 
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart
-              data={filteredExpenses.map((e) => ({
-                day: new Date(e.d).getDate(),
-                amount: Number(e.a),
-              }))}
+            <div
+              style={{
+                width: '100%',
+                overflowX: 'auto',
+              }}
             >
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip formatter={(v) => `₹${Number(v).toLocaleString()}`} />
-              <Bar dataKey="amount" fill="#e74c3c" />
-            </BarChart>
-          </ResponsiveContainer>
+
+              <ResponsiveContainer
+                width="100%"
+                height={chartSize}
+              >
+
+                <PieChart>
+
+                  <Pie
+                    data={sortedData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={outerRadius}
+                    innerRadius={innerRadius}
+                    paddingAngle={2}
+                    labelLine={false}
+
+                    label={({
+                      name,
+                      percent
+                    }) =>
+
+                      isMobile
+
+                        ? `${(
+                            (percent || 0) * 100
+                          ).toFixed(0)}%`
+
+                        : `${name} ${(
+                            (percent || 0) * 100
+                          ).toFixed(0)}%`
+                    }
+
+                    style={{
+                      fontSize:
+                        labelFontSize
+                    }}
+                  >
+
+                    {sortedData.map(
+                      (_, i) => (
+
+                      <Cell
+                        key={i}
+                        fill={
+                          CHART_COLORS[
+                            i %
+                            CHART_COLORS.length
+                          ]
+                        }
+                      />
+                    ))}
+
+                  </Pie>
+
+                  <Tooltip
+                    formatter={(v) => [
+
+                      `₹${Number(v)
+                        .toLocaleString()}`,
+
+                      'Amount'
+                    ]}
+                  />
+
+                  <Legend
+                    wrapperStyle={{
+                      fontSize:
+                        legendFontSize,
+
+                      paddingTop: 20,
+                    }}
+
+                    formatter={(value) => (
+
+                      <span
+                        style={{
+                          fontSize:
+                            legendFontSize,
+
+                          wordBreak:
+                            'break-word',
+                        }}
+                      >
+                        {value}
+                      </span>
+                    )}
+                  />
+
+                </PieChart>
+
+              </ResponsiveContainer>
+
+            </div>
+
+          ) : (
+
+            <p className="no-data">
+
+              No expenses found
+
+            </p>
+          )}
+
         </div>
+
       </div>
+
     </div>
   );
 }

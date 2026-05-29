@@ -53,21 +53,6 @@ return (
     <h3>📈 Finance Performance</h3>
 
     <div className="finance-grid">
-<div className="chart-card finance-overview">
-  <h4>📊 Finance Overview</h4>
-
-  <ResponsiveContainer width="100%" height={320}>
-    <BarChart data={financePerformance}>
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-
-      <Bar dataKey="invested" fill="#3b82f6" />
-      <Bar dataKey="current" fill="#10b981" />
-      <Bar dataKey="profit" fill="#f59e0b" />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
       {/* PROFIT */}
       <div className="chart-card">
         <h4>📈 Profit Categories</h4>
