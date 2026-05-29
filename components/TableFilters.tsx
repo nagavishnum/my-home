@@ -91,7 +91,6 @@ export default function TableFilters({
 
   return (
     <div className="filters-panel">
-      <h4 style={{ marginBottom: 10 }}>Filters</h4>
 
       {config.categories && (
         <div className="filter-group">

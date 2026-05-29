@@ -5,7 +5,7 @@ export const MONTHS = [
 
 export const CURRENT_YEAR = new Date().getFullYear();
 
-export const YEARS = Array.from({ length: 10 }, (_, i) => String(CURRENT_YEAR - i));
+export const YEARS = Array.from({ length: CURRENT_YEAR - 2026 + 1 }, (_, i) => String(CURRENT_YEAR - i));
 
 export const PRIORITY_COLORS: Record<string, string> = {
   low: '#22c55e',

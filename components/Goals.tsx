@@ -304,7 +304,11 @@ export default function Goals() {
     filters,
     'td'
   );
-
+  const onCancelEdit = () => {
+    setEditingId(null);
+    setForm(initial);
+    setAddGoalModel(false);
+  }
   if (pageLoading) {
     return <Loader />;
   }
@@ -324,7 +328,7 @@ export default function Goals() {
       )}
 
       <button
-        className="btn-primary"
+        className="btn-view"
         onClick={() =>
           setShowCategories(true)
         }
@@ -346,7 +350,7 @@ export default function Goals() {
           }}
         >
         <button
-          className="btn-primary"
+          className="btn-add"
           onClick={() =>
             setAddGoalModel(true)
           }
@@ -373,16 +377,7 @@ export default function Goals() {
           onClick={() => setOpenFilterModel(!openFilterModel)}
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-
-              <button
-                className="btn-danger"
-                onClick={() => setOpenFilterModel(!openFilterModel)}
-                disabled={isApiLoading}
-              >
-                <X />
-              </button>
-            </div>
+    
     <TableFilters
               config={{
                 categories: cats,
@@ -417,17 +412,7 @@ export default function Goals() {
                   : 'Add Goal'}
               </h3>
 
-              <button
-                className="btn-danger"
-                onClick={
-                  handleFormModelClose
-                }
-                disabled={
-                  isApiLoading
-                }
-              >
-                <X />
-              </button>
+  
             </div>
 
             <GoalsForm
@@ -441,9 +426,7 @@ export default function Goals() {
               editingId={
                 editingId
               }
-              setEditingId={setEditingId}
-              setForm={setForm}
-              initial={initial}
+              onCancelEdit={onCancelEdit}
             />
           </div>
         </div>
@@ -459,10 +442,7 @@ export default function Goals() {
           isFinance={isFinance}
           submit={submit}
           editingId={editingId}
-          setEditingId={setEditingId}
-          setForm={setForm}
-          initial={initial}
-        />
+onCancelEdit={onCancelEdit}        />
       )}
 
       <div className="table-wrapper">

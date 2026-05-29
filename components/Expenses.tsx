@@ -164,6 +164,11 @@ export default function Expenses() {
       alert("Failed to compress expenses");
     }
   };
+  const onCancelEdit = () => {
+    setEditingId(null);
+    setForm(initial);
+    setAddExpenseModel(false);
+  }
   if (isApiLoading) return <Loader />;
 
   return (
@@ -179,7 +184,7 @@ export default function Expenses() {
           }}
         >
       <button
-        className="btn-primary"
+        className="btn-view"
         onClick={() => setShowCategories(true)}
         style={{ marginRight: 8 }}
         disabled={isApiLoading}
@@ -187,7 +192,7 @@ export default function Expenses() {
         View Categories
       </button>
                 <button
-            className="btn-primary"
+            className="btn-compress"
             onClick={handleCompressExpenses}
             disabled={isApiLoading}
           >
@@ -214,7 +219,7 @@ export default function Expenses() {
           }}
         >
           <button
-            className="btn-primary"
+            className="btn-add"
             onClick={() => setAddExpenseModel(true)}
             disabled={isApiLoading}
           >
@@ -239,13 +244,6 @@ export default function Expenses() {
             <div className="modal-header">
               <h3>{editingId ? "Edit Expense" : "Add Expense"}</h3>
 
-              <button
-                className="btn-danger"
-                onClick={handleFormModelClose}
-                disabled={isApiLoading}
-              >
-                <X />
-              </button>
             </div>
 
             <ExpensesForm
@@ -253,9 +251,8 @@ export default function Expenses() {
               setForm={setForm}
               submit={submit}
               cats={cats}
-              setEditingId={setEditingId}
-              initial={initial}
               editingId={editingId}
+              onCancelEdit={onCancelEdit}
             />
           </div>
         </div>
@@ -266,16 +263,7 @@ export default function Expenses() {
           onClick={() => setOpenFilterModel(!openFilterModel)}
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-
-              <button
-                className="btn-danger"
-                onClick={() => setOpenFilterModel(!openFilterModel)}
-                disabled={isApiLoading}
-              >
-                <X />
-              </button>
-            </div>
+     
 
             <TableFilters
               config={{
@@ -297,9 +285,8 @@ export default function Expenses() {
           setForm={setForm}
           submit={submit}
           cats={cats}
-          setEditingId={setEditingId}
-          initial={initial}
           editingId={editingId}
+          onCancelEdit={onCancelEdit}
         />
       )}
       <div className="table-wrapper">

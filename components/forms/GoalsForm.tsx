@@ -22,9 +22,7 @@ type Props = {
   isFinance: boolean;
   submit: () => void;
   editingId: string | null;
-  setEditingId: (id: string | null) => void;
-  setForm: React.Dispatch<React.SetStateAction<GoalsFormState>>;
-  initial: GoalsFormState;
+onCancelEdit: () => void;
 };
 
 export const GoalsForm = ({
@@ -34,14 +32,9 @@ export const GoalsForm = ({
   isFinance,
   submit,
   editingId,
-  setEditingId,
-  setForm,
-  initial
+  onCancelEdit
 }: Props) => {
-    const handleCancelEdit = () => {
-    setEditingId(null);
-    setForm(initial);
-  };
+
   const isApiLoading = useGlobalApiLoading();
   return (
     <div className="form">
@@ -112,13 +105,13 @@ export const GoalsForm = ({
         </>
       )}
 
-      <button className="btn-primary" onClick={submit} disabled={isApiLoading}>
+      <button className={editingId? "btn-edit":"btn-add"} onClick={submit} disabled={isApiLoading}>
         {editingId ? "Update" : "Save"}
       </button>
                         {editingId && (
         <button
           className="btn-secondary"
-          onClick={handleCancelEdit}
+          onClick={onCancelEdit}
           disabled={isApiLoading}
         >
           Cancel

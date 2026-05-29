@@ -1,6 +1,7 @@
 'use client';
 
 import { useGlobalApiLoading } from "@/lib/hooks";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import React from "react";
 
 type TodosFormState = {
@@ -14,8 +15,7 @@ type Props = {
   setForm: React.Dispatch<React.SetStateAction<TodosFormState>>;
   submit: () => void;
   editingId: string | null;
-  setEditingId: (id: string | null) => void;
-  initial: TodosFormState;
+ onCancelEdit: () => void;
 };
 
 export const TodosForm = ({
@@ -23,13 +23,24 @@ export const TodosForm = ({
   setForm,
   submit,
   editingId,
-  setEditingId,
-  initial,
+onCancelEdit
 }: Props) => {
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setForm(initial);
-  };
+ const changeDate = (type: 'prev' | 'next') => {
+  const today = new Date();
+
+  if (type === 'prev') {
+    today.setDate(today.getDate() - 1); // yesterday
+  } else {
+    today.setDate(today.getDate() + 1); // tomorrow
+  }
+
+  const formattedDate = today.toISOString().split('T')[0];
+
+  setForm((prev) => ({
+    ...prev,
+    da: formattedDate,
+  }));
+};
   const isApiLoading = useGlobalApiLoading();
   return (
     <div className="form">
@@ -55,22 +66,25 @@ export const TodosForm = ({
         <option value="high">High</option>
         <option value="mandatory">Mandatory</option>
       </select>
+<ArrowLeftIcon onClick={() => changeDate('prev')} />
 
-      <input
-        type="date"
-        value={form.da}
-        onChange={(e) =>
-          setForm((f) => ({ ...f, da: e.target.value }))
-        }
-      />
+<input
+  type="date"
+  value={form.da}
+  onChange={(e) =>
+    setForm((f) => ({ ...f, da: e.target.value }))
+  }
+/>
 
-      <button className="btn-primary" onClick={submit} disabled={isApiLoading}>
+<ArrowRightIcon onClick={() => changeDate('next')} />
+
+      <button className={editingId? "btn-edit":"btn-add"} onClick={submit} disabled={isApiLoading}>
         {editingId ? "Update" : "Save"}
       </button>
                   {editingId && (
         <button
           className="btn-secondary"
-          onClick={handleCancelEdit}
+          onClick={onCancelEdit}
           disabled={isApiLoading}
         >
           Cancel

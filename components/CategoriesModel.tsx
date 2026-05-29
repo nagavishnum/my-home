@@ -32,17 +32,6 @@ export default function CategoriesModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
-        <div className="modal-header">
-          <h3>Categories</h3>
-
-          <button
-            className="btn-danger"
-            onClick={onClose}
-            disabled={isApiLoading}
-          >
-            <X />
-          </button>
-        </div>
 
         {/* BODY */}
         <Categories

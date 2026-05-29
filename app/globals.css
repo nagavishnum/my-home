@@ -376,6 +376,75 @@ tr:nth-child(even) {
   align-items: center;
   justify-content: center;
 }
+.btn-compress {
+  background: #7c3aed;
+  color: white;
+  border: 1px solid #7c3aed;
+}
+
+.btn-compress:hover {
+  background: #6d28d9;
+}
+/* ADD BUTTON */
+/* Add Goals / Add Expense / Open Modal */
+.btn-add {
+  background: #10b981;
+  color: white;
+  border: 1px solid #10b981;
+}
+
+.btn-add:hover {
+  background: #059669;
+}
+
+.btn-add:active {
+  background: #047857;
+}
+/* EDIT BUTTON */
+/* Edit / Modify */
+.btn-edit {
+  background: #f59e0b;
+  color: white;
+  border: 1px solid #f59e0b;
+}
+
+.btn-edit:hover {
+  background: #d97706;
+}
+
+.btn-edit:active {
+  background: #b45309;
+}
+/* DELETE BUTTON */
+/* Delete / Remove */
+.btn-delete {
+  background: #dc2626;
+  color: white;
+  border: 1px solid #dc2626;
+}
+
+.btn-delete:hover {
+  background: #b91c1c;
+}
+
+.btn-delete:active {
+  background: #991b1b;
+}
+/* VIEW BUTTON */
+/* View / Details / Preview */
+.btn-view {
+  background: #0ea5e9;
+  color: white;
+  border: 1px solid #0ea5e9;
+}
+
+.btn-view:hover {
+  background: #0284c7;
+}
+
+.btn-view:active {
+  background: #0369a1;
+}
 
 .table-with-filters {
   display: flex;

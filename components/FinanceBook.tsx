@@ -289,7 +289,11 @@ const payload = {
     setEditingId(row._id);
     setAddFinanceModel(true);
   }
-
+  const onCancelEdit = () => {
+    setEditingId(null);
+    setForm(initial);
+    setAddFinanceModel(false);
+  }
   if (isApiLoading) return <Loader />;
 
   return (
@@ -298,7 +302,7 @@ const payload = {
         <p className='error'>{error}</p>
       )}
             <button
-        className="btn-primary"
+        className="btn-view"
         onClick={() => setShowCategories(true)}
         style={{marginRight: 8}}
         disabled={isApiLoading}
@@ -312,15 +316,7 @@ const payload = {
           onClick={() => setOpenFilterModel(!openFilterModel)}
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <button
-                className="btn-danger"
-                onClick={() => setOpenFilterModel(!openFilterModel)}
-                disabled={isApiLoading}
-              >
-                <X />
-              </button>
-            </div>
+    
     <TableFilters
       config={{
         categories: cats,
@@ -345,7 +341,7 @@ const payload = {
           }}
         >
                   <button
-                    className="btn-primary"
+                    className="btn-add"
                     onClick={() => setAddFinanceModel(true)}
                     disabled={isApiLoading}
                   >
@@ -382,11 +378,11 @@ const payload = {
                         </button>
                       </div>
       
-<FinanceForm form={form} setForm={setForm} submit={submit} cats={cats} editingId={editingId} setEditingId={setEditingId} set={set} initial={initial} />
+<FinanceForm form={form} submit={submit} cats={cats} editingId={editingId} set={set} onCancelEdit={onCancelEdit}/>
                     </div>
                   </div>
                 )}
-{!isMobile && <FinanceForm form={form} setForm={setForm} submit={submit} cats={cats} editingId={editingId} setEditingId={setEditingId} set={set} initial={initial} />}
+{!isMobile && <FinanceForm form={form}submit={submit} cats={cats} editingId={editingId}  set={set} onCancelEdit={onCancelEdit}/>}
         <div className="table-wrapper">
 <TablePlusFiltersLayout
   isMobile={isMobile}

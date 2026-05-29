@@ -35,7 +35,7 @@ import {
   CommonTable,
 } from "./CommonTable";
 
-import { ListFilter, X } from "lucide-react";
+import { AlertTriangle, CircleAlert, ListFilter, MinusCircle, ShieldAlert, X } from "lucide-react";
 
 const initial = {
   t: "",
@@ -43,6 +43,110 @@ const initial = {
   p: "medium",
 };
 
+
+const getPriorityIcon = (
+  priority: string
+) => {
+  switch (priority?.toLowerCase()) {
+    // CRITICAL / MUST DO
+    case "mandatory":
+      return (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            background: "#7f1d1d",
+            border: "2px solid #dc2626",
+            boxShadow:
+              "0 0 10px rgba(220,38,38,0.45)",
+          }}
+        >
+          <ShieldAlert
+            size={18}
+            color="#ffffff"
+            strokeWidth={3}
+          />
+        </div>
+      );
+
+    // IMPORTANT / HIGH ATTENTION
+    case "high":
+      return (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: "#ffedd5",
+            border: "2px solid #ea580c",
+          }}
+        >
+          <AlertTriangle
+            size={18}
+            color="#c2410c"
+            strokeWidth={2.8}
+          />
+        </div>
+      );
+
+    // NORMAL PRIORITY
+    case "medium":
+      return (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 8,
+            background: "#fef9c3",
+            border: "1.5px solid #ca8a04",
+          }}
+        >
+          <CircleAlert
+            size={18}
+            color="#a16207"
+            strokeWidth={2.5}
+          />
+        </div>
+      );
+
+    // LOW PRIORITY
+    case "low":
+      return (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 8,
+            background: "#dcfce7",
+            border: "1px solid #16a34a",
+            opacity: 0.75,
+          }}
+        >
+          <MinusCircle
+            size={18}
+            color="#15803d"
+            strokeWidth={2}
+          />
+        </div>
+      );
+
+    default:
+      return priority;
+  }
+};
 export const todoColumns: Column<Todo>[] =
   [
     {
@@ -52,16 +156,42 @@ export const todoColumns: Column<Todo>[] =
         {
       key: "p",
       label: "Priority",
-      render: (row) => row.p,
+      render: (row) =>     getPriorityIcon(row.p),
+
     },
-    {
-      key: "da",
-      label: "Date",
-      render: (row) =>
-        new Date(
-          row.da
-        ).toLocaleDateString(),
-    },
+{
+  key: "da",
+  label: "Date",
+  render: (row) => {
+    const rowDate = new Date(row.da);
+    const today = new Date();
+
+    const isToday =
+      rowDate.toDateString() ===
+      today.toDateString();
+
+    return (
+      <span
+        style={{
+          padding: "4px 10px",
+          borderRadius: 8,
+          fontWeight: isToday ? 700 : 500,
+          background: isToday
+            ? "#dbeafe"
+            : "transparent",
+          color: isToday
+            ? "#1d4ed8"
+            : "#374151",
+          border: isToday
+            ? "1px solid #2563eb"
+            : "none",
+        }}
+      >
+        {rowDate.toLocaleDateString()}
+      </span>
+    );
+  },
+},
 
   ];
 
@@ -284,7 +414,11 @@ useEffect(() => {
       p: i.p,
     });
   };
-
+  const onCancelEdit = () => {
+    setEditingId(null);
+    setForm(initial);
+    setAddTodoModel(false);
+  }
   if (pageLoading) {
     return <Loader />;
   }
@@ -343,16 +477,6 @@ useEffect(() => {
           onClick={() => setOpenFilterModel(!openFilterModel)}
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-
-              <button
-                className="btn-danger"
-                onClick={() => setOpenFilterModel(!openFilterModel)}
-                disabled={isApiLoading}
-              >
-                <X />
-              </button>
-            </div>
     <TableFilters
                     config={{
                   showDateRange: true,
@@ -378,7 +502,7 @@ useEffect(() => {
           }}
         >
             <button
-              className="btn-primary"
+              className="btn-add"
               onClick={() =>
                 setAddTodoModel(true)
               }
@@ -420,17 +544,7 @@ useEffect(() => {
                         : "Add Todo"}
                     </h3>
 
-                    <button
-                      className="btn-danger"
-                      onClick={
-                        handleFormModelClose
-                      }
-                      disabled={
-                        isApiLoading
-                      }
-                    >
-                      <X />
-                    </button>
+              
                   </div>
 
                   <TodosForm
@@ -440,8 +554,7 @@ useEffect(() => {
                     editingId={
                       editingId
                     }
-                    setEditingId={setEditingId}
-                    initial={initial}
+              onCancelEdit={onCancelEdit}
                   />
                 </div>
               </div>
@@ -455,8 +568,7 @@ useEffect(() => {
               editingId={
                 editingId
               }
-              setEditingId={setEditingId}
-              initial={initial}
+           onCancelEdit={onCancelEdit}
             />
           )}
 

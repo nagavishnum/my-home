@@ -80,7 +80,7 @@ export default function Categories({
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
         />
-        <button className='btn-primary' onClick={submit} disabled={isApiLoading}>Add</button>
+        <button className='btn-primary' onClick={submit} disabled={isApiLoading}>Save</button>
       </div>
 
       <div className='chips'>
@@ -93,7 +93,7 @@ export default function Categories({
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && update()}
                 />
-                <button className='btn-primary' onClick={update} disabled={isApiLoading}>Save</button>
+                <button className='btn-edit' onClick={update} disabled={isApiLoading}>Save</button>
                 <button onClick={() => setEditId('')} disabled={isApiLoading}>Cancel</button>
               </>
             ) : (

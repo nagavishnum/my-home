@@ -38,7 +38,7 @@ export default function MetricsSection({
       </div>
 
       <div className="metric-card highlight-card" onClick={()=> scrollToView('todo-section')}>
-        <div className="metric-label">Pending Today</div>
+        <div className="metric-label">Todos</div>
         <div className="metric-value">{totalTodos}</div>
       </div>
     </div>

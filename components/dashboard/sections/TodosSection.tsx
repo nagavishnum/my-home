@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip,
+  Legend,
 } from 'recharts';
 import { CHART_COLORS } from '@/lib/constants';
 
@@ -15,6 +16,9 @@ type Props = {
 };
 
 export default function TodosSection({ todos }: Props) {
+      const [windowWidth,
+      setWindowWidth] =
+      useState(1200);
   // 🔥 ALWAYS SAFE INPUT
   const safeTodos = todos ?? [];
 
@@ -32,7 +36,42 @@ export default function TodosSection({ todos }: Props) {
       value,
     }));
   }, [safeTodos]);
+  useEffect(() => {
 
+    const updateWidth = () => {
+      setWindowWidth(
+        window.innerWidth
+      );
+    };
+
+    updateWidth();
+
+    window.addEventListener(
+      'resize',
+      updateWidth
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        'resize',
+        updateWidth
+      );
+    };
+
+  }, []);
+  const isMobile =
+    windowWidth < 740;
+
+  const isTablet =
+    windowWidth >= 640 &&
+    windowWidth < 1024;
+  const legendFontSize =
+    isMobile
+      ? 10
+      : isTablet
+      ? 12
+      : 14
   return (
     <div className="dash-section" id="todo-section">
       <h3>✅ Todos</h3>
@@ -60,6 +99,29 @@ export default function TodosSection({ todos }: Props) {
               </Pie>
 
               <Tooltip />
+                      <Legend
+                                                  wrapperStyle={{
+                                                    fontSize:
+                                                      legendFontSize,
+                              
+                                                    paddingTop: 20,
+                                                  }}
+                              
+                                                  formatter={(value) => (
+                              
+                                                    <span
+                                                      style={{
+                                                        fontSize:
+                                                          legendFontSize,
+                              
+                                                        wordBreak:
+                                                          'break-word',
+                                                      }}
+                                                    >
+                                                      {value}
+                                                    </span>
+                                                  )}
+                                                />
             </PieChart>
           </ResponsiveContainer>
         ) : (

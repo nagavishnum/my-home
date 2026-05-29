@@ -19,32 +19,25 @@ type FinanceFormState = {
 
 type Props = {
   form: FinanceFormState;
-  setForm: React.Dispatch<React.SetStateAction<FinanceFormState>>;
   submit: () => void;
   cats: Category[];
 
   editingId: string | null;
-  setEditingId: (id: string | null) => void;
 
-  initial: FinanceFormState;
 
   set: (key: keyof FinanceFormState, value: string) => void;
+  onCancelEdit: () => void;
 };
 
 export const FinanceForm = ({
   form,
-  setForm,
   submit,
   cats,
   editingId,
-  setEditingId,
   set,
-  initial
+  onCancelEdit
 }: Props) => {
-    const handleCancelEdit = () => {
-      setEditingId(null);
-      setForm(initial);
-    };
+
         const isApiLoading = useGlobalApiLoading();
   
   return (
@@ -122,14 +115,14 @@ export const FinanceForm = ({
         onChange={(e) => set("no", e.target.value)}
       />
 
-      <button className="btn-primary" onClick={submit} disabled={isApiLoading} >
+      <button className={editingId? "btn-edit":"btn-add"} onClick={submit} disabled={isApiLoading} >
         {editingId ? "Update" : "Save"}
       </button>
 
       {editingId && (
         <button
           className="btn-secondary"
-          onClick={handleCancelEdit}
+          onClick={onCancelEdit}
           disabled={isApiLoading}
         >
           Cancel
