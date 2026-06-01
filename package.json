@@ -11,6 +11,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.100.11",
     "axios": "^1.16.1",
+    "docx": "^9.7.1",
     "file-saver": "^2.0.5",
     "firebase": "^12.13.0",
     "jspdf": "^4.2.1",
