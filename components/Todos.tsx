@@ -36,6 +36,7 @@ import {
 } from "./CommonTable";
 
 import { AlertTriangle, CircleAlert, ListFilter, MinusCircle, ShieldAlert, X } from "lucide-react";
+import DailyTodos from "./DailyTodos";
 
 const initial = {
   t: "",
@@ -197,7 +198,7 @@ export const todoColumns: Column<Todo>[] =
 
 export default function Todos() {
   const [activeTab, setActiveTab] =
-    useState<"todo" | "goal">(
+    useState<"todo" | "goal" | "dailytodo">(
       "todo"
     );
 
@@ -460,11 +461,26 @@ useEffect(() => {
         >
           Goals
         </button>
+                <button
+          className={
+            activeTab === "dailytodo"
+              ? "tab active-tab"
+              : "tab"
+          }
+          onClick={() =>
+            setActiveTab("dailytodo")
+          }
+          disabled={isApiLoading}
+        >
+          Daily Todos
+        </button>
       </div>
 
       {activeTab === "goal" ? (
         <Goals />
-      ) : (
+      ) :activeTab === "dailytodo" ? (
+      <DailyTodos/>
+    ) : (
         <>
           {error && (
             <p className="error">

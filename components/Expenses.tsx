@@ -160,10 +160,12 @@ export default function Expenses() {
     try {
       await api.post("/expenses/compress");
       await load();
-    } catch {
+    } catch(error) {
+      console.log(error)
       alert("Failed to compress expenses");
     }
   };
+  console.log(filtered,"filtered")
   const onCancelEdit = () => {
     setEditingId(null);
     setForm(initial);

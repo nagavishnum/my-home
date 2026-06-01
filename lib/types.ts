@@ -11,6 +11,11 @@ export interface Expense {
   c: Category | null;
   d: string;
 }
+export interface DailyTodo {
+  _id: string;
+  t: string;
+  d: string;
+}
 
 export interface Finance {
   _id: string;

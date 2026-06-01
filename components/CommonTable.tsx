@@ -1,6 +1,6 @@
 import { useGlobalApiLoading } from "@/lib/hooks";
 import '../app/globals.css';
-import { Pencil, Trash } from "lucide-react";
+import {  Pencil, Trash } from "lucide-react";
 
 export type Column<T> = {
   key: keyof T;
@@ -36,7 +36,7 @@ export function CommonTable<T extends { _id: string }>({
         </thead>
 
         <tbody>
-          {data.map((row) => (
+          {data?.map((row) => (
             <tr key={row._id}>
               {columns.map((col) => (
                 <td key={String(col.key)}>

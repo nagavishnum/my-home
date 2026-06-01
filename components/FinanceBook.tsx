@@ -30,6 +30,11 @@ import TablePlusFiltersLayout from './TablePlusFilters';
 import { Column, CommonTable } from './CommonTable';
 import { ListFilter, X } from 'lucide-react';
 import CategoriesModal from './CategoriesModel';
+import {
+  exportExcel,
+  exportPDF,
+  exportDOC,
+} from "@/lib/export";
 
 const initial = {
   n: '',
@@ -267,6 +272,35 @@ const payload = {
     filters,
     'md'
   );
+  const exportData = filtered.map(
+  (row) => ({
+    Name: row.n,
+
+    Category: row.c?.n ?? "-",
+
+    "Total Invested": row.a,
+
+    "Current Value":
+      row.cv || row.a,
+
+    Type: row.ty,
+
+    "Monthly SIP":
+      row.ty === "Monthly"
+        ? row.sv
+        : "-",
+
+    Returns: row.rt
+      ? `${row.rt}%`
+      : "-",
+  })
+);
+
+const exportColumns =
+  Object.keys(exportData[0] || {});
+
+const exportRows =
+  exportData.map(Object.values);
   const handleFormModelClose = () => {
     setForm(initial);
     setAddFinanceModel(false);
@@ -383,6 +417,30 @@ const payload = {
                   </div>
                 )}
 {!isMobile && <FinanceForm form={form}submit={submit} cats={cats} editingId={editingId}  set={set} onCancelEdit={onCancelEdit}/>}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: 10,
+    marginTop: 16,
+  }}
+>
+
+
+  <button
+    className="btn-view"
+    onClick={() =>
+      exportPDF(
+        exportColumns,
+        exportRows,
+        "finance"
+      )
+    }
+  >
+    Export PDF
+  </button>
+
+</div>
         <div className="table-wrapper">
 <TablePlusFiltersLayout
   isMobile={isMobile}
