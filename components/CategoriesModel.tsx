@@ -20,7 +20,6 @@ export default function CategoriesModal({
   reload,
   onClose,
 }: Props) {
-  const isApiLoading = useGlobalApiLoading();
 
   return (
     <div

@@ -68,6 +68,8 @@ export default function Expenses() {
   }, []);
 
   const load = useCallback(async () => {
+        setError(null);
+
     try {
       const [e, c] = await Promise.all([
         api.get<PaginatedResponse<Expense>>("/expenses?limit=200"),
@@ -92,6 +94,8 @@ export default function Expenses() {
   }, [load]);
 
   const submit = async () => {
+        setError(null);
+
     if (!form.a || !form.c || !form.d) {
       alert("Please fill all fields");
       return;
@@ -124,6 +128,8 @@ export default function Expenses() {
   };
 
   const remove = async (id: string) => {
+        setError(null);
+
     try {
       await api.delete(`/expenses/${id}`);
       setData((p) => p.filter((i) => i._id !== id));
@@ -153,6 +159,8 @@ export default function Expenses() {
   };
 
   const handleCompressExpenses = async () => {
+        setError(null);
+
     if (!confirm("Are you sure you want to compress expenses? This action cannot be undone.")) {
       return;
     }

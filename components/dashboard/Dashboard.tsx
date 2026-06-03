@@ -1,8 +1,6 @@
 'use client';
 
 
-import { useGlobalApiLoading } from '@/lib/hooks';
-import Loader from '../Loader';
 import './dashboard.css';
 import ExpensesSection from './sections/ExpensesSection';
 import FinanceSection from './sections/FinanceSection';
@@ -15,13 +13,12 @@ import { useDashboardData } from './useDashboardData';
 
 export default function Dashboard() {
   const data = useDashboardData();
-  const isApiLoading = useGlobalApiLoading();
 
   return (
     <div className="dashboard-wrapper">
-      {isApiLoading && <Loader />}
+    
 
-      <div className={isApiLoading ? 'disabled-section' : ''}>
+      <div>
         <div className="dashboard">
           <MetricsSection {...data} />
           <ExpensesSection {...data} />

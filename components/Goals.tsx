@@ -17,7 +17,7 @@ import {
 
 import Loader from './Loader';
 
-import { today } from '@/lib/helpers';
+import { getGoalsCategoryIcon, getPriorityIcon, getStatusIcon, today } from '@/lib/helpers';
 
 import TableFilters, {
   applyFilters,
@@ -41,7 +41,7 @@ import {
 
 import './dashboard/dashboard.css';
 
-import { ListFilter, X } from 'lucide-react';
+import { LoaderCircle, ListFilter, CircleDashed } from 'lucide-react';
 import CategoriesModal from './CategoriesModel';
 
 const initial = {
@@ -64,18 +64,18 @@ export const goalsColumns: Column<Goal>[] = [
   {
     key: 'c',
     label: 'Category',
-    render: (row) => row.c?.n ?? '-',
+    render: (row) => getGoalsCategoryIcon(row.c?.n ?? '') || '-',
   },
   {
     key: 'p',
     label: 'Priority',
-    render: (row) => row.p ?? '-',
+    render: (row) =>     getPriorityIcon(row.p ?? '') || '-',
   },
-  {
-    key: 's',
-    label: 'Status',
-    render: (row) => row.s ?? '-',
-  },
+{
+  key: 's',
+  label: 'Status',
+  render: (row) => getStatusIcon(row?.s?.toLowerCase() ?? '') || '-'  ,
+},
   {
     key: 'td',
     label: 'Target Date',
@@ -115,8 +115,7 @@ export default function Goals() {
   const [addGoalModel, setAddGoalModel] =
     useState(false);
 
-  const [pageLoading, setPageLoading] =
-    useState(true);
+
           const [openFilterModel, setOpenFilterModel] = useState(false);
 
   const isApiLoading =
@@ -127,9 +126,11 @@ export default function Goals() {
   );
 
   const load = useCallback(
+
     async () => {
+              setError(null);
+
       try {
-        setPageLoading(true);
 
         const [g, c] =
           await Promise.all([
@@ -151,9 +152,7 @@ export default function Goals() {
         setError(
           'Failed to load goals'
         );
-      } finally {
-        setPageLoading(false);
-      }
+      } 
     },
     []
   );
@@ -188,6 +187,8 @@ export default function Goals() {
       .includes('finance') || false;
 
   const submit = async () => {
+            setError(null);
+
     if (
       !form.t.trim() ||
       !form.c ||
@@ -252,6 +253,8 @@ export default function Goals() {
   const remove = async (
     id: string
   ) => {
+            setError(null);
+
     try {
       await api.delete(`/goal/${id}`);
 
@@ -304,23 +307,18 @@ export default function Goals() {
     filters,
     'td'
   );
+    const sortedTodosWrtDate = [...filtered].sort((a, b) =>
+    a.td.localeCompare(b.td),
+  );
   const onCancelEdit = () => {
     setEditingId(null);
     setForm(initial);
     setAddGoalModel(false);
   }
-  if (pageLoading) {
-    return <Loader />;
-  }
+  if (isApiLoading) return <Loader />;
 
   return (
-    <div
-      className={
-        isApiLoading
-          ? 'disabled-section'
-          : ''
-      }
-    >
+    <div>
       {error && (
         <p className="error">
           {error}
@@ -462,7 +460,7 @@ onCancelEdit={onCancelEdit}        />
           }
           tablePanel={
             <CommonTable
-              data={filtered}
+              data={sortedTodosWrtDate}
               columns={
                 goalsColumns
               }

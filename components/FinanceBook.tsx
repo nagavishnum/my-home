@@ -131,6 +131,8 @@ export default function FinanceBook() {
   const isMobile = useMediaQuery("(max-width: 768px)");
     
   const load = useCallback(async () => {
+        setError(null);
+
     try {
 
       const [f, c] = await Promise.all([
@@ -166,6 +168,8 @@ export default function FinanceBook() {
   }, [load]);
 
   const submit = async () => {
+        setError(null);
+
     if (
       !form.n.trim() ||
       !form.a ||
@@ -402,14 +406,6 @@ const exportRows =
                       {/* HEADER */}
                       <div className="modal-header">
                         <h3>{editingId ? "Edit Finance" : "Add Finance"}</h3>
-      
-                        <button
-                          className="btn-danger"
-                          onClick={handleFormModelClose}
-                          disabled={isApiLoading}
-                        >
-            <X/>
-                        </button>
                       </div>
       
 <FinanceForm form={form} submit={submit} cats={cats} editingId={editingId} set={set} onCancelEdit={onCancelEdit}/>

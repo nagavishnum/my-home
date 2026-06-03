@@ -9,42 +9,9 @@ body {
   color: #111;
   font-family: Arial, Helvetica, sans-serif;
 }
-/* =======================
-   BASE
-======================= */
-.dashboard {
-  padding: 16px;
-}
-
-/* =======================
-   METRICS
-======================= */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-/* =======================
-   CHART LAYOUT
-======================= */
-.charts-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
 
 .chart-card {
   min-width: 0;
-}
-
-/* =======================
-   TABLE RESPONSIVE
-   (BEST PRACTICE: SCROLL)
-======================= */
-table {
-  width: 100%;
-  border-collapse: collapse;
 }
 
 table th,
@@ -52,9 +19,7 @@ table td {
   white-space: nowrap;
 }
 
-/* =======================
-   MODAL
-======================= */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -66,26 +31,6 @@ table td {
   padding: 12px;
 }
 
-.modal {
-  width: 100%;
-  max-width: 520px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-/* =======================
-   MOBILE
-======================= */
 @media (max-width: 768px) {
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -119,15 +64,6 @@ table td {
   .finance-grid {
     grid-template-columns: 1fr;
   }
-}
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
 }
 
 .modal-container {
@@ -165,9 +101,7 @@ table td {
   overflow-x: auto;
 }
 
-/* =========================
-   MOBILE BEHAVIOR (IMPORTANT)
-========================= */
+
 @media (max-width: 768px) {
   .table-layout {
     grid-template-columns: 1fr;
@@ -275,29 +209,9 @@ button:hover {
   color: white;
 }
 
-.btn-dark {
-  background: #111;
-  color: white;
-}
-
-.btn-danger {
-  background: grey;
-  color: black;
-  width: 25px;
-  height: 25px;
-  padding: 2px;
-  border: none;
-  border-radius: 2px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .table-wrapper {
   margin-top: 10px;
   overflow-x: auto;
-    overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -430,8 +344,7 @@ tr:nth-child(even) {
 .btn-delete:active {
   background: #991b1b;
 }
-/* VIEW BUTTON */
-/* View / Details / Preview */
+
 .btn-view {
   background: #0ea5e9;
   color: white;
@@ -501,10 +414,7 @@ tr:nth-child(even) {
   justify-content: center;
 }
 
-/* Dashboard */
-.dashboard {
-  padding-bottom: 40px;
-}
+
 
 .metrics-grid {
   display: flex;
@@ -527,13 +437,6 @@ tr:nth-child(even) {
 .highlight-card {
   background: #eff6ff;
   border: 1.5px solid #93c5fd;
-}
-
-.metrics-divider {
-  align-self: stretch;
-  width: 1px;
-  background: #e5e7eb;
-  margin: 0 8px;
 }
 
 .metric-label {
@@ -565,29 +468,10 @@ tr:nth-child(even) {
   margin-bottom: 14px;
 }
 
-.dash-filter-row select {
-  min-width: 100px;
-}
-
-.dash-subtitle {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 12px;
-}
-
 .charts-row {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
-}
-
-.chart-card {
-  flex: 1;
-  min-width: 300px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
 }
 
 .chart-card h4 {
@@ -603,88 +487,6 @@ tr:nth-child(even) {
   text-align: center;
 }
 
-.progress-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 10px 0;
-}
-
-.progress-item {
-  width: 100%;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #444;
-}
-
-.progress-track {
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #2563eb;
-  border-radius: 6px;
-  transition: width 0.4s;
-}
-
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 10px 0;
-}
-
-.timeline-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.timeline-item.done {
-  opacity: 0.6;
-}
-
-.timeline-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-top: 5px;
-  flex-shrink: 0;
-}
-
-.dot-done {
-  background: #10b981;
-}
-
-.dot-pending {
-  background: #f59e0b;
-}
-
-.timeline-meta {
-  display: block;
-  font-size: 12px;
-  color: #888;
-  margin-top: 2px;
-}
-.bulk-bar {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  background: #f3f4f6;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  align-items: center;
-}
 
 .modal {
   position: fixed;
@@ -696,15 +498,6 @@ tr:nth-child(even) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.modal-box {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .app-header {
@@ -751,24 +544,7 @@ tr:nth-child(even) {
   display: block;
   margin-top: 4px;
 }
-/* mobile vs desktop content */
-.mobile-only {
-  display: none;
-}
 
-.desktop-only {
-  display: block;
-}
-
-@media (max-width: 768px) {
-  .mobile-only {
-    display: block;
-  }
-
-  .desktop-only {
-    display: none;
-  }
-}
 
 .action-buttons{
   display: flex;

@@ -81,7 +81,7 @@ export default function TodosSection({ todos }: Props) {
 
         {/* 🔥 CRITICAL GUARD */}
         {Array.isArray(todoPriority) && todoPriority.length > 0 ? (
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={todoPriority}

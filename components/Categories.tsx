@@ -28,6 +28,7 @@ export default function Categories({
 
 
   const submit = async () => {
+    setError(null);
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
@@ -41,6 +42,7 @@ export default function Categories({
   };
 
   const remove = async (id: string) => {
+    setError(null);
     try {
       await api.delete(`/categories/${id}`);
       onCategoriesChange(categories.filter((i) => i._id !== id));
@@ -56,6 +58,7 @@ export default function Categories({
   };
 
   const update = async () => {
+        setError(null);
     const trimmed = editName.trim();
     if (!trimmed) return;
     try {
@@ -92,6 +95,7 @@ export default function Categories({
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && update()}
+                  style={{ width: '130px',maxWidth:'130px',flex:'none',minWidth:'110px' }}
                 />
                 <button className='btn-edit' onClick={update} disabled={isApiLoading}>Save</button>
                 <button onClick={() => setEditId('')} disabled={isApiLoading}>Cancel</button>

@@ -15,6 +15,7 @@ import {
 import {
   ALLOWED_FINANCE_CATEGORIES
 } from '@/lib/constants';
+import { today } from '@/lib/helpers';
 
 export function useDashboardData() {
 
@@ -313,6 +314,11 @@ export function useDashboardData() {
 
   const totalTodos =
     (todos ?? []).length;
+const todayDate = today();
+
+const totalTodosToday = (todos ?? []).filter(
+  todo => todo.da?.startsWith(todayDate)
+).length;
 
   return {
 
@@ -339,6 +345,7 @@ export function useDashboardData() {
     todos,
     goals,
     totalTodos,
+    totalTodosToday,
 
     // loading
     loading,

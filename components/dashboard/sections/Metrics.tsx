@@ -1,6 +1,8 @@
 'use client';
 
+import Loader from "@/components/Loader";
 import { scrollToView } from "@/lib/helpers";
+import { useGlobalApiLoading } from "@/lib/hooks";
 
 export default function MetricsSection({
   totalExpenses,
@@ -9,7 +11,12 @@ export default function MetricsSection({
   totalCurrentValue,
   totalMonthlySip,
   totalTodos,
+  totalTodosToday,
 }: any) {
+    const isApiLoading =
+      useGlobalApiLoading();
+    if (isApiLoading) return <Loader />;
+
   return (
     <div className="metrics-grid">
       <div className="metric-card" onClick={()=> scrollToView('expenses-section')}>
@@ -40,6 +47,10 @@ export default function MetricsSection({
       <div className="metric-card highlight-card" onClick={()=> scrollToView('todo-section')}>
         <div className="metric-label">Todos</div>
         <div className="metric-value">{totalTodos}</div>
+      </div>
+          <div className="metric-card highlight-card" onClick={()=> scrollToView('todo-section')}>
+        <div className="metric-label">Todos Today</div>
+        <div className="metric-value">{totalTodosToday}</div>
       </div>
     </div>
   );

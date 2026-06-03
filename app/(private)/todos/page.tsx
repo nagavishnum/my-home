@@ -1,5 +1,5 @@
-import Todo from "@/components/Todos";
+import TodosTab from "@/components/TodosTab";
 
 export default function Page() {
-  return <Todo />;
+  return <TodosTab />;
 }

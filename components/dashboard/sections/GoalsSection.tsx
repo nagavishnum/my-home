@@ -7,24 +7,17 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
 import { CHART_COLORS, PRIORITY_COLORS } from '@/lib/constants';
-import Loader from '@/components/Loader';
-import { useGlobalApiLoading } from '@/lib/hooks';
 
 export default function GoalsSection() {
   const [goals, setGoals] = useState<Goal[]>([]);
     const [windowWidth,
     setWindowWidth] =
     useState(1200);
-      const isApiLoading = useGlobalApiLoading();
 
   useEffect(() => {
     api
@@ -58,7 +51,6 @@ export default function GoalsSection() {
 
   }, []);
 
-  if (isApiLoading) return <Loader />;
 
   const safeGoals = goals ?? [];
 
@@ -87,7 +79,7 @@ export default function GoalsSection() {
           <div className="chart-card">
             <h4>Category-wise Goals</h4>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={Object.entries(
@@ -138,7 +130,7 @@ export default function GoalsSection() {
           <div className="chart-card">
             <h4>Priority-wise Goals</h4>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={Object.entries(
@@ -192,7 +184,7 @@ export default function GoalsSection() {
           <div className="chart-card">
             <h4>Status-wise Goals</h4>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={Object.entries(

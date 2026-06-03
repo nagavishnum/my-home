@@ -37,6 +37,7 @@ export const ExpensesForm = ({
     <div className="form">
       <input
         placeholder="Amount"
+        type="number"
         value={form.a}
         onChange={(e) =>
           setForm((f) => ({ ...f, a: e.target.value }))

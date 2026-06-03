@@ -10,13 +10,11 @@ import {
 import { api } from '@/lib/api';
 
 import {
-  PaginatedResponse,
   DailyTodo,
 } from '@/lib/types';
 
 import Loader from './Loader';
 
-import { today } from '@/lib/helpers';
 
 
 import { DailyTodosForm } from './forms/DailyTodosForm';
@@ -69,8 +67,6 @@ export default function DailyTodos() {
     setAddDailyTodoModel,
   ] = useState(false);
 
-  const [pageLoading, setPageLoading] =
-    useState(true);
 
   const [
     openFilterModel,
@@ -88,8 +84,7 @@ export default function DailyTodos() {
   const load = useCallback(
     async () => {
       try {
-
-        setPageLoading(true);
+    setError(null);
 
 const res =
   await api.get<DailyTodo[]>(
@@ -106,11 +101,7 @@ setData(res.data);
           'Failed to load daily todos'
         );
 
-      } finally {
-
-        setPageLoading(false);
-
-      }
+      } 
     },
     []
   );
@@ -131,6 +122,8 @@ setData(res.data);
   }, [load]);
 
 const submit = async () => {
+      setError(null);
+
   if (!form.t.trim()) {
     alert('Please fill task');
     return;
@@ -182,6 +175,8 @@ const remove = async (
   id: string
 ) => {
   try {
+        setError(null);
+
     const response =
       await api.delete(
         `/todos/dailytodo/${id}`
@@ -259,20 +254,11 @@ const remove = async (
     };
 
 
-  if (
-    pageLoading
-  ) {
-    return <Loader />;
-  }
+  if (isApiLoading) return <Loader />;
+
 
   return (
-    <div
-      className={
-        isApiLoading
-          ? 'disabled-section'
-          : ''
-      }
-    >
+    <div>
 
       {error && (
         <p className="error">
@@ -302,16 +288,6 @@ const remove = async (
           >
             Add Daily Todo
           </button>
-
-          <ListFilter
-            onClick={() =>
-              setOpenFilterModel(
-                !openFilterModel
-              )
-            }
-          />
-
-
         </div>
       )}
 
