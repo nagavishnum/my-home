@@ -23,27 +23,50 @@ export const todoColumns: Column<Todo>[] =
     const rowDate = new Date(row.da);
     const today = new Date();
 
-    const isToday =
-      rowDate.toDateString() ===
-      today.toDateString();
+    // Remove time portion
+    rowDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const isToday = rowDate.getTime() === today.getTime();
+    const isOverdue = rowDate < today;
+    const isFuture = rowDate > today;
+
+    let style = {
+      padding: "4px 10px",
+      borderRadius: 8,
+      fontWeight: 500,
+      background: "transparent",
+      color: "#374151",
+      border: "none",
+    };
+
+    if (isToday) {
+      style = {
+        ...style,
+        fontWeight: 700,
+        background: "#dbeafe",
+        color: "#1d4ed8",
+        border: "1px solid #2563eb",
+      };
+    } else if (isOverdue) {
+      style = {
+        ...style,
+        fontWeight: 700,
+        background: "#fee2e2",
+        color: "#dc2626",
+        border: "1px solid #ef4444",
+      };
+    } else if (isFuture) {
+      style = {
+        ...style,
+        background: "#f3f4f6",
+        color: "#4b5563",
+        border: "1px solid #4b5563"
+      };
+    }
 
     return (
-      <span
-        style={{
-          padding: "4px 10px",
-          borderRadius: 8,
-          fontWeight: isToday ? 700 : 500,
-          background: isToday
-            ? "#dbeafe"
-            : "transparent",
-          color: isToday
-            ? "#1d4ed8"
-            : "#374151",
-          border: isToday
-            ? "1px solid #2563eb"
-            : "none",
-        }}
-      >
+      <span style={style}>
         {rowDate.toLocaleDateString()}
       </span>
     );

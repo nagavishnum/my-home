@@ -72,62 +72,109 @@ export default function TodosSection({ todos }: Props) {
       : isTablet
       ? 12
       : 14
+      const totalTodos = todoPriority.reduce(
+  (sum, item) => sum + item.value,
+  0
+);
   return (
     <div className="dash-section" id="todo-section">
       <h3>✅ Todos</h3>
 
-      <div className="chart-card">
-        <h4>Priority Distribution</h4>
+<div className="chart-card">
 
-        {/* 🔥 CRITICAL GUARD */}
-        {Array.isArray(todoPriority) && todoPriority.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={todoPriority}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={100}
-                label
-              >
-                {todoPriority.map((_, i) => (
-                  <Cell
-                    key={i}
-                    fill={CHART_COLORS[i % CHART_COLORS.length]}
-                  />
-                ))}
-              </Pie>
+  <h4>Priority Distribution</h4>
 
-              <Tooltip />
-                      <Legend
-                                                  wrapperStyle={{
-                                                    fontSize:
-                                                      legendFontSize,
-                              
-                                                    paddingTop: 20,
-                                                  }}
-                              
-                                                  formatter={(value) => (
-                              
-                                                    <span
-                                                      style={{
-                                                        fontSize:
-                                                          legendFontSize,
-                              
-                                                        wordBreak:
-                                                          'break-word',
-                                                      }}
-                                                    >
-                                                      {value}
-                                                    </span>
-                                                  )}
-                                                />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="no-data">No todos available</p>
-        )}
-      </div>
+  {todoPriority.length ? (
+
+    <div>
+
+      {todoPriority.map((item, index) => {
+
+        const percent =
+          totalTodos === 0
+            ? 0
+            : (
+                item.value /
+                totalTodos *
+                100
+              );
+
+        return (
+
+          <div
+            key={item.name}
+            style={{
+              marginBottom: 18,
+            }}
+          >
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                marginBottom: 6,
+                fontWeight: 600,
+              }}
+            >
+
+              <span>
+
+                {item.name}
+
+              </span>
+
+              <span>
+
+                {item.value} ({percent.toFixed(1)}%)
+
+              </span>
+
+            </div>
+
+            <div
+              style={{
+                height: 12,
+                background: "#eee",
+                borderRadius: 20,
+                overflow: "hidden",
+              }}
+            >
+
+              <div
+                style={{
+                  width: `${percent}%`,
+                  height: "100%",
+                  background:
+                    CHART_COLORS[
+                      index %
+                      CHART_COLORS.length
+                    ],
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        );
+
+      })}
+
+    </div>
+    
+
+  ) : (
+
+    <p className="no-data">
+
+      No todos available
+
+    </p>
+
+  )}
+
+</div>
     </div>
   );
 }

@@ -13,7 +13,14 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-} from 'recharts';
+
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+LabelList,
+} from "recharts";
 
 import {
   MONTHS,
@@ -170,8 +177,10 @@ export default function ExpensesSection({
 
     }, [expByCat]);
 
-
-
+const totalAmount = sortedData.reduce(
+  (sum, item) => sum + item.value,
+  0
+);
   const handleApply = () => {
 
     onApplyFilter?.(
@@ -199,7 +208,15 @@ export default function ExpensesSection({
 
       {/* FILTERS */}
 
-      <div className="dash-filter-row">
+      <div style={{
+        display: 'flex',
+        flexDirection: isMobile
+          ? 'column'
+          : 'row',
+        alignItems: 'center',
+        gap: '10px',
+        marginBottom: '12px',
+      }}>
 
         <select
           value={expMonth}
@@ -262,138 +279,122 @@ export default function ExpensesSection({
 
       </div>
 
-      <div className="charts-row">
+<div className="chart-card large-chart">
 
-        <div className="chart-card large-chart">
+  <h4>
+    Category-wise Spending
+  </h4>
 
-          <h4
+  {sortedData.length > 0 ? (
+
+    <div>
+
+      {sortedData.map((item, index) => {
+
+        const percent =
+          totalAmount === 0
+            ? 0
+            : (
+                item.value /
+                totalAmount *
+                100
+              );
+
+        return (
+
+          <div
+            key={item.name}
             style={{
-              fontSize:
-                isMobile
-                  ? '14px'
-                  : '18px'
+              marginBottom: 20,
             }}
           >
-            Category-wise Spending
-          </h4>
 
-          {sortedData.length > 0 ? (
+            {/* Top Row */}
 
             <div
               style={{
-                width: '100%',
-                overflowX: 'auto',
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                alignItems:
+                  "center",
+                marginBottom: 6,
+                fontWeight: 600,
               }}
             >
 
-              <ResponsiveContainer
-                width="100%"
-                height={chartSize}
-              >
+              <span>
 
-                <PieChart>
+                {index + 1}. {item.name}
 
-                  <Pie
-                    data={sortedData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={outerRadius}
-                    innerRadius={innerRadius}
-                    paddingAngle={2}
-                    labelLine={false}
+              </span>
 
-                    label={({
-                      name,
-                      percent
-                    }) =>
+              <span>
 
-                      isMobile
+                ₹{item.value.toLocaleString()}
 
-                        ? `${(
-                            (percent || 0) * 100
-                          ).toFixed(0)}%`
-
-                        : `${name} ${(
-                            (percent || 0) * 100
-                          ).toFixed(0)}%`
-                    }
-
-                    style={{
-                      fontSize:
-                        labelFontSize
-                    }}
-                  >
-
-                    {sortedData.map(
-                      (_, i) => (
-
-                      <Cell
-                        key={i}
-                        fill={
-                          CHART_COLORS[
-                            i %
-                            CHART_COLORS.length
-                          ]
-                        }
-                      />
-                    ))}
-
-                  </Pie>
-
-                  <Tooltip
-                    formatter={(v) => [
-
-                      `₹${Number(v)
-                        .toLocaleString()}`,
-
-                      'Amount'
-                    ]}
-                  />
-
-                  <Legend
-                    wrapperStyle={{
-                      fontSize:
-                        legendFontSize,
-
-                      paddingTop: 20,
-                    }}
-
-                    formatter={(value) => (
-
-                      <span
-                        style={{
-                          fontSize:
-                            legendFontSize,
-
-                          wordBreak:
-                            'break-word',
-                        }}
-                      >
-                        {value}
-                      </span>
-                    )}
-                  />
-
-                </PieChart>
-
-              </ResponsiveContainer>
+              </span>
 
             </div>
 
-          ) : (
+            {/* Percentage */}
 
-            <p className="no-data">
+            <div
+              style={{
+                marginBottom: 6,
+                fontSize: 13,
+                color: "#666",
+              }}
+            >
 
-              No expenses found
+              {percent.toFixed(1)}%
 
-            </p>
-          )}
+            </div>
 
-        </div>
+            {/* Progress Bar */}
 
-      </div>
+            <div
+              style={{
+                height: 10,
+                background:
+                  "#eee",
+                borderRadius: 10,
+                overflow:
+                  "hidden",
+              }}
+            >
+
+              <div
+                style={{
+                  width:
+                    `${percent}%`,
+                  height:
+                    "100%",
+                  background:
+                    CHART_COLORS[
+                      index %
+                      CHART_COLORS.length
+                    ],
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        );
+
+      })}
+
+    </div>
+
+  ) : (
+
+    <p>No expenses found</p>
+
+  )}
+
+</div>
 
     </div>
   );

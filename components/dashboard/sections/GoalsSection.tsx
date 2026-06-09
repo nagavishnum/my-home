@@ -126,60 +126,6 @@ export default function GoalsSection() {
             </ResponsiveContainer>
           </div>
 
-          {/* PRIORITY */}
-          <div className="chart-card">
-            <h4>Priority-wise Goals</h4>
-
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={Object.entries(
-                    safeGoals.reduce((acc: Record<string, number>, g) => {
-                      const key = g.p || 'medium';
-                      acc[key] = (acc[key] || 0) + 1;
-                      return acc;
-                    }, {})
-                  ).map(([name, value]) => ({
-                    name: name.charAt(0).toUpperCase() + name.slice(1),
-                    value,
-                  }))}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={90}
-                  label
-                >
-                  {Object.keys(PRIORITY_COLORS).map((k, i) => (
-                    <Cell key={i} fill={PRIORITY_COLORS[k] || CHART_COLORS[i]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                                  <Legend
-                                    wrapperStyle={{
-                                      fontSize:
-                                        legendFontSize,
-                
-                                      paddingTop: 20,
-                                    }}
-                
-                                    formatter={(value) => (
-                
-                                      <span
-                                        style={{
-                                          fontSize:
-                                            legendFontSize,
-                
-                                          wordBreak:
-                                            'break-word',
-                                        }}
-                                      >
-                                        {value}
-                                      </span>
-                                    )}
-                                  />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
           {/* STATUS */}
           <div className="chart-card">
             <h4>Status-wise Goals</h4>
