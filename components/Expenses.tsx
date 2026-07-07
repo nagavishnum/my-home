@@ -173,7 +173,6 @@ export default function Expenses() {
       alert("Failed to compress expenses");
     }
   };
-  console.log(filtered,"filtered")
   const onCancelEdit = () => {
     setEditingId(null);
     setForm(initial);

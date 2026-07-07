@@ -11,15 +11,12 @@ type Props = {
   totalAssestsValue: number;
   totalLiabilitiesValue: number;
 
-  investmentsValue: number;
-  liquidAssetsValue: number;
-  retirementCorpus: number;
-  insuranceValue: number;
-  goalsValue: number;
-
   debtToAssetRatio: number;
   emergencyMonths: number;
-  monthlyCommitments: number;
+  investmentAllocation: number;
+  retirementAllocation: number;
+  insuranceAllocation: number;
+  goalAllocation: number;
 };
 
 export default function FinanceSection({
@@ -31,15 +28,8 @@ export default function FinanceSection({
   totalAssestsValue,
   totalLiabilitiesValue,
 
-  investmentsValue,
-  liquidAssetsValue,
-  retirementCorpus,
-  insuranceValue,
-  goalsValue,
-
   debtToAssetRatio,
   emergencyMonths,
-  monthlyCommitments,
 
   investmentAllocation,
   retirementAllocation,

@@ -5,8 +5,6 @@ export const getFinanceCalculations = (
   expensesSummaryData: any,
 ) => {
 
-  console.log(finance);
-
   const getBucketValue = (
     bucket: string[],
     field: "cv" | "ms" = "cv",
