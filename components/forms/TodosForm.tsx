@@ -2,6 +2,7 @@
 
 import { useGlobalApiLoading } from "@/lib/hooks";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import "./forms.css";
 import React from "react";
 
 type TodosFormState = {
@@ -49,6 +50,9 @@ onCancelEdit
         onChange={(e) =>
           setForm((f) => ({ ...f, t: e.target.value }))
         }
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}
         placeholder="Todo"
       />
 
@@ -66,7 +70,15 @@ onCancelEdit
         <option value="high">High</option>
         <option value="mandatory">Mandatory</option>
       </select>
-<ArrowLeftIcon onClick={() => changeDate('prev')} />
+<button
+  type="button"
+  className="date-nav-btn"
+  onClick={() => changeDate("prev")}
+  aria-label="Previous Day"
+  title="Previous Day"
+>
+  <ArrowLeftIcon size={18} />
+</button>
 
 <input
   type="date"
@@ -76,7 +88,15 @@ onCancelEdit
   }
 />
 
-<ArrowRightIcon onClick={() => changeDate('next')} />
+<button
+  type="button"
+  className="date-nav-btn"
+  onClick={() => changeDate("next")}
+  aria-label="Next Day"
+  title="Next Day"
+>
+  <ArrowRightIcon size={18} />
+</button>
 
       <button className={editingId? "btn-edit":"btn-add"} onClick={submit} disabled={isApiLoading}>
         {editingId ? "Update" : "Save"}

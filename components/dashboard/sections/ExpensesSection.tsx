@@ -7,22 +7,6 @@ import {
 } from 'react';
 
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-LabelList,
-} from "recharts";
-
-import {
   MONTHS,
   CHART_COLORS,
 } from '@/lib/constants';
@@ -150,7 +134,7 @@ export default function ExpensesSection({
   const titleFontSize =
     isMobile
       ? '16px'
-      : '20px';
+      : '25px';
   const expByCat = useMemo(() =>
     expensesSummaryData
       ?.categoryTotals
@@ -198,13 +182,14 @@ const totalAmount = sortedData.reduce(
 
       {/* TITLE */}
 
-      <h3
+      <h2
         style={{
-          fontSize: titleFontSize
+          fontSize: titleFontSize,
+          textAlign:"center"
         }}
       >
-        📊 Expenses
-      </h3>
+        📊 EXPENSES
+      </h2>
 
       {/* FILTERS */}
 
@@ -281,7 +266,7 @@ const totalAmount = sortedData.reduce(
 
 <div className="chart-card large-chart">
 
-  <h4>
+  <h4 >
     Category-wise Spending
   </h4>
 

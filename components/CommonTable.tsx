@@ -22,7 +22,14 @@ export function CommonTable<T extends { _id: string }>({
   onDeleteClick,
 }: CommonTableProps<T>) {
       const isApiLoading = useGlobalApiLoading();
-  
+  const handleEdit = (row: T) => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+
+  onEditClick(row);
+};
   return (
     <div className="table-wrapper">
       <table>
@@ -48,7 +55,7 @@ export function CommonTable<T extends { _id: string }>({
 
               <td>
                 <div className="action-buttons">
-                <button onClick={() => onEditClick(row)} className="edit-btn" disabled={isApiLoading}><Pencil /></button>
+                <button  onClick={() => handleEdit(row)} className="edit-btn" disabled={isApiLoading}><Pencil /></button>
                 <button onClick={() => onDeleteClick(row._id)} className="delete-btn" disabled={isApiLoading}><Trash/></button>
                 </div>
               </td>

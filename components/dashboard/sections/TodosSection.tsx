@@ -78,7 +78,7 @@ export default function TodosSection({ todos }: Props) {
 );
   return (
     <div className="dash-section" id="todo-section">
-      <h3>✅ Todos</h3>
+      <h2 style={{textAlign:"center"}}>✅ TODOS</h2>
 
 <div className="chart-card">
 

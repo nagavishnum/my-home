@@ -68,7 +68,7 @@ export default function GoalsSection() {
       : 14
   return (
     <div className="dash-section">
-      <h3>🎯 Goals</h3>
+      <h2 style={{textAlign:"center"}}>🎯 GOALS</h2>
 
       {safeGoals.length === 0 ? (
         <p className="no-data">No goals available</p>

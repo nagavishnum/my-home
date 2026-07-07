@@ -48,12 +48,15 @@ export const FinanceForm = ({
         onChange={(e) => set("n", e.target.value)}
       />
 
-      <input
-        placeholder="Total Invested"
-        type="number"
-        value={form.a}
-        onChange={(e) => set("a", e.target.value)}
-      />
+    <input
+      placeholder="Total Invested"
+      type="number"
+      value={form.a}
+      onChange={(e) => {
+        set("a", e.target.value);
+        set("cv", e.target.value);
+      }}
+    />
 
       <select value={form.c} onChange={(e) => set("c", e.target.value)}>
         <option value="">Category</option>

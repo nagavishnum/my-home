@@ -12,10 +12,8 @@ import {
   DashboardExpenseResponse
 } from '@/lib/types';
 
-import {
-  ALLOWED_FINANCE_CATEGORIES
-} from '@/lib/constants';
 import { today } from '@/lib/helpers';
+import { getFinanceCalculations } from './calculations/getFinanceCalculations';
 
 export function useDashboardData() {
 
@@ -186,112 +184,8 @@ export function useDashboardData() {
   // FINANCE
   // -----------------------------------
 
-  const validFinance =
-    finance.filter(
-
-      (f) =>
-
-        ALLOWED_FINANCE_CATEGORIES
-        .includes(
-          f.c?.n || ''
-        )
-    );
-
-  const totalInvested =
-    validFinance.reduce(
-
-      (s, f) =>
-
-        s + (
-          Number(f.a) || 0
-        ),
-
-      0
-    );
-
-  const totalCurrentValue =
-    validFinance.reduce(
-
-      (s, f) =>
-
-        s + (
-          Number(f.cv) || 0
-        ),
-
-      0
-    );
-
-  const totalMonthlySip =
-    validFinance.reduce(
-
-      (s, f) =>
-
-        s + (
-          Number(f.sv) || 0
-        ),
-
-      0
-    );
-
-  const financeCategoryMap:
-    Record<string, any> = {};
-
-  validFinance.forEach((f) => {
-
-    const name =
-      f.c?.n || 'Other';
-
-    const invested =
-      Number(f.a) || 0;
-
-    const current =
-      Number(f.cv) || 0;
-
-    const profit =
-      current - invested;
-
-    if (!financeCategoryMap[name]) {
-
-      financeCategoryMap[name] = {
-
-        invested: 0,
-
-        current: 0,
-
-        profit: 0
-      };
-    }
-
-    financeCategoryMap[name]
-      .invested += invested;
-
-    financeCategoryMap[name]
-      .current += current;
-
-    financeCategoryMap[name]
-      .profit += profit;
-  });
-
-  const financePerformance =
-    Object.entries(
-      financeCategoryMap
-    ).map(
-
-      ([name, val]: any) => ({
-
-        name,
-
-        invested:
-          val.invested,
-
-        current:
-          val.current,
-
-        profit:
-          val.profit,
-      })
-    );
-
+  const financeCalculations = getFinanceCalculations(finance,expensesSummaryData);
+  
   // -----------------------------------
   // EXPENSES
   // -----------------------------------
@@ -333,14 +227,9 @@ const totalTodosToday = (todos ?? []).filter(
     expenseCategoryTotals,
 
     // finance
-    finance,
-    validFinance,
-    financePerformance,
-
-    totalInvested,
-    totalCurrentValue,
-    totalMonthlySip,
-
+// finance
+finance,
+...financeCalculations,
     // todos/goals
     todos,
     goals,
