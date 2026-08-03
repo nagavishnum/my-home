@@ -1,6 +1,6 @@
 'use client';
 
-import Loader from "@/components/Loader";
+import Loader from "@/components/common/Loader";
 import { scrollToView } from "@/lib/helpers";
 import { useGlobalApiLoading } from "@/lib/hooks";
 

@@ -1,7 +1,7 @@
 import { Todo } from "./types";
 import {
   Column,
-} from "../components/CommonTable";
+} from "../components/common/CommonTable";
 import { getPriorityIcon } from "./helpers";
 
 export const todoColumns: Column<Todo>[] =

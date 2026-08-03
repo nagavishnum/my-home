@@ -1,6 +1,6 @@
 import { useGlobalApiLoading } from "@/lib/hooks";
-import '../app/globals.css';
 import {  Pencil, Trash } from "lucide-react";
+import "../../app/globals.css"
 
 export type Column<T> = {
   key: keyof T;

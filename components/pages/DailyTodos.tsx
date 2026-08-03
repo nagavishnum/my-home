@@ -13,28 +13,25 @@ import {
   DailyTodo,
 } from '@/lib/types';
 
-import Loader from './Loader';
+import Loader from '../common/Loader';
 
 
 
-import { DailyTodosForm } from './forms/DailyTodosForm';
+import { DailyTodosForm } from '../forms/DailyTodosForm';
 
 import {
   useGlobalApiLoading,
   useMediaQuery,
 } from '@/lib/hooks';
 
-import TablePlusFiltersLayout from './TablePlusFilters';
+import TablePlusFiltersLayout from '../common/TablePlusFilters';
 
 import {
   Column,
   CommonTable,
-} from './CommonTable';
+} from '../common/CommonTable';
 
-import './dashboard/dashboard.css';
-
-import { ListFilter } from 'lucide-react';
-
+import "../../components/dashboard/dashboard.css"
 const initial = {
   t: '',
 };

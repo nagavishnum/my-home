@@ -17,24 +17,20 @@ import {
 
 import { today } from '@/lib/helpers';
 
-import TableFilters, {
-  applyFilters,
-  emptyFilters,
-  FilterValues,
-} from './TableFilters';
 
-import Loader from './Loader';
-import { FinanceForm } from './forms/FinanceForm';
+
 import { useGlobalApiLoading, useMediaQuery } from '@/lib/hooks';
-import TablePlusFiltersLayout from './TablePlusFilters';
-import { Column, CommonTable } from './CommonTable';
-import { ListFilter, X } from 'lucide-react';
-import CategoriesModal from './CategoriesModel';
+
+import { ListFilter } from 'lucide-react';
 import {
-  exportExcel,
   exportPDF,
-  exportDOC,
 } from "@/lib/export";
+import TableFilters, { applyFilters, emptyFilters, FilterValues } from '../common/TableFilters';
+import Loader from '../common/Loader';
+import CategoriesModal from './CategoriesModel';
+import { FinanceForm } from '../forms/FinanceForm';
+import TablePlusFiltersLayout from '../common/TablePlusFilters';
+import { Column, CommonTable } from '../common/CommonTable';
 
 const initial = {
   n: '',

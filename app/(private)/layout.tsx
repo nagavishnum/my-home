@@ -1,7 +1,7 @@
 'use client';
 
-import AppHeader from '@/components/AppHeader';
 import Tabs from '@/components/Navbar';
+import AppHeader from '@/components/pages/AppHeader';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function PrivateLayout({

@@ -15,34 +15,22 @@ import {
   PaginatedResponse,
 } from '@/lib/types';
 
-import Loader from './Loader';
-
 import { getGoalsCategoryIcon, getPriorityIcon, getStatusIcon, today } from '@/lib/helpers';
-
-import TableFilters, {
-  applyFilters,
-  emptyFilters,
-  FilterValues,
-} from './TableFilters';
-
-import { GoalsForm } from './forms/GoalsForm';
 
 import {
   useGlobalApiLoading,
   useMediaQuery,
 } from '@/lib/hooks';
 
-import TablePlusFiltersLayout from './TablePlusFilters';
+import "../../components/dashboard/dashboard.css"
 
-import {
-  Column,
-  CommonTable,
-} from './CommonTable';
-
-import './dashboard/dashboard.css';
-
-import { LoaderCircle, ListFilter, CircleDashed } from 'lucide-react';
+import { ListFilter } from 'lucide-react';
+import TableFilters, { applyFilters, emptyFilters, FilterValues } from '../common/TableFilters';
+import { GoalsForm } from '../forms/GoalsForm';
 import CategoriesModal from './CategoriesModel';
+import TablePlusFiltersLayout from '../common/TablePlusFilters';
+import { Column, CommonTable } from '../common/CommonTable';
+import Loader from '../common/Loader';
 
 const initial = {
   t: '',

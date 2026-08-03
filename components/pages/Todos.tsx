@@ -1,5 +1,5 @@
 import { todoColumns } from "@/lib/columns";
-import { CommonTable } from "./CommonTable";
+import { CommonTable } from "../common/CommonTable";
 import { useGlobalApiLoading, useMediaQuery } from "@/lib/hooks";
 import { useEffect, useRef, useState } from "react";
 import { PaginatedResponse, Todo } from "@/lib/types";
@@ -9,10 +9,10 @@ import TableFilters, {
   applyFilters,
   emptyFilters,
   FilterValues,
-} from "./TableFilters";
+} from "../common/TableFilters";
 import { ListFilter } from "lucide-react";
-import { TodosForm } from "./forms/TodosForm";
-import TablePlusFiltersLayout from "./TablePlusFilters";
+import { TodosForm } from "../forms/TodosForm";
+import TablePlusFiltersLayout from "../common/TablePlusFilters";
 
 const initial = {
   t: "",
