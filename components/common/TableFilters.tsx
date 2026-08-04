@@ -3,21 +3,36 @@
 import { useState } from 'react';
 
 import { MONTHS, YEARS } from '@/lib/constants';
+import { useGlobalApiLoading } from '@/lib/hooks';
 
 type FilterConfig = {
-  categories?: { _id: string; n: string }[];
+  categories?: {
+    _id: string;
+    n: string;
+  }[];
   priorities?: string[];
   statuses?: string[];
+  types?: string[];
   showDateRange?: boolean;
+  month?: boolean;
+  year?: boolean;
 };
 
 type FilterValues = {
   category: string;
+
   priority: string;
+
   status: string;
+
+  type: string;
+
   dateFrom: string;
+
   dateTo: string;
+
   month: string;
+
   year: string;
 };
 
@@ -25,6 +40,7 @@ const emptyFilters: FilterValues = {
   category: '',
   priority: '',
   status: '',
+  type: '',
   dateFrom: '',
   dateTo: '',
   month: '',
@@ -36,14 +52,17 @@ const emptyFilters: FilterValues = {
 export default function TableFilters({
   config,
   filters,
+  close,
   onChange,
 }: {
   config: FilterConfig;
   filters: FilterValues;
+  close?: () => void;
   onChange: (f: FilterValues) => void;
 }) {
   const [local, setLocal] = useState<FilterValues>({ ...filters });
-
+      const isApiLoading = useGlobalApiLoading();
+  
   const set = (key: keyof FilterValues, val: string) => {
     const next = { ...local, [key]: val };
     if (key === 'month' || key === 'year') {
@@ -57,7 +76,10 @@ export default function TableFilters({
     setLocal(next);
   };
 
-  const apply = () => onChange({ ...local });
+  const apply = () => {
+    onChange({ ...local });
+    if (close) close();
+  };
 
   const clear = () => {
     const empty = { ...emptyFilters };
@@ -69,7 +91,6 @@ export default function TableFilters({
 
   return (
     <div className="filters-panel">
-      <h4 style={{ marginBottom: 10 }}>Filters</h4>
 
       {config.categories && (
         <div className="filter-group">
@@ -95,19 +116,67 @@ export default function TableFilters({
         </div>
       )}
 
-      {config.priorities && (
-        <div className="filter-group">
-          <label>Priority</label>
-          <select value={local.priority} onChange={(e) => set('priority', e.target.value)}>
-            <option value="">All</option>
-            {config.priorities.map((p) => (
-              <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-            ))}
-          </select>
-        </div>
-      )}
+{config.types && (
+  <div className="filter-group">
+    <label>Type</label>
 
-      <div className="filter-group">
+    <select
+      value={local.type}
+      onChange={(e) =>
+        set('type', e.target.value)
+      }
+    >
+      <option value="">
+        All
+      </option>
+
+      {config.types.map((t) => (
+        <option
+          key={t}
+          value={t}
+        >
+          {t}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
+{config.priorities && (
+  <div className="filter-group">
+    <label>Priority</label>
+
+    <select
+      value={local.priority}
+      onChange={(e) =>
+        set(
+          'priority',
+          e.target.value
+        )
+      }
+    >
+      <option value="">
+        All
+      </option>
+
+      {config.priorities.map(
+        (p) => (
+          <option
+            key={p}
+            value={p}
+          >
+            {p
+              .charAt(0)
+              .toUpperCase() +
+              p.slice(1)}
+          </option>
+        )
+      )}
+    </select>
+  </div>
+)}
+
+{config.month && (      <div className="filter-group">
         <label>Month</label>
         <select value={local.month} onChange={(e) => set('month', e.target.value)}>
           <option value="">All</option>
@@ -115,9 +184,9 @@ export default function TableFilters({
             <option key={m} value={String(i)}>{m}</option>
           ))}
         </select>
-      </div>
+      </div>)}
 
-      <div className="filter-group">
+    {config.year &&(  <div className="filter-group">
         <label>Year</label>
         <select value={local.year} onChange={(e) => set('year', e.target.value)}>
           <option value="">All</option>
@@ -125,7 +194,7 @@ export default function TableFilters({
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
-      </div>
+      </div>)}
 
       {config.showDateRange && (
         <>
@@ -141,9 +210,9 @@ export default function TableFilters({
       )}
 
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-        <button className="btn-primary" onClick={apply}>Apply</button>
+        <button className="btn-primary" onClick={apply} disabled={isApiLoading}>Apply</button>
         {hasAny && (
-          <button className="btn-danger" style={{ marginLeft: 0 }} onClick={clear}>Clear</button>
+          <button className="btn-secondary" style={{ marginLeft: 0 }} onClick={clear} disabled={isApiLoading}>Clear</button>
         )}
       </div>
     </div>
@@ -169,6 +238,12 @@ export function applyFilters<T extends Record<string, any>>(
       const done = item.s ? 'Done' : 'Pending';
       if (done !== filters.status) return false;
     }
+    if (
+  filters.type &&
+  item.ty !== filters.type
+) {
+  return false;
+}
 
     const rawDate = item[dateField];
     const dateVal = rawDate ? new Date(rawDate as string | number) : null;

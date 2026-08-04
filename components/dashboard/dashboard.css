@@ -1,0 +1,130 @@
+.dashboard {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.metrics-grid {
+  gap: 10px;
+}
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.metric-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;        /* reduced */
+  text-align: center;
+  flex: 1;
+  min-width: 140px;     /* smaller */
+}
+/* ✅ MOBILE */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+.metric-value {
+  font-size: 18px;  /* was 24px */
+  font-weight: 700;
+}
+.metric-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+  .dash-section {
+    padding: 15px;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-value {
+    font-size: 13px;
+  }
+
+  .chart-card {
+    padding: 10px;
+    margin-top: 20px;
+  }
+}
+.finance-overview {
+  grid-column: 1 / -1; /* spans full row */
+}
+.dashboard-wrapper {
+  position: relative;
+}
+
+.disabled-section {
+  pointer-events: none;
+  opacity: 0.6;
+}
+.recharts-wrapper:focus,
+.recharts-sector:focus,
+.recharts-rectangle:focus,
+.recharts-layer:focus,
+.recharts-surface:focus,
+.recharts-bar-rectangle:focus,
+.recharts-rectangle:focus,
+.recharts-tooltip-wrapper:focus {
+  outline: none !important;
+}
+
+.summary-row{
+display:flex;
+justify-content:space-between;
+padding:10px 0;
+border-bottom:1px solid #ececec;
+font-size:15px;
+}
+
+.summary-row:last-child{
+border:none;
+}
+
+.summary-row strong{
+font-size:16px;
+font-weight:700;
+}
+
+.finance-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+.chart-card{
+padding:22px;
+border-radius:16px;
+background:#fff;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.chart-card h4{
+margin-bottom:18px;
+font-size:18px;
+font-weight:700;
+}
+
+.profit-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px 0;
+border-bottom:1px solid #efefef;
+}

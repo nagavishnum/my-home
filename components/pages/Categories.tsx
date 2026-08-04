@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { Category } from '@/lib/types';
+import { useGlobalApiLoading } from '@/lib/hooks';
+import { Pencil, Trash } from 'lucide-react';
 
 type Props = {
   type: string;
@@ -22,7 +24,11 @@ export default function Categories({
   const [editName, setEditName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const isApiLoading = useGlobalApiLoading();
+
+
   const submit = async () => {
+    setError(null);
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
@@ -36,6 +42,7 @@ export default function Categories({
   };
 
   const remove = async (id: string) => {
+    setError(null);
     try {
       await api.delete(`/categories/${id}`);
       onCategoriesChange(categories.filter((i) => i._id !== id));
@@ -51,6 +58,7 @@ export default function Categories({
   };
 
   const update = async () => {
+        setError(null);
     const trimmed = editName.trim();
     if (!trimmed) return;
     try {
@@ -75,7 +83,7 @@ export default function Categories({
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
         />
-        <button className='btn-primary' onClick={submit}>Add</button>
+        <button className='btn-primary' onClick={submit} disabled={isApiLoading}>Save</button>
       </div>
 
       <div className='chips'>
@@ -87,15 +95,16 @@ export default function Categories({
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && update()}
+                  style={{ width: '130px',maxWidth:'130px',flex:'none',minWidth:'110px' }}
                 />
-                <button className='btn-primary' onClick={update}>Save</button>
-                <button onClick={() => setEditId('')}>Cancel</button>
+                <button className='btn-edit' onClick={update} disabled={isApiLoading}>Save</button>
+                <button onClick={() => setEditId('')} disabled={isApiLoading}>Cancel</button>
               </>
             ) : (
               <>
                 <span>{i.n}</span>
-                <button onClick={() => startEdit(i)} className='edit-btn'>Edit</button>
-                <button className='delete-btn' onClick={() => remove(i._id)}>Delete</button>
+                <button onClick={() => startEdit(i)} className='edit-btn' disabled={isApiLoading}><Pencil/></button>
+                <button className='delete-btn' onClick={() => remove(i._id)} disabled={isApiLoading}><Trash/></button>
               </>
             )}
           </div>
