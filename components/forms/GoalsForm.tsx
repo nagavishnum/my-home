@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React from "react";
 import { Category } from "@/lib/types";
@@ -22,7 +22,7 @@ type Props = {
   isFinance: boolean;
   submit: () => void;
   editingId: string | null;
-onCancelEdit: () => void;
+  onCancelEdit: () => void;
 };
 
 export const GoalsForm = ({
@@ -32,9 +32,8 @@ export const GoalsForm = ({
   isFinance,
   submit,
   editingId,
-  onCancelEdit
+  onCancelEdit,
 }: Props) => {
-
   const isApiLoading = useGlobalApiLoading();
   return (
     <div className="form">
@@ -42,11 +41,18 @@ export const GoalsForm = ({
         placeholder="Title"
         value={form.t}
         onChange={(e) => set("t", e.target.value)}
+        type="text"
+        maxLength={70}
+        required
       />
 
-      <select value={form.c} onChange={(e) => set("c", e.target.value)}         onKeyDown={(e) => {
+      <select
+        value={form.c}
+        onChange={(e) => set("c", e.target.value)}
+        onKeyDown={(e) => {
           if (e.key === "Enter") submit();
-        }}>
+        }}
+      >
         <option value="">Category</option>
 
         {cats.map((i) => (
@@ -60,6 +66,9 @@ export const GoalsForm = ({
         placeholder="Description"
         value={form.d}
         onChange={(e) => set("d", e.target.value)}
+        type="text"
+        maxLength={100}
+        required
       />
 
       <input
@@ -68,17 +77,25 @@ export const GoalsForm = ({
         onChange={(e) => set("td", e.target.value)}
       />
 
-      <select value={form.p} onChange={(e) => set("p", e.target.value)}         onKeyDown={(e) => {
+      <select
+        value={form.p}
+        onChange={(e) => set("p", e.target.value)}
+        onKeyDown={(e) => {
           if (e.key === "Enter") submit();
-        }}>
+        }}
+      >
         <option value="low">Low</option>
         <option value="medium">Medium</option>
         <option value="high">High</option>
       </select>
 
-      <select value={form.s} onChange={(e) => set("s", e.target.value)}         onKeyDown={(e) => {
+      <select
+        value={form.s}
+        onChange={(e) => set("s", e.target.value)}
+        onKeyDown={(e) => {
           if (e.key === "Enter") submit();
-        }}>
+        }}
+      >
         <option value="pending">Pending</option>
         <option value="inprogress">In Progress</option>
         <option value="completed">Completed</option>
@@ -91,6 +108,10 @@ export const GoalsForm = ({
             type="number"
             value={form.tv}
             onChange={(e) => set("tv", e.target.value)}
+            min={1}
+            max={999999999999}
+            step={1}
+            inputMode="numeric"
           />
 
           <input
@@ -101,14 +122,22 @@ export const GoalsForm = ({
             onKeyDown={(e) => {
               if (e.key === "Enter") submit();
             }}
+            min={0}
+            max={999999999999}
+            step={1}
+            inputMode="numeric"
           />
         </>
       )}
 
-      <button className={editingId? "btn-edit":"btn-add"} onClick={submit} disabled={isApiLoading}>
+      <button
+        className={editingId ? "btn-edit" : "btn-add"}
+        onClick={submit}
+        disabled={isApiLoading}
+      >
         {editingId ? "Update" : "Save"}
       </button>
-                        {editingId && (
+      {editingId && (
         <button
           className="btn-secondary"
           onClick={onCancelEdit}

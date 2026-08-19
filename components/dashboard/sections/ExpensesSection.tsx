@@ -1,58 +1,47 @@
 'use client';
 
 import {
-  useState,
   useEffect,
   useMemo,
+  useState,
+  type ChangeEvent,
 } from 'react';
 
+import { useGlobalApiLoading } from '@/lib/hooks';
 import {
-  MONTHS,
-  CHART_COLORS,
+  ExpenseSummaryData,
+} from '@/lib/types';
+
+import {
+  EXPENSE_BUCKETS,
+  EXPENSE_BUCKET_STYLES,
+  YEARS,
 } from '@/lib/constants';
 
-import { useGlobalApiLoading } from '@/lib/hooks';
-
-type ExpenseCategoryTotal = {
-  categoryId: string;
-  categoryName: string;
-  amount: number;
-};
-
-type ExpensesSummaryData = {
-  totalExpenseValue: number;
-  selectedMonthExpenseValue: number;
-  categoryTotals: ExpenseCategoryTotal[];
-};
+type ExpenseBucket =
+  keyof typeof EXPENSE_BUCKETS;
 
 type Props = {
-  expensesSummaryData: ExpensesSummaryData | null;
+  expenseSummaryData:
+    ExpenseSummaryData | null;
 
   onApplyFilter?: (
     year: number,
-    month: number
   ) => void;
 };
-
-const initialMonth =
-  String(new Date().getMonth() + 1);
 
 const initialYear =
   String(new Date().getFullYear());
 
 export default function ExpensesSection({
-  expensesSummaryData,
+  expenseSummaryData,
   onApplyFilter,
 }: Props) {
-
-  const [expMonth, setExpMonth] =
-    useState(initialMonth);
 
   const [expYear, setExpYear] =
     useState(initialYear);
 
-  const [windowWidth,
-    setWindowWidth] =
+  const [windowWidth, setWindowWidth] =
     useState(1200);
 
   const isApiLoading =
@@ -65,113 +54,182 @@ export default function ExpensesSection({
   useEffect(() => {
 
     const updateWidth = () => {
-      setWindowWidth(
-        window.innerWidth
-      );
+      setWindowWidth(window.innerWidth);
     };
 
     updateWidth();
 
     window.addEventListener(
       'resize',
-      updateWidth
+      updateWidth,
     );
 
     return () => {
-
       window.removeEventListener(
         'resize',
-        updateWidth
+        updateWidth,
       );
     };
 
   }, []);
 
-
-
   const isMobile =
     windowWidth < 740;
 
-  const isTablet =
-    windowWidth >= 640 &&
-    windowWidth < 1024;
+  // -----------------------------------
+  // GET CATEGORY BUCKET
+  // -----------------------------------
 
-  const chartSize =
-    isMobile
-      ? 260
-      : isTablet
-      ? 360
-      : 520;
+  const getBucket = (
+    category: string,
+  ): ExpenseBucket => {
 
-  const outerRadius =
-    isMobile
-      ? 70
-      : isTablet
-      ? 110
-      : 170;
+    const bucketKeys =
+      Object.keys(
+        EXPENSE_BUCKETS,
+      ) as ExpenseBucket[];
 
-  const innerRadius =
-    isMobile
-      ? 35
-      : isTablet
-      ? 60
-      : 80;
+    const matchingBucket =
+      bucketKeys.find(
+        bucket =>
+          EXPENSE_BUCKETS[bucket].includes(
+            category,
+          ),
+      );
 
-  const labelFontSize =
-    isMobile
-      ? 9
-      : isTablet
-      ? 11
-      : 13;
-
-  const legendFontSize =
-    isMobile
-      ? 10
-      : isTablet
-      ? 12
-      : 14;
-
-  const titleFontSize =
-    isMobile
-      ? '16px'
-      : '25px';
-  const expByCat = useMemo(() =>
-    expensesSummaryData
-      ?.categoryTotals
-      ?.map(item => ({
-
-        name:
-          item.categoryName,
-
-        value:
-          item.amount,
-      })) || []
-  , [expensesSummaryData]);
-
-
-
-  const sortedData =
-    useMemo(() => {
-
-      return [...expByCat]
-        .sort(
-          (a, b) =>
-            b.value - a.value
-        );
-
-    }, [expByCat]);
-
-const totalAmount = sortedData.reduce(
-  (sum, item) => sum + item.value,
-  0
-);
-  const handleApply = () => {
-
-    onApplyFilter?.(
-      Number(expYear),
-      Number(expMonth)
+    return (
+      matchingBucket ??
+      'OTHER_BUCKET'
     );
   };
+
+  // -----------------------------------
+  // GET CATEGORY COLOR
+  // -----------------------------------
+
+  const getCategoryColor = (
+    category: string,
+  ): string => {
+
+    const bucket =
+      getBucket(category);
+
+    return (
+      EXPENSE_BUCKET_STYLES[
+        bucket
+      ]?.color ??
+      '#6b7280'
+    );
+  };
+
+  // -----------------------------------
+  // ALL CATEGORIES
+  // -----------------------------------
+
+  const categories = useMemo(() => {
+
+    const allCategories = [
+      ...new Set(
+        expenseSummaryData?.months?.flatMap(
+          month =>
+            month.c.map(
+              category =>
+                category.n,
+            ),
+        ) ?? [],
+      ),
+    ];
+
+    const bucketOrder:
+      ExpenseBucket[] = [
+        'ESSENTIAL_BUCKET',
+        'AVOID_BUCKET',
+        'ASSET_BUCKET',
+        'OTHER_BUCKET',
+      ];
+
+    return allCategories.sort(
+      (a, b) => {
+
+        const bucketA =
+          bucketOrder.indexOf(
+            getBucket(a),
+          );
+
+        const bucketB =
+          bucketOrder.indexOf(
+            getBucket(b),
+          );
+
+        return bucketA - bucketB;
+
+      },
+    );
+
+  }, [expenseSummaryData]);
+
+  // -----------------------------------
+  // GET CATEGORY AMOUNT
+  // -----------------------------------
+
+  const getAmount = (
+    month: ExpenseSummaryData['months'][number],
+    category: string,
+  ): number => {
+
+    return (
+      month.c.find(
+        item =>
+          item.n === category,
+      )?.a ?? 0
+    );
+
+  };
+
+  // -----------------------------------
+  // CATEGORY MAX
+  // -----------------------------------
+
+  const getCategoryMax = (
+    category: string,
+  ): number => {
+
+    const amounts =
+      expenseSummaryData?.months?.map(
+        month =>
+          getAmount(
+            month,
+            category,
+          ),
+      ) ?? [];
+
+    return amounts.length
+      ? Math.max(...amounts)
+      : 0;
+  };
+
+  // -----------------------------------
+  // YEAR FILTER
+  // -----------------------------------
+
+  const handleYearChange = (
+    event: ChangeEvent<HTMLSelectElement>,
+  ) => {
+
+    const year =
+      Number(event.target.value);
+
+    setExpYear(
+      event.target.value,
+    );
+
+    onApplyFilter?.(year);
+
+  };
+
+  // -----------------------------------
+  // RENDER
+  // -----------------------------------
 
   return (
 
@@ -180,207 +238,415 @@ const totalAmount = sortedData.reduce(
       id="expenses-section"
     >
 
+      {/* -------------------------------- */}
       {/* TITLE */}
+      {/* -------------------------------- */}
 
       <h2
         style={{
-          fontSize: titleFontSize,
-          textAlign:"center"
+          fontSize: isMobile
+            ? '18px'
+            : '25px',
+
+          textAlign: 'center',
         }}
       >
         📊 EXPENSES
       </h2>
 
-      {/* FILTERS */}
+      {/* -------------------------------- */}
+      {/* FILTER */}
+      {/* -------------------------------- */}
 
-      <div style={{
-        display: 'flex',
-        flexDirection: isMobile
-          ? 'column'
-          : 'row',
-        alignItems: 'center',
-        gap: '10px',
-        marginBottom: '12px',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+
+          flexDirection:
+            isMobile
+              ? 'column'
+              : 'row',
+
+          alignItems: 'center',
+
+          gap: '10px',
+
+          marginBottom: '12px',
+        }}
+      >
 
         <select
-          value={expMonth}
-          onChange={(e) =>
-            setExpMonth(
-              e.target.value
-            )
-          }
+          value={expYear}
+          onChange={handleYearChange}
+          disabled={isApiLoading}
         >
 
-          {MONTHS.map((m, i) => (
+          {YEARS.map(year => (
 
             <option
-              key={m}
-              value={String(i + 1)}
+              key={year}
+              value={year}
             >
-              {m}
+              {year}
             </option>
+
           ))}
 
         </select>
 
-        <select
-          value={expYear}
-          onChange={(e) =>
-            setExpYear(
-              e.target.value
-            )
-          }
-        >
-
-          {Array.from({
-            length: 5
-          }).map((_, i) => {
-
-            const y =
-              new Date()
-              .getFullYear() - i;
-
-            return (
-
-              <option
-                key={y}
-                value={String(y)}
-              >
-                {y}
-              </option>
-            );
-          })}
-
-        </select>
-
-        <button
-          className="btn-primary"
-          onClick={handleApply}
-          disabled={isApiLoading}
-        >
-          Apply
-        </button>
-
       </div>
 
-<div className="chart-card large-chart">
+      {/* -------------------------------- */}
+      {/* YEARLY SUMMARY */}
+      {/* -------------------------------- */}
 
-  <h4 >
-    Category-wise Spending
-  </h4>
+      <div className="chart-card large-chart">
 
-  {sortedData.length > 0 ? (
+        <h4>
+          {expenseSummaryData?.year
+            ? `${expenseSummaryData.year} Expense Summary`
+            : 'Expense Summary'}
+        </h4>
 
-    <div>
+        {!expenseSummaryData?.months?.length ? (
 
-      {sortedData.map((item, index) => {
+          <p>
+            No expenses found
+          </p>
 
-        const percent =
-          totalAmount === 0
-            ? 0
-            : (
-                item.value /
-                totalAmount *
-                100
-              );
-
-        return (
+        ) : (
 
           <div
-            key={item.name}
             style={{
-              marginBottom: 20,
+              overflowX: 'auto',
             }}
           >
 
-            {/* Top Row */}
-
-            <div
+            <table
               style={{
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems:
-                  "center",
-                marginBottom: 6,
-                fontWeight: 600,
+                width: '100%',
+
+                minWidth:
+                  isMobile
+                    ? '900px'
+                    : '100%',
+
+                borderCollapse:
+                  'collapse',
               }}
             >
 
-              <span>
+              {/* -------------------------------- */}
+              {/* HEADER */}
+              {/* -------------------------------- */}
 
-                {index + 1}. {item.name}
+              <thead>
 
-              </span>
+                <tr>
 
-              <span>
+                  <th
+                    style={{
+                      padding:
+                        '8px 10px',
 
-                ₹{item.value.toLocaleString()}
+                      textAlign:
+                        'left',
 
-              </span>
+                      position:
+                        'sticky',
 
-            </div>
+                      left: 0,
 
-            {/* Percentage */}
+                      background:
+                        'inherit',
 
-            <div
-              style={{
-                marginBottom: 6,
-                fontSize: 13,
-                color: "#666",
-              }}
-            >
+                      zIndex: 2,
+                    }}
+                  >
+                    Category
+                  </th>
 
-              {percent.toFixed(1)}%
+                  {expenseSummaryData.months.map(
+                    month => (
 
-            </div>
+                      <th
+                        key={month.m}
+                        style={{
+                          padding:
+                            '8px 10px',
 
-            {/* Progress Bar */}
+                          textAlign:
+                            'right',
 
-            <div
-              style={{
-                height: 10,
-                background:
-                  "#eee",
-                borderRadius: 10,
-                overflow:
-                  "hidden",
-              }}
-            >
+                          whiteSpace:
+                            'nowrap',
+                        }}
+                      >
+                        {month.m}
+                      </th>
 
-              <div
-                style={{
-                  width:
-                    `${percent}%`,
-                  height:
-                    "100%",
-                  background:
-                    CHART_COLORS[
-                      index %
-                      CHART_COLORS.length
-                    ],
-                }}
-              />
+                    ),
+                  )}
 
-            </div>
+                </tr>
+
+              </thead>
+
+              {/* -------------------------------- */}
+              {/* BODY */}
+              {/* -------------------------------- */}
+
+              <tbody>
+
+                {categories.map(
+                  category => {
+
+                    const bucket =
+                      getBucket(
+                        category,
+                      );
+
+                    const bucketStyle =
+                      EXPENSE_BUCKET_STYLES[
+                        bucket
+                      ];
+
+                    const maxAmount =
+                      getCategoryMax(
+                        category,
+                      );
+
+                    return (
+
+                      <tr
+                        key={category}
+                        style={{
+                          borderTop:
+                            '1px solid rgba(128,128,128,0.12)',
+                        }}
+                      >
+
+                        {/* CATEGORY */}
+
+                        <td
+                          style={{
+                            padding:
+                              '7px 10px',
+
+                            fontWeight:
+                              600,
+
+                            whiteSpace:
+                              'nowrap',
+
+                            position:
+                              'sticky',
+
+                            left: 0,
+
+                            background:
+                              'inherit',
+
+                            zIndex: 1,
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              display:
+                                'flex',
+
+                              alignItems:
+                                'center',
+
+                              gap: 7,
+                            }}
+                          >
+
+                            {/* BUCKET INDICATOR */}
+
+                            <span
+                              title={
+                                bucketStyle.label
+                              }
+                              style={{
+                                width: 8,
+
+                                height: 8,
+
+                                minWidth: 8,
+
+                                borderRadius:
+                                  '50%',
+
+                                background:
+                                  getCategoryColor(
+                                    category,
+                                  ),
+
+                                display:
+                                  'inline-block',
+                              }}
+                            />
+
+                            {category}
+
+                          </div>
+
+                        </td>
+
+                        {/* MONTH VALUES */}
+
+                        {expenseSummaryData.months.map(
+                          month => {
+
+                            const amount =
+                              getAmount(
+                                month,
+                                category,
+                              );
+
+                            const isHighest =
+                              amount > 0 &&
+                              amount ===
+                                maxAmount;
+
+                            return (
+
+                              <td
+                                key={
+                                  month.m
+                                }
+                                style={{
+                                  padding:
+                                    '7px 10px',
+
+                                  textAlign:
+                                    'right',
+
+                                  whiteSpace:
+                                    'nowrap',
+
+                                  fontVariantNumeric:
+                                    'tabular-nums',
+
+                                  fontWeight:
+                                    isHighest
+                                      ? 700
+                                      : 400,
+
+                                  color:
+                                    isHighest
+                                      ? bucketStyle.color
+                                      : 'inherit',
+
+                                  background:
+                                    isHighest
+                                      ? `${bucketStyle.color}12`
+                                      : 'transparent',
+
+                                  borderRadius:
+                                    isHighest
+                                      ? 4
+                                      : undefined,
+                                }}
+                              >
+
+                                {amount > 0
+                                  ? `₹${amount.toLocaleString(
+                                      'en-IN',
+                                    )}`
+                                  : '—'}
+
+                              </td>
+
+                            );
+
+                          },
+                        )}
+
+                      </tr>
+
+                    );
+
+                  },
+                )}
+
+                {/* -------------------------------- */}
+                {/* TOTAL */}
+                {/* -------------------------------- */}
+
+                <tr
+                  style={{
+                    borderTop:
+                      '2px solid currentColor',
+
+                    fontWeight: 700,
+                  }}
+                >
+
+                  <td
+                    style={{
+                      padding:
+                        '8px 10px',
+
+                      position:
+                        'sticky',
+
+                      left: 0,
+
+                      background:
+                        'inherit',
+
+                      zIndex: 1,
+                    }}
+                  >
+                    Total
+                  </td>
+
+                  {expenseSummaryData.months.map(
+                    month => (
+
+                      <td
+                        key={month.m}
+                        style={{
+                          padding:
+                            '8px 10px',
+
+                          textAlign:
+                            'right',
+
+                          whiteSpace:
+                            'nowrap',
+
+                          fontVariantNumeric:
+                            'tabular-nums',
+                        }}
+                      >
+
+                        ₹
+                        {month.t.toLocaleString(
+                          'en-IN',
+                        )}
+
+                      </td>
+
+                    ),
+                  )}
+
+                </tr>
+
+              </tbody>
+
+            </table>
 
           </div>
 
-        );
+        )}
 
-      })}
-
-    </div>
-
-  ) : (
-
-    <p>No expenses found</p>
-
-  )}
-
-</div>
+      </div>
 
     </div>
+
   );
 }

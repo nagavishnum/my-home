@@ -49,6 +49,25 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+export type ExpenseSummaryCategory = {
+  n: string;
+  a: number;
+};
+
+export type ExpenseSummaryMonth = {
+  m: string;
+  t: number;
+  c: ExpenseSummaryCategory[];
+};
+
+export type ExpenseYearlySummary = {
+  year: number;
+  months: ExpenseSummaryMonth[];
+};
+export type ExpenseSummaryData = {
+  year: number;
+  months: ExpenseSummaryMonth[];
+};
 export type DashboardExpenseResponse = {
   totalExpenseValue: number;
   selectedMonthExpenseValue: number;
@@ -59,6 +78,37 @@ export type DashboardExpenseResponse = {
     amount: number;
   }[];
 };
+export interface ReportCategory {
+  categoryId: string;
+  categoryName: string;
+  amount: number;
+}
+
+export interface MonthlyExpenseReport {
+  expenses: {
+    year: number;
+
+    months: {
+      month: number;
+      monthName: string;
+      total: number;
+      categories: ReportCategory[];
+    }[];
+  };
+}
+
+export interface YearlyExpenseReport {
+  expenses: {
+    from: number;
+    to: number;
+
+    years: {
+      year: number;
+      total: number;
+      categories: ReportCategory[];
+    }[];
+  };
+}
 
 
 export type Goal = {

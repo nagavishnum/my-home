@@ -55,79 +55,82 @@ export const TodosForm = ({
 
   const isApiLoading = useGlobalApiLoading();
   return (
-        <div
+    <div
       style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
       }}
     >
-    <div className="form">
-      <input
-        value={form.t}
-        onChange={(e) => setForm((f) => ({ ...f, t: e.target.value }))}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-        }}
-        placeholder="Todo"
-      />
+      <div className="form">
+        <input
+          value={form.t}
+          onChange={(e) => setForm((f) => ({ ...f, t: e.target.value }))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+          }}
+          placeholder="Todo"
+          type="text"
+          maxLength={100}
+          required
+        />
 
-      <select
-        value={form.p}
-        onChange={(e) => setForm((f) => ({ ...f, p: e.target.value }))}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-        }}
-      >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-        <option value="mandatory">Mandatory</option>
-      </select>
-      <button
-        type="button"
-        className="date-nav-btn"
-        onClick={() => changeDate("prev")}
-        aria-label="Previous Day"
-        title="Previous Day"
-      >
-        <ArrowLeftIcon size={18} />
-      </button>
-
-      <input
-        type="date"
-        value={form.da}
-        onChange={(e) => setForm((f) => ({ ...f, da: e.target.value }))}
-      />
-
-      <button
-        type="button"
-        className="date-nav-btn"
-        onClick={() => changeDate("next")}
-        aria-label="Next Day"
-        title="Next Day"
-      >
-        <ArrowRightIcon size={18} />
-      </button>
-
-      <button
-        className={editingId ? "btn-edit" : "btn-add"}
-        onClick={submit}
-        disabled={isApiLoading}
-      >
-        {editingId ? "Update" : "Save"}
-      </button>
-      {editingId && (
+        <select
+          value={form.p}
+          onChange={(e) => setForm((f) => ({ ...f, p: e.target.value }))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+          }}
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="mandatory">Mandatory</option>
+        </select>
         <button
-          className="btn-secondary"
-          onClick={onCancelEdit}
+          type="button"
+          className="date-nav-btn"
+          onClick={() => changeDate("prev")}
+          aria-label="Previous Day"
+          title="Previous Day"
+        >
+          <ArrowLeftIcon size={18} />
+        </button>
+
+        <input
+          type="date"
+          value={form.da}
+          onChange={(e) => setForm((f) => ({ ...f, da: e.target.value }))}
+        />
+
+        <button
+          type="button"
+          className="date-nav-btn"
+          onClick={() => changeDate("next")}
+          aria-label="Next Day"
+          title="Next Day"
+        >
+          <ArrowRightIcon size={18} />
+        </button>
+
+        <button
+          className={editingId ? "btn-edit" : "btn-add"}
+          onClick={submit}
           disabled={isApiLoading}
         >
-          Cancel
+          {editingId ? "Update" : "Save"}
         </button>
-      )}
-    </div>
-          {!editingId && (
+        {editingId && (
+          <button
+            className="btn-secondary"
+            onClick={onCancelEdit}
+            disabled={isApiLoading}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+      {!editingId && (
         <VoiceInput
           parser={parseTodoSpeech}
           onParsed={handleVoiceTodo}
@@ -135,6 +138,6 @@ export const TodosForm = ({
           title="Add todo using voice"
         />
       )}
-      </div>
+    </div>
   );
 };

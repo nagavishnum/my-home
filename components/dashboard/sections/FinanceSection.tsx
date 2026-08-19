@@ -8,11 +8,9 @@ type Props = {
   financialFreedomScore: number;
 
   networthValue: number;
-  totalAssestsValue: number;
   totalLiabilitiesValue: number;
 
   debtToAssetRatio: number;
-  emergencyMonths: number;
   investmentAllocation: number;
   retirementAllocation: number;
   insuranceAllocation: number;
@@ -25,11 +23,9 @@ export default function FinanceSection({
   financialFreedomScore,
 
   networthValue,
-  totalAssestsValue,
   totalLiabilitiesValue,
 
   debtToAssetRatio,
-  emergencyMonths,
 
   investmentAllocation,
   retirementAllocation,
@@ -94,10 +90,6 @@ export default function FinanceSection({
             <strong>₹{networthValue.toLocaleString()}</strong>
           </div>
 
-          <div className="summary-row">
-            <span>Total Assets</span>
-            <strong>₹{totalAssestsValue.toLocaleString()}</strong>
-          </div>
 
           <div className="summary-row">
             <span>Total Debt</span>
@@ -107,11 +99,6 @@ export default function FinanceSection({
           <div className="summary-row">
             <span>Debt / Asset</span>
             <strong>{debtToAssetRatio.toFixed(1)}%</strong>
-          </div>
-
-          <div className="summary-row">
-            <span>Emergency Fund</span>
-            <strong>{emergencyMonths.toFixed(1)} Months</strong>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React from "react";
 import { Category } from "@/lib/types";
@@ -24,7 +24,6 @@ type Props = {
 
   editingId: string | null;
 
-
   set: (key: keyof FinanceFormState, value: string) => void;
   onCancelEdit: () => void;
 };
@@ -35,28 +34,35 @@ export const FinanceForm = ({
   cats,
   editingId,
   set,
-  onCancelEdit
+  onCancelEdit,
 }: Props) => {
+  const isApiLoading = useGlobalApiLoading();
 
-        const isApiLoading = useGlobalApiLoading();
-  
   return (
     <div className="form">
       <input
         placeholder="Name"
         value={form.n}
         onChange={(e) => set("n", e.target.value)}
+        type="text"
+        maxLength={100}
+        required
       />
 
-    <input
-      placeholder="Total Invested"
-      type="number"
-      value={form.a}
-      onChange={(e) => {
-        set("a", e.target.value);
-        set("cv", e.target.value);
-      }}
-    />
+      <input
+        placeholder="Total Invested"
+        type="number"
+        value={form.a}
+        onChange={(e) => {
+          set("a", e.target.value);
+          set("cv", e.target.value);
+        }}
+        min={1}
+        max={999999999999}
+        step={1}
+        inputMode="numeric"
+        required
+      />
 
       <select value={form.c} onChange={(e) => set("c", e.target.value)}>
         <option value="">Category</option>
@@ -79,6 +85,10 @@ export const FinanceForm = ({
           type="number"
           value={form.sv}
           onChange={(e) => set("sv", e.target.value)}
+          min={1}
+          max={999999999}
+          step={1}
+          inputMode="numeric"
         />
       )}
 
@@ -93,6 +103,10 @@ export const FinanceForm = ({
         type="number"
         value={form.lp}
         onChange={(e) => set("lp", e.target.value)}
+        min={0}
+        max={100}
+        step={1}
+        inputMode="numeric"
       />
 
       <input
@@ -100,6 +114,10 @@ export const FinanceForm = ({
         type="number"
         value={form.rt}
         onChange={(e) => set("rt", e.target.value)}
+        min={0}
+        max={100}
+        step="0.01"
+        inputMode="decimal"
       />
 
       <input
@@ -110,15 +128,25 @@ export const FinanceForm = ({
         onKeyDown={(e) => {
           if (e.key === "Enter") submit();
         }}
+        min={0}
+        max={999999999999}
+        step={1}
+        inputMode="numeric"
       />
 
       <input
         placeholder="Notes"
         value={form.no}
         onChange={(e) => set("no", e.target.value)}
+        maxLength={200}
+        type="text"
       />
 
-      <button className={editingId? "btn-edit":"btn-add"} onClick={submit} disabled={isApiLoading} >
+      <button
+        className={editingId ? "btn-edit" : "btn-add"}
+        onClick={submit}
+        disabled={isApiLoading}
+      >
         {editingId ? "Update" : "Save"}
       </button>
 

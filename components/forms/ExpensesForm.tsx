@@ -58,6 +58,11 @@ export const ExpensesForm = ({
               a: e.target.value,
             }))
           }
+          min={1}
+          max={999999999999}
+          step={1}
+          inputMode="numeric"
+          required
         />
 
         <select

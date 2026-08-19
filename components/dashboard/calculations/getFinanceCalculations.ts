@@ -1,40 +1,95 @@
-import { FINANCE_BUCKETS } from "@/lib/constants";
+import {
+  FINANCE_BUCKETS,
+} from '@/lib/constants';
+
+import {
+  ExpenseSummaryData,
+  Finance,
+} from '@/lib/types';
+
+type FinanceValueField =
+  | 'cv'
+  | 'ms';
+
+type FinanceItem = Finance & {
+  c?: {
+    n?: string;
+  } | null;
+
+  cv?: number | string | null;
+  ms?: number | string | null;
+};
 
 export const getFinanceCalculations = (
-  finance: any[] = [],
-  expensesSummaryData: any,
+  finance: Finance[] = [],
+  expenseSummaryData:
+    ExpenseSummaryData | null = null,
 ) => {
 
+  // -----------------------------------
+  // FINANCE HELPERS
+  // -----------------------------------
+
   const getBucketValue = (
-    bucket: string[],
-    field: "cv" | "ms" = "cv",
-  ) =>
-    finance
-      .filter((item) => bucket.includes(item?.c?.n))
+    bucket: readonly string[],
+    field: FinanceValueField = 'cv',
+  ): number => {
+
+    return finance
+      .filter((item) => {
+
+        const category =
+          item.c?.n;
+
+        return (
+          typeof category === 'string' &&
+          bucket.includes(category)
+        );
+      })
       .reduce(
-        (sum, item) =>
-          sum + Number(item?.[field] ?? 0),
+        (sum, item) => {
+
+          const value =
+            (item as FinanceItem)?.[field];
+
+          return (
+            sum +
+            Number(value ?? 0)
+          );
+        },
         0,
       );
+  };
 
-  /* ---------------- Assets ---------------- */
+  // -----------------------------------
+  // ASSETS
+  // -----------------------------------
 
-  const totalAssestsValue =
-    getBucketValue(FINANCE_BUCKETS.ASSETS_BUCKET);
+  const totalAssetsValue =
+    getBucketValue(
+      FINANCE_BUCKETS.ASSETS_BUCKET,
+    );
 
   const totalLiabilitiesValue =
-    getBucketValue(FINANCE_BUCKETS.LIABILITY_BUCKET);
+    getBucketValue(
+      FINANCE_BUCKETS.LIABILITY_BUCKET,
+    );
 
   const networthValue =
-    totalAssestsValue -
+    totalAssetsValue -
     totalLiabilitiesValue;
 
   const debtToAssetRatio =
-    totalAssestsValue
-      ? (totalLiabilitiesValue / totalAssestsValue) * 100
+    totalAssetsValue > 0
+      ? (
+          totalLiabilitiesValue /
+          totalAssetsValue
+        ) * 100
       : 0;
 
-  /* ---------------- Investments ---------------- */
+  // -----------------------------------
+  // INVESTMENTS
+  // -----------------------------------
 
   const investmentsValue =
     getBucketValue(
@@ -66,12 +121,56 @@ export const getFinanceCalculations = (
       FINANCE_BUCKETS.COMMITMENTS_BUCKET,
     );
 
-  /* ---------------- Expenses ---------------- */
+  // -----------------------------------
+  // EXPENSES
+  // -----------------------------------
+
+  const expenseSummaryCategories =
+    Array.from(
+      new Set(
+        expenseSummaryData?.months?.flatMap(
+          (month) =>
+            month.c.map(
+              (category) =>
+                category.n,
+            ),
+        ) ?? [],
+      ),
+    );
+
+  const getExpenseAmount = (
+    month:
+      ExpenseSummaryData['months'][number],
+    category: string,
+  ): number => {
+
+    return (
+      month.c.find(
+        (item) =>
+          item.n === category,
+      )?.a ?? 0
+    );
+  };
+
+  // -----------------------------------
+  // EMERGENCY FUND
+  // -----------------------------------
 
   const thisMonthExpenses =
     Number(
-      expensesSummaryData?.selectedMonthExpenseValue,
-    ) || 0;
+      expenseSummaryData
+        ?.months
+        ?.find(
+          (month) =>
+            month.m ===
+            new Date().toLocaleString(
+              'en-US',
+              {
+                month: 'long',
+              },
+            ),
+        )?.t ?? 0,
+    );
 
   const emergencyMonths =
     thisMonthExpenses > 0
@@ -79,175 +178,251 @@ export const getFinanceCalculations = (
         thisMonthExpenses
       : 0;
 
-  /* ---------------- Allocation ---------------- */
+  // -----------------------------------
+  // ALLOCATION
+  // -----------------------------------
 
   const investmentAllocation =
-    totalAssestsValue
-      ? (investmentsValue /
-          totalAssestsValue) *
-        100
+    totalAssetsValue > 0
+      ? (
+          investmentsValue /
+          totalAssetsValue
+        ) * 100
       : 0;
 
   const retirementAllocation =
-    totalAssestsValue
-      ? (retirementCorpus /
-          totalAssestsValue) *
-        100
+    totalAssetsValue > 0
+      ? (
+          retirementCorpus /
+          totalAssetsValue
+        ) * 100
       : 0;
 
   const insuranceAllocation =
-    totalAssestsValue
-      ? (insuranceValue /
-          totalAssestsValue) *
-        100
+    totalAssetsValue > 0
+      ? (
+          insuranceValue /
+          totalAssetsValue
+        ) * 100
       : 0;
 
   const goalAllocation =
-    totalAssestsValue
-      ? (goalsValue /
-          totalAssestsValue) *
-        100
+    totalAssetsValue > 0
+      ? (
+          goalsValue /
+          totalAssetsValue
+        ) * 100
       : 0;
 
-  /* ---------------- Financial Freedom ---------------- */
+  // -----------------------------------
+  // FINANCIAL FREEDOM SCORE
+  // -----------------------------------
 
   let score = 0;
 
-  // Net Worth
-  if (networthValue > 0) score += 15;
+  // -----------------------------------
+  // NET WORTH
+  // -----------------------------------
 
-  // Debt
-  if (debtToAssetRatio <= 10) score += 15;
-  else if (debtToAssetRatio <= 20) score += 12;
-  else if (debtToAssetRatio <= 30) score += 9;
-  else if (debtToAssetRatio <= 50) score += 5;
+  if (networthValue > 0) {
+    score += 15;
+  }
 
-  // Investment Allocation
-  if (investmentAllocation >= 60) score += 15;
-  else if (investmentAllocation >= 40) score += 12;
-  else if (investmentAllocation >= 25) score += 8;
-  else if (investmentAllocation >= 10) score += 4;
+  // -----------------------------------
+  // DEBT
+  // -----------------------------------
 
-  // Liquidity
+  if (debtToAssetRatio <= 10) {
+    score += 15;
+  } else if (debtToAssetRatio <= 20) {
+    score += 12;
+  } else if (debtToAssetRatio <= 30) {
+    score += 9;
+  } else if (debtToAssetRatio <= 50) {
+    score += 5;
+  }
+
+  // -----------------------------------
+  // INVESTMENT ALLOCATION
+  // -----------------------------------
+
+  if (investmentAllocation >= 60) {
+    score += 15;
+  } else if (investmentAllocation >= 40) {
+    score += 12;
+  } else if (investmentAllocation >= 25) {
+    score += 8;
+  } else if (investmentAllocation >= 10) {
+    score += 4;
+  }
+
+  // -----------------------------------
+  // LIQUIDITY
+  // -----------------------------------
+
   const liquidityRatio =
-    totalAssestsValue
-      ? (liquidAssetsValue /
-          totalAssestsValue) *
-        100
+    totalAssetsValue > 0
+      ? (
+          liquidAssetsValue /
+          totalAssetsValue
+        ) * 100
       : 0;
 
   if (
     liquidityRatio >= 10 &&
     liquidityRatio <= 30
-  )
+  ) {
     score += 10;
-  else if (liquidityRatio >= 5)
+  } else if (liquidityRatio >= 5) {
     score += 7;
-  else if (liquidityRatio > 0)
+  } else if (liquidityRatio > 0) {
     score += 4;
+  }
 
-  // Emergency Fund
+  // -----------------------------------
+  // EMERGENCY FUND
+  // -----------------------------------
 
-  if (emergencyMonths >= 12)
+  if (emergencyMonths >= 12) {
     score += 10;
-  else if (emergencyMonths >= 9)
+  } else if (emergencyMonths >= 9) {
     score += 9;
-  else if (emergencyMonths >= 6)
+  } else if (emergencyMonths >= 6) {
     score += 8;
-  else if (emergencyMonths >= 3)
+  } else if (emergencyMonths >= 3) {
     score += 5;
-  else if (emergencyMonths >= 1)
+  } else if (emergencyMonths >= 1) {
     score += 2;
+  }
 
-  // Retirement
+  // -----------------------------------
+  // RETIREMENT
+  // -----------------------------------
 
-  if (retirementAllocation >= 20)
+  if (retirementAllocation >= 20) {
     score += 10;
-  else if (retirementAllocation >= 15)
+  } else if (retirementAllocation >= 15) {
     score += 8;
-  else if (retirementAllocation >= 10)
+  } else if (retirementAllocation >= 10) {
     score += 6;
-  else if (retirementAllocation >= 5)
+  } else if (retirementAllocation >= 5) {
     score += 3;
+  }
 
-  // Insurance
+  // -----------------------------------
+  // INSURANCE
+  // -----------------------------------
 
   const hasLife =
     finance.some(
-      (x) => x?.c?.n === "LIFE I",
+      (item) =>
+        item.c?.n === 'LIFE I',
     );
 
   const hasHealth =
     finance.some(
-      (x) => x?.c?.n === "HEALTH I",
+      (item) =>
+        item.c?.n === 'HEALTH I',
     );
 
   const hasTerm =
     finance.some(
-      (x) => x?.c?.n === "TERM I",
+      (item) =>
+        item.c?.n === 'TERM I',
     );
 
   if (
     hasLife &&
     hasHealth &&
     hasTerm
-  )
+  ) {
     score += 10;
-  else if (hasLife && hasHealth)
+  } else if (
+    hasLife &&
+    hasHealth
+  ) {
     score += 8;
-  else if (hasLife || hasHealth)
+  } else if (
+    hasLife ||
+    hasHealth
+  ) {
     score += 5;
+  }
 
-  // Goal Planning
+  // -----------------------------------
+  // GOALS
+  // -----------------------------------
 
-  if (goalsValue > 0)
+  if (goalsValue > 0) {
     score += 5;
+  }
 
-  // Diversification
+  // -----------------------------------
+  // DIVERSIFICATION
+  // -----------------------------------
 
   let diversification = 0;
 
-  if (investmentsValue > 0)
+  if (investmentsValue > 0) {
     diversification++;
+  }
 
-  if (retirementCorpus > 0)
+  if (retirementCorpus > 0) {
     diversification++;
+  }
 
-  if (liquidAssetsValue > 0)
+  if (liquidAssetsValue > 0) {
     diversification++;
+  }
 
-  if (
-    finance.some((x) =>
-      FINANCE_BUCKETS.REAL_ASSETS_BUCKET.includes(
-        x?.c?.n,
-      ),
-    )
-  )
-    diversification++;
+  const hasRealAssets =
+    finance.some(
+      (item) => {
 
-  if (
-    finance.some((x) =>
-      FINANCE_BUCKETS.RECEIVABLES_BUCKET.includes(
-        x?.c?.n,
-      ),
-    )
-  )
+        const category =
+          item.c?.n;
+
+        return (
+          typeof category === 'string' &&
+          FINANCE_BUCKETS
+            .REAL_ASSETS_BUCKET
+            .includes(category)
+        );
+      },
+    );
+
+  if (hasRealAssets) {
     diversification++;
+  }
+
+  const hasReceivables =
+    finance.some(
+      (item) => {
+
+        const category =
+          item.c?.n;
+
+        return (
+          typeof category === 'string' &&
+          FINANCE_BUCKETS
+            .RECEIVABLES_BUCKET
+            .includes(category)
+        );
+      },
+    );
+
+  if (hasReceivables) {
+    diversification++;
+  }
 
   score += Math.min(
     diversification,
     5,
   );
 
-  // Cash Flow
-
-  if (
-    thisMonthExpenses >
-    monthlyCommitments
-  )
-    score += 5;
-  else if (thisMonthExpenses > 0)
-    score += 3;
+  // -----------------------------------
+  // FINAL SCORE
+  // -----------------------------------
 
   const financialFreedomScore =
     Math.min(
@@ -255,28 +430,47 @@ export const getFinanceCalculations = (
       Math.round(score),
     );
 
+  // -----------------------------------
+  // RESULT
+  // -----------------------------------
+
   return {
+
     networthValue,
-    totalAssestsValue,
+
+    totalAssetsValue,
+
     totalLiabilitiesValue,
+
     debtToAssetRatio,
 
     investmentsValue,
+
     liquidAssetsValue,
 
     emergencyMonths,
 
     retirementCorpus,
+
     insuranceValue,
+
     goalsValue,
 
     monthlyCommitments,
 
     investmentAllocation,
+
     retirementAllocation,
+
     insuranceAllocation,
+
     goalAllocation,
 
     financialFreedomScore,
+
+    expenseSummaryCategories,
+
+    getExpenseAmount,
+
   };
 };

@@ -9,44 +9,27 @@ import {
   Todo,
   Goal,
   PaginatedResponse,
-  DashboardExpenseResponse
+  DashboardExpenseResponse,
+  ExpenseYearlySummary
 } from '@/lib/types';
 
 import { today } from '@/lib/helpers';
 import { getFinanceCalculations } from './calculations/getFinanceCalculations';
 
 export function useDashboardData() {
+  const currentDate = new Date();
 
-  const currentDate =
-    new Date();
+  const initialYear = currentDate.getFullYear();
+  const initialMonth = currentDate.getMonth() + 1;
 
-  const initialYear =
-    currentDate.getFullYear();
-
-  const initialMonth =
-    currentDate.getMonth() + 1;
-
-  // -----------------------------------
-  // FILTER STATE
-  // -----------------------------------
-
-  const [selectedYear,
-    setSelectedYear] =
+  const [selectedYear, setSelectedYear] =
     useState(initialYear);
 
-  const [selectedMonth,
-    setSelectedMonth] =
+  const [selectedMonth, setSelectedMonth] =
     useState(initialMonth);
 
-  // -----------------------------------
-  // DATA STATE
-  // -----------------------------------
-
-  const [expensesSummaryData,
-    setExpensesSummaryData] =
-    useState<DashboardExpenseResponse | null>(
-      null
-    );
+  const [expenseSummaryData, setExpenseSummaryData] =
+    useState<ExpenseYearlySummary | null>(null);
 
   const [finance, setFinance] =
     useState<Finance[]>([]);
@@ -61,175 +44,124 @@ export function useDashboardData() {
     useState(true);
 
   // -----------------------------------
-  // ONLY EXPENSE DASHBOARD API
+  // EXPENSE APIs
   // -----------------------------------
 
-  const fetchExpenseDashboard =
-    async (
-      year: number,
-      month: number
-    ) => {
+  const fetchExpenseData = async (
+    year: number,
+  ) => {
+    const [ summaryResponse] =
+      await Promise.all([
+        api.get<ExpenseYearlySummary>(
+          `/expenses/yearly-summary?year=${year}`
+        )
+      ]);
 
-      try {
-
-        const response =
-          await api.get<DashboardExpenseResponse>(
-
-            `/expenses/dashboard?year=${year}&month=${month}`
-          );
-
-        setExpensesSummaryData(
-          response.data
-        );
-
-      } catch (err) {
-
-        console.error(err);
-      }
-    };
+    setExpenseSummaryData(summaryResponse.data);
+  };
 
   // -----------------------------------
   // INITIAL DASHBOARD LOAD
   // -----------------------------------
 
   useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
 
-    const loadDashboard =
-      async () => {
+        const [
+          summaryResponse,
+          financeResponse,
+          todoResponse,
+          goalResponse
+        ] = await Promise.all([
 
-        try {
+          api.get<ExpenseYearlySummary>(
+            `/expenses/yearly-summary?year=${initialYear}`
+          ),
 
-          setLoading(true);
+          api.get<PaginatedResponse<Finance>>(
+            '/finance?limit=200'
+          ),
 
-          const [
-            expenseResponse,
-            financeResponse,
-            todoResponse,
-            goalResponse
-          ] = await Promise.all([
+          api.get<PaginatedResponse<Todo>>(
+            '/todos?limit=200'
+          ),
 
-            api.get<DashboardExpenseResponse>(
+          api.get<PaginatedResponse<Goal>>(
+            '/goal?limit=200'
+          )
+        ]);
 
-              `/expenses/dashboard?year=${initialYear}&month=${initialMonth}`
-            ),
+        setExpenseSummaryData(summaryResponse.data);
 
-            api.get<PaginatedResponse<Finance>>(
+        setFinance(financeResponse.data.data);
+        setTodos(todoResponse.data.data);
+        setGoals(goalResponse.data.data);
 
-              '/finance?limit=200'
-            ),
-
-            api.get<PaginatedResponse<Todo>>(
-
-              '/todos?limit=200'
-            ),
-
-            api.get<PaginatedResponse<Goal>>(
-
-              '/goal?limit=200'
-            ),
-
-          ]);
-
-          setExpensesSummaryData(
-            expenseResponse.data
-          );
-
-          setFinance(
-            financeResponse.data.data
-          );
-
-          setTodos(
-            todoResponse.data.data
-          );
-
-          setGoals(
-            goalResponse.data.data
-          );
-
-        } catch (err) {
-
-          console.error(err);
-
-        } finally {
-
-          setLoading(false);
-        }
-      };
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     loadDashboard();
-
   }, []);
 
   // -----------------------------------
   // APPLY FILTER
-  // ONLY EXPENSE API CALL
   // -----------------------------------
 
   const onApplyFilter = async (
     year: number,
-    month: number
   ) => {
+    try {
+      setSelectedYear(year);
 
-    setSelectedYear(year);
+      await fetchExpenseData(year);
 
-    setSelectedMonth(month);
-
-    await fetchExpenseDashboard(
-      year,
-      month
-    );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // -----------------------------------
   // FINANCE
   // -----------------------------------
 
-  const financeCalculations = getFinanceCalculations(finance,expensesSummaryData);
-  
-  // -----------------------------------
-  // EXPENSES
-  // -----------------------------------
-
-  const totalExpenses =
-    expensesSummaryData
-      ?.totalExpenseValue || 0;
-
-  const thisMonthExpenses =
-    expensesSummaryData
-      ?.selectedMonthExpenseValue || 0;
-
-  const expenseCategoryTotals =
-    expensesSummaryData
-      ?.categoryTotals || [];
+  const financeCalculations =
+    getFinanceCalculations(
+      finance,
+      expenseSummaryData
+    );
 
   // -----------------------------------
   // TODOS
   // -----------------------------------
 
   const totalTodos =
-    (todos ?? []).length;
-const todayDate = today();
+    todos.length;
 
-const totalTodosToday = (todos ?? []).filter(
-  todo => todo.da?.startsWith(todayDate)
-).length;
+  const todayDate = today();
+
+  const totalTodosToday =
+    todos.filter(
+      todo => todo.da?.startsWith(todayDate)
+    ).length;
 
   return {
-
     // filters
     selectedYear,
     selectedMonth,
 
     // expenses
-    expensesSummaryData,
-    totalExpenses,
-    thisMonthExpenses,
-    expenseCategoryTotals,
+    expenseSummaryData,
 
     // finance
-// finance
-finance,
-...financeCalculations,
+    finance,
+    ...financeCalculations,
+
     // todos/goals
     todos,
     goals,
@@ -240,6 +172,6 @@ finance,
     loading,
 
     // actions
-    onApplyFilter,
+    onApplyFilter
   };
 }

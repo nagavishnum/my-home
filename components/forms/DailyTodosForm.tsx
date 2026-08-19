@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useGlobalApiLoading } from "@/lib/hooks";
 import React from "react";
@@ -9,9 +9,7 @@ type DailyTodosFormState = {
 
 type Props = {
   form: DailyTodosFormState;
-  setForm: React.Dispatch<
-    React.SetStateAction<DailyTodosFormState>
-  >;
+  setForm: React.Dispatch<React.SetStateAction<DailyTodosFormState>>;
   submit: () => void;
   editingId: string | null;
   onCancelEdit: () => void;
@@ -24,13 +22,10 @@ export const DailyTodosForm = ({
   editingId,
   onCancelEdit,
 }: Props) => {
-
-  const isApiLoading =
-    useGlobalApiLoading();
+  const isApiLoading = useGlobalApiLoading();
 
   return (
     <div className="form">
-
       <input
         value={form.t}
         onChange={(e) =>
@@ -41,23 +36,18 @@ export const DailyTodosForm = ({
         }
         placeholder="Daily Todo"
         onKeyDown={(e) => {
-          if (e.key === "Enter")
-            submit();
+          if (e.key === "Enter") submit();
         }}
+        maxLength={100}
+        type="text"
       />
 
       <button
-        className={
-          editingId
-            ? "btn-edit"
-            : "btn-add"
-        }
+        className={editingId ? "btn-edit" : "btn-add"}
         onClick={submit}
         disabled={isApiLoading}
       >
-        {editingId
-          ? "Update"
-          : "Save"}
+        {editingId ? "Update" : "Save"}
       </button>
 
       {editingId && (
