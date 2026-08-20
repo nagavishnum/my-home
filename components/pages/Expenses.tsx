@@ -266,28 +266,6 @@ export default function Expenses() {
           </div>
         </div>
       )}
-      {openFilterModel && isMobile && (
-        <div
-          className="modal-overlay"
-          onClick={() => setOpenFilterModel(!openFilterModel)}
-        >
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-     
-
-            <TableFilters
-              config={{
-                categories: cats,
-                showDateRange: true,
-                month: true,
-                year: true,
-              }}
-              filters={filters}
-              close={() => setOpenFilterModel(false)}
-              onChange={setFilters}
-            />
-          </div>
-        </div>
-      )}
       {!isMobile && (
         <ExpensesForm
           form={form}
@@ -301,20 +279,7 @@ export default function Expenses() {
       <div className="table-wrapper">
         <TablePlusFiltersLayout
           isMobile={isMobile}
-          filtersPanel={
-            isMobile ? null : (
-              <TableFilters
-                config={{
-                  categories: cats,
-                  showDateRange: true,
-                  month: true,
-                  year: true,
-                }}
-                filters={filters}
-                onChange={setFilters}
-              />
-            )
-          }
+          filtersPanel={null}
           tablePanel={
             <CommonTable
               data={filtered}

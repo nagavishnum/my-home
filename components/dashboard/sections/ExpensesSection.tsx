@@ -241,7 +241,7 @@ export default function ExpensesSection({
       {/* -------------------------------- */}
       {/* TITLE */}
       {/* -------------------------------- */}
-
+{/* 
       <h2
         style={{
           fontSize: isMobile
@@ -252,7 +252,7 @@ export default function ExpensesSection({
         }}
       >
         📊 EXPENSES
-      </h2>
+      </h2> */}
 
       {/* -------------------------------- */}
       {/* FILTER */}

@@ -1,707 +1,630 @@
-# 🏠 My Home — Quick Glance
+🏠 My Home --- Quick Glance
 
-A personal **finance, expenses, goals & task management** web app built with **Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4**, backed by a REST API with JWT authentication and using **Recharts, jsPDF, XLSX, docx, Firebase, and Web Speech API** for reporting, authentication, and voice-command utilities.
+My Home is a personal finance, expense, investment, goal, and
+task-management web app built with Next.js 16 (App Router), React 19,
+TypeScript, and Tailwind CSS v4. It uses a REST API with JWT
+authentication and includes Recharts, export utilities, Firebase
+support, and Web Speech API voice features.
 
-Repo entry: `app/page.tsx` → redirects to `/dashboard` if logged in, else `/login`.
+Entry: app/page.tsx → /dashboard when authenticated, otherwise
+/login.
 
----
+🔐 Authentication
 
-## 🔐 Auth Flow
+Login: username/password → POST /auth/login → stores JWT token
+and username in localStorage.
 
-* **Login page** (`app/login/page.tsx`): username + password form → `POST /auth/login` → stores `token` + `username` in `localStorage`.
-* **`ProtectedRoute`** wraps all private pages; unauthenticated users are redirected to `/login`.
-* **Axios interceptor** (`lib/api.ts`): attaches `Bearer` token, triggers global loader, auto-logs out on `401`.
-* **Header** (`AppHeader.tsx`): shows logged-in username + Logout link.
+ProtectedRoute: protects private pages and redirects
+unauthenticated users to /login.
 
----
+Axios interceptor (lib/api.ts):
 
-## 🧭 Navigation (Top Tabs — `components/Navbar.tsx`)
+Adds Bearer token.
 
-| Tab       | Route          | Purpose                               |
-| --------- | -------------- | ------------------------------------- |
-| Dashboard | `/dashboard`   | Overall KPI + charts view             |
-| Expenses  | `/expenses`    | Manage daily expenses                 |
-| Finance   | `/financebook` | Manage investments/assets/liabilities |
-| Todos     | `/todos`       | Todos + Goals + Daily Todos           |
+Controls global API loading state.
 
----
+Automatically logs out on 401.
 
-# 📊 1. Dashboard (`/dashboard`)
+Header: displays username and logout action.
 
-The main analytics screen. Data is loaded in parallel from `/expenses/dashboard`, `/finance`, `/todos`, `/goal` via `useDashboardData()`.
+🧭 Navigation
 
-### 🔢 Metrics Grid (`Metrics.tsx`)
+Tab Route Purpose
 
-Clickable cards that scroll to the relevant section:
+Dashboard /dashboard Expense and financial
+overview
 
-* 🚀 **Freedom Score** (0–100) — headline highlight card
-* 💰 Net Worth, 🏦 Total Assets, 📉 Liabilities
-* 📈 Investments, 💧 Liquid Assets, 🏖 Retirement, 🛡 Insurance
-* ⚖ Debt/Asset Ratio, 🚨 Emergency Fund (months of coverage)
-* 💳 Monthly Commitments (EMIs etc.)
-* 📅 Year Expenses, 💸 Month Expenses
-* ✅ Todos count
+Expenses /expenses Expense management
 
-### 📊 Expenses Section (`ExpensesSection.tsx`)
+Finance /financebook Investments, assets,
+liabilities and
+financial records
 
-* **Month/Year filter** → refetches `/expenses/dashboard?year=&month=`
-* **Donut/Pie chart** of expenses by category using Recharts
-* Category totals sorted descending
-* Responsive across mobile/tablet/desktop
+📊 1. Dashboard
 
-### 📈 Finance Section (`FinanceSection.tsx`)
+The dashboard is intentionally focused on Expenses + Finance.
 
-* **Financial Health card**: Freedom Score, Net Worth, Total Assets, Total Debt, Debt/Asset %, Emergency Fund months
-* **Wealth Allocation card**: % split across Investments / Retirement / Insurance / Goal Funds
-* **Top 5 Performing Categories** (green profit)
-* **Worst 5 Performing Categories** (red loss)
-* Calculations powered by `getFinanceCalculations.ts` using **FINANCE_BUCKETS** in `lib/constants.ts`:
+The previous Metrics, Todos and Goals dashboard sections have been
+removed.
 
-  * Assets
-  * Investments
-  * Liquid
-  * Retirement
-  * Goals
-  * Insurance
-  * Receivables
-  * Liability
-  * Commitments
-  * Other
+💸 Expenses Section
 
-### ✅ Todos Section (`TodosSection.tsx`)
+ExpensesSection.tsx
 
-* **Priority distribution** with animated progress bars:
+The dashboard uses the yearly expense-summary API:
 
-  * Low
-  * Medium
-  * High
-  * Mandatory
-* Shows count + percentage per priority
+GET /expenses/yearly-summary?year=<year>
 
-### 🎯 Goals Section (`GoalsSection.tsx`)
+The summary is sourced from the expense summary data, not the raw
+expenses collection.
 
-Two pie charts:
+Year filter
 
-* **Category-wise Goals**
-* **Status-wise Goals** — pending / in-progress / completed etc.
+Years start from 2026.
 
----
+The current year is selected by default.
 
-# 💸 2. Expenses (`/expenses` — `components/pages/Expenses.tsx`)
+Changing the year reloads the yearly summary.
 
-CRUD manager for expenses:
+Yearly expense table
 
-```ts
-Expense = {
-  amount,
-  category,
-  date
-}
-```
+The table provides a compact month/category view:
 
-### UI shows:
+Category Jan Feb Mar ...
 
-* **Add / Edit Expense** modal form (`ExpensesForm.tsx`)
+HOME FOOD ₹... ₹... ₹... ...
+NEED ₹... ₹... ₹... ...
+ASSET ₹... ₹... ₹... ...
+... ... ... ... ...
+Total ₹... ₹... ₹... ...
 
-  * Amount
-  * Category
-  * Date
-* **Manage Categories** modal (`CategoriesModel.tsx` → `Categories.tsx`)
+The table:
 
-  * Add
-  * Edit
-  * Delete expense categories
-* **Table** (`CommonTable`)
+Shows all categories returned by the API.
 
-  * Amount
-  * Category
-  * Date
-  * Actions
-* **Filters** (`TableFilters`)
+Shows every month available in the selected year.
 
-  * Date range
-  * Month
-  * Year
-* **Bulk selection** with checkbox list
-* **Compress Expenses** button → `POST /expenses/compress`
-* **Export**
+Uses — when a category has no expense for a month.
 
-  * PDF
-  * Excel
-  * Word
-* Mobile-first responsive layout via `TablePlusFiltersLayout`
+Keeps the category column sticky while horizontally scrolling on
+smaller screens.
 
-### 🎙️ Voice Expense Input
+Wraps/scrolls content appropriately instead of forcing long values
+onto one line.
 
-Expenses can also be added using **voice commands** through the Web Speech API.
+Highlights the highest monthly amount for each category.
 
-The voice functionality is integrated into `ExpensesForm.tsx` using:
+Uses subtle bucket-based colors rather than large/high-contrast
+backgrounds.
 
-```text
-VoiceInput
-    ↓
-useSpeechRecognition
-    ↓
-parseExpenseSpeech
-    ↓
-handleVoiceExpense
-    ↓
-Expense form fields
-    ↓
-User reviews/edits
-    ↓
-Save
-```
+Expense buckets
 
-The microphone button is displayed when creating a new expense.
+Expense categories are grouped in EXPENSE_BUCKETS:
 
-Example:
+Essential: HOME FOOD, NEED, MEDICINE, HOME GOODS,
+OUTSIDE HEALTHY FOOD
 
-> **"Food 450 tomorrow"**
+Avoid: OUTSIDE FOOD, ENTERTAINMENT, LUXURY, CLOTHES
 
-The parser identifies:
+Asset: ASSET
 
-```ts
+Other: OTHER, TRAVEL
+
+Bucket colors are defined through EXPENSE_BUCKET_STYLES.
+
+The Avoid bucket uses a red accent to make discretionary spending
+easy to identify, while essential, asset, and other categories use
+separate subtle accents.
+
+Expense summary API response
+
+Example structure:
+
 {
-  a: "450",
-  c: "<Food category ID>",
-  d: "YYYY-MM-DD"
-}
-```
-
-The parsed values populate the existing expense form rather than directly submitting the expense. This allows the user to review or modify the generated values before saving.
-
-### Supported voice parsing
-
-#### Amount
-
-Supports numeric amounts such as:
-
-* `450`
-* `₹450`
-* `1,250`
-* `450.50`
-
-Example:
-
-> `"Food 1,250 today"`
-
-→ Amount:
-
-```text
-1250
-```
-
-#### Category
-
-The parser matches the spoken category against the categories already loaded in the application.
-
-Matching is:
-
-* Case-insensitive
-* Based on the actual category list
-* Longest category names are checked first to avoid partial matching issues
-
-Example categories:
-
-```text
-Food
-Shopping
-Online Shopping
-Travel
-```
-
-Voice command:
-
-> `"Online Shopping 500 today"`
-
-→ `Online Shopping` is selected instead of `Shopping`.
-
-#### Date
-
-Supported natural date keywords:
-
-* `today`
-* `tomorrow`
-* `yesterday`
-
-If no date is spoken, **today is used by default**.
-
-Examples:
-
-```text
-"Food 450"
-→ today's date
-
-"Food 450 tomorrow"
-→ tomorrow's date
-
-"Food 450 yesterday"
-→ yesterday's date
-```
-
-### 🎙️ Voice Recognition Behavior
-
-The reusable `VoiceInput` component manages:
-
-* Start listening
-* Stop listening
-* Transcript handling
-* Parsing
-* Resetting recognition state
-* Microphone UI state
-
-The recognition hook (`useSpeechRecognition.ts`) uses:
-
-```ts
-window.SpeechRecognition ??
-window.webkitSpeechRecognition
-```
-
-with:
-
-```ts
-recognition.lang = "en-IN";
-recognition.continuous = false;
-recognition.interimResults = false;
-recognition.maxAlternatives = 1;
-```
-
-After recognition ends, the transcript is passed to the relevant parser.
-
----
-
-# 📈 3. Finance Book (`/financebook` — `components/pages/FinanceBook.tsx`)
-
-Portfolio / balance-sheet manager.
-
-Each Finance record includes:
-
-* Name
-* Category
-* Total Invested (`a`)
-* Current Value (`cv`)
-* Type (`Monthly` SIP / `OneTime`)
-* Monthly SIP amount (`sv`)
-* Maturity date
-* Last-paid
-* Return %
-* Notes
-
-### UI shows:
-
-* **Add / Edit Finance** modal (`FinanceForm.tsx`)
-* **Manage Finance Categories** modal
-* **Table columns**
-
-  * Name
-  * Category
-  * Total Invested
-  * Current Value
-  * Type
-  * Monthly SIP
-  * Returns %
-* **Filters**
-
-  * Month
-  * Year
-  * Date range
-* **PDF export**
-* Drives all Dashboard net-worth / freedom-score calculations
-
----
-
-# ✅ 4. Todos Hub (`/todos` — `TodosTab.tsx`)
-
-Sub-tabbed screen with persisted active tab in `localStorage`.
-
----
-
-## a) Todos (`Todos.tsx`)
-
-Todos contain:
-
-```ts
+year: 2026,
+months: [
 {
-  t: string;  // Task
-  da: string; // Due Date
-  p: string;  // Priority
+m: "May",
+t: 39641,
+c: [
+{ n: "HOME FOOD", a: 5411 },
+{ n: "OUTSIDE FOOD", a: 1055 }
+]
 }
-```
+]
+}
 
-Supported priorities:
+Where:
 
-* `low`
-* `medium`
-* `high`
-* `mandatory`
+year = selected year.
 
-### UI
+m = month.
 
-* Add/Edit modal (`TodosForm.tsx`)
-* Filters
-* Sorting by due date
-* Table columns from `lib/columns.tsx`
+t = monthly total.
 
-### 🎙️ Voice Todo Input
+c = category summaries.
 
-Todos support voice-based task entry using the same reusable voice-recognition architecture.
+n = category name.
+
+a = category amount.
+
+📈 Finance Section
+
+FinanceSection.tsx
+
+The finance section calculates financial health from finance records
+using getFinanceCalculations.ts and FINANCE_BUCKETS.
+
+It covers:
+
+Financial Freedom Score
+
+Net Worth
+
+Total Assets
+
+Total Liabilities
+
+Debt/Asset Ratio
+
+Investments
+
+Liquid Assets
+
+Retirement Corpus
+
+Insurance
+
+Goal Funds
+
+Monthly Commitments
+
+Investment allocation
+
+Retirement allocation
+
+Insurance allocation
+
+Goal allocation
+
+Emergency-fund coverage
+
+Diversification
+
+Finance buckets
+
+lib/constants.ts contains buckets for:
+
+Assets
+
+Investments
+
+Liquid Assets
+
+Real Assets
+
+Retirement
+
+Goals
+
+Insurance
+
+Receivables
+
+Liabilities
+
+Commitments
+
+Other
+
+💸 2. Expenses --- /expenses
+
+Full CRUD manager for expenses.
+
+Expense model
+
+{
+amount,
+category,
+date
+}
+
+UI
+
+Add/Edit Expense modal.
+
+Amount, category and date.
+
+Category management.
+
+Reusable CommonTable.
+
+Date-range/month/year filters.
+
+Bulk selection.
+
+Expense compression via POST /expenses/compress.
+
+PDF, Excel and Word export.
+
+Responsive mobile-first layout.
+
+Input validation
+
+Forms use strict client-side validation for user-entered values,
+including:
+
+Required fields.
+
+Numeric-only monetary values.
+
+Valid dates.
+
+Character limits on text inputs.
+
+Prevention of invalid numeric input where applicable.
+
+Enter-key submission where supported.
+
+Validation before submit.
+
+🎙️ 3. Voice Expense Input
+
+Expenses can be created using Web Speech API.
 
 Flow:
 
-```text
-User clicks microphone
-        ↓
-Speech Recognition starts
-        ↓
-User speaks todo
-        ↓
-Transcript
-        ↓
-Todo speech parser
-        ↓
-Task / Priority / Date extracted
-        ↓
-Todo form populated
-        ↓
+VoiceInput
+↓
+useSpeechRecognition
+↓
+parseExpenseSpeech
+↓
+Expense form
+↓
 User reviews/edits
-        ↓
-Save Todo
-```
-
-Example voice command:
-
-> **"Go to bath high priority tomorrow"**
-
-Expected parsed data:
-
-```ts
-{
-  t: "go to bath",
-  p: "high",
-  da: "YYYY-MM-DD"
-}
-```
-
-The parser removes command keywords such as:
-
-```text
-high priority
-tomorrow
-```
-
-from the task title and maps them to their corresponding fields.
-
-For example:
-
-```text
-"Go to bath high priority tomorrow"
-```
-
-becomes:
-
-```text
-Task:     Go to bath
-Priority: High
-Due Date: Tomorrow
-```
-
-### 🛑 Voice Stop Command
-
-Voice input can support a dedicated stop keyword/phrase such as:
-
-> **"done"**
+↓
+Save
 
 Example:
 
-> **"Go to bath high priority tomorrow done"**
+"Food 450 tomorrow"
 
-The intended behavior is:
+Produces:
 
-```text
-"Go to bath"       → Task
-"high priority"   → Priority
-"tomorrow"        → Due date
-"done"            → Stop listening
-```
+{
+a: "450",
+c: "<category-id>",
+d: "YYYY-MM-DD"
+}
 
-`done` should **not** be stored in the task title.
+The values populate the form first, allowing review before saving.
 
-The stop keyword can be handled inside the speech-recognition layer so the application can stop listening immediately once the command is detected.
+Supported parsing
 
----
+Amount - 450 - ₹450 - 1,250 - 450.50
 
-## b) Goals (`Goals.tsx`)
+Category - Case-insensitive. - Matches categories loaded by the
+application. - Longer category names are checked first.
 
-Fields:
+Date - today - tomorrow - yesterday - Defaults to today when
+omitted.
 
-* Title
-* Description
-* Category
-* Target Date
-* Priority
-* Status
-* Target Value (`tv`)
-* Current Value (`cv`)
+📈 4. Finance Book --- /financebook
+
+Portfolio and balance-sheet manager.
+
+Finance records support:
+
+Name
+
+Category
+
+Total Invested
+
+Current Value
+
+Monthly SIP / OneTime type
+
+Monthly SIP amount
+
+Maturity date
+
+Last-paid date
+
+Return %
+
+Notes
+
+UI
+
+Add/Edit finance modal.
+
+Finance category management.
+
+Responsive table.
+
+Month/year/date-range filters.
+
+PDF export.
+
+Finance data feeds dashboard net-worth and financial-freedom
+calculations.
+
+Input validation
+
+Finance forms apply strict validation to:
+
+Names and notes.
+
+Monetary values.
+
+SIP amounts.
+
+Lock period.
+
+Return percentage.
+
+Dates.
+
+Required fields.
+
+Character limits.
+
+Numeric ranges and invalid numeric input.
+
+✅ 5. Todos Hub --- /todos
+
+Todos, goals and daily todos remain available as a dedicated module.
+They are not displayed as dashboard sections.
+
+Todos
+
+Todo model:
+
+{
+t: string; // Task
+da: string; // Due date
+p: string; // Priority
+}
+
+Priorities:
+
+low
+
+medium
+
+high
+
+mandatory
 
 Features:
 
-* Categories loaded from `/categories/goal`
-* Special handling when category name contains `"finance"` to show financial fields
-* Icons for:
+Add/Edit.
 
-  * Category
-  * Priority
-  * Status
-* Helpers:
+Filters.
 
-  * `getGoalsCategoryIcon`
-  * `getPriorityIcon`
-  * `getStatusIcon`
-* Filters
-* Category manager modal
+Due-date sorting.
 
----
+Responsive table.
 
-## c) Daily Todos (`DailyTodos.tsx`)
+Strict text/date validation.
 
-Simple recurring day-to-day tasks.
+Character limits.
 
-Each Daily Todo contains:
+Voice Todo Input
 
-```text
-Task
-```
+Example:
 
-CRUD is handled through:
+"Go to bath high priority tomorrow"
 
-```text
+Produces:
+
+{
+t: "go to bath",
+p: "high",
+da: "YYYY-MM-DD"
+}
+
+Recognized command metadata is removed from the task title.
+
+A voice stop phrase such as "done" can terminate listening without
+being saved in the task.
+
+Goals
+
+Goals remain available inside the Todos Hub.
+
+Supported fields:
+
+Title
+
+Description
+
+Category
+
+Target Date
+
+Priority
+
+Status
+
+Target Value
+
+Current Value
+
+Features:
+
+Goal categories from /categories/goal.
+
+Finance-specific fields when applicable.
+
+Category/priority/status icons.
+
+Filters.
+
+Category management.
+
+Strict input validation and character limits.
+
+Daily Todos
+
+DailyTodos.tsx manages recurring day-to-day tasks.
+
+API:
+
 /todos/dailytodo
-```
 
----
+Supports CRUD operations and validated task input.
 
-# 🎙️ 5. Voice Command System
+🎙️ 6. Voice Command System
 
-The application includes a reusable voice-command layer for quickly entering **Expenses and Todos**.
+Reusable voice infrastructure supports Expenses and Todos.
 
-### Architecture
-
-```text
-                🎙️ VoiceInput
-                      │
-                      ▼
-             useSpeechRecognition
-                      │
-                      ▼
-                Transcript
-                 /       \
-                /         \
-               ▼           ▼
+                 VoiceInput
+                     │
+                     ▼
+          useSpeechRecognition
+                     │
+                     ▼
+                 Transcript
+                 /         \
+                /           \
+               ▼             ▼
     parseExpenseSpeech   parseTodoSpeech
             │                 │
             ▼                 ▼
-     Expense Form         Todo Form
-       Amount              Task
-       Category            Priority
-       Date                Due Date
-```
+      Expense Form        Todo Form
 
-### Shared Voice Component
+VoiceInput is generic:
 
-`VoiceInput` is a generic reusable component:
-
-```ts
 type Props<T> = {
-  parser: (transcript: string) => T;
-  onParsed: (data: T) => void;
-  disabled?: boolean;
-  title?: string;
+parser: (transcript: string) => T;
+onParsed: (data: T) => void;
+disabled?: boolean;
+title?: string;
 };
-```
 
-This allows different entities to provide their own parser while sharing the same speech-recognition UI and behavior.
+useSpeechRecognition.ts handles:
 
-### Speech Recognition Hook
+Browser recognition setup.
 
-`useSpeechRecognition.ts` handles:
+en-IN language.
 
-* Browser speech-recognition initialization
-* `en-IN` language configuration
-* Start/stop controls
-* Recognition errors
-* Recognition completion
-* Transcript state
-* Resetting recognition
+Start/stop.
 
-Browser compatibility is handled through:
+Errors.
 
-```ts
-window.SpeechRecognition ??
-window.webkitSpeechRecognition
-```
+Completion.
 
-### Expense Parser
+Transcript state.
 
-`parseExpenseSpeech.ts` extracts:
+Resetting recognition.
 
-```text
-Amount
-Category
-Date
-```
+Browser compatibility using SpeechRecognition /
+webkitSpeechRecognition.
 
-from natural speech.
+🧱 7. Shared UI
 
-Example:
+Important reusable components:
 
-```text
-"Food 450 tomorrow"
-```
+common/CommonTable.tsx --- reusable table with row actions.
 
-→
+common/TableFilters.tsx --- date/month/year filtering.
 
-```ts
-{
-  a: "450",
-  c: "<category-id>",
-  d: "<tomorrow-date>"
-}
-```
+common/TablePlusFilters.tsx --- responsive table/filter layout.
 
-### Todo Parser
+common/Loader.tsx --- global API loader.
 
-The Todo parser extracts:
+components/forms/ --- entity-specific forms.
 
-```text
-Task
-Priority
-Due Date
-```
+lib/voicecommand/ --- reusable voice functionality.
 
-Example:
+Common table behavior
 
-```text
-"Go to bath high priority tomorrow"
-```
+Tables are responsive and support:
 
-→
+Editable/deletable rows.
 
-```ts
-{
-  t: "go to bath",
-  p: "high",
-  da: "<tomorrow-date>"
-}
-```
+Long-content wrapping.
 
-The parser should remove recognized command phrases from the task text so metadata such as `priority` and `tomorrow` does not become part of the saved task title.
+Horizontal scrolling where required.
 
-### Voice Input UX
+Mobile-friendly layouts.
 
-The microphone button has two states:
+Loading-state action disabling.
 
-```text
-🎤  Add using voice
-```
+🎨 8. Styling & UX
 
-and while listening:
+Tailwind CSS v4 + custom CSS.
 
-```text
-🎙️  Stop listening
-```
+Responsive mobile/tablet/desktop layouts.
 
-The user can manually stop recognition using the microphone button.
+Modal-based forms.
 
-The system can additionally support a voice stop command such as:
+lucide-react icons.
 
-```text
-"done"
-```
+PRIORITY_COLORS.
 
-to terminate the voice session.
+CHART_COLORS.
 
----
+Expense bucket colors through EXPENSE_BUCKET_STYLES.
 
-# 🧱 Shared / Common UI
+Subtle expense highlighting for category/month comparisons.
 
-* `common/CommonTable.tsx` — reusable table with row actions and selection
-* `common/TableFilters.tsx` — date range / month / year filter panel + `applyFilters` helper
-* `common/TablePlusFilters.tsx` — responsive two-column layout
-* `common/Loader.tsx` — global spinner tied to `useGlobalApiLoading()`
-* Forms folder (`components/forms/`) — dedicated form components for each entity
-* `lib/voicecommand/`
+Strict form validation and character limits.
 
-  * `voicebutton.tsx`
-  * `useSpeechRecognition.ts`
-  * `voiceExpenseParser.ts`
-  * Todo voice parser
+Review-before-save workflow for voice input.
 
----
+🧠 9. What the App Does
 
-# 🎨 Styling & UX Highlights
+Tracks expenses with categories, filters, compression and exports.
 
-* Tailwind v4 + custom CSS:
+Provides yearly expense summaries by month and category.
 
-  * `app/globals.css`
-  * `dashboard.css`
-  * `forms.css`
-* Fully responsive:
+Groups expense categories into meaningful buckets and visually
+differentiates them.
 
-  * Mobile
-  * Tablet
-  * Desktop
-* Emoji-driven, friendly metric cards
-* Modal-based add/edit flows on mobile
-* Priority color system via `PRIORITY_COLORS`
-* Chart palette via `CHART_COLORS`
-* Icons via `lucide-react`
-* **Voice-powered expense and todo entry**
-* Natural-language voice commands for common fields
-* Review-before-save workflow for voice-generated data
+Highlights unusually high monthly category spending.
 
----
+Supports voice-based expense entry.
 
-# 🧠 What the app effectively does
+Maintains investments, SIPs, assets, liabilities, insurance and
+other financial records.
 
-1. Tracks **every expense** with categories, month/year filtering, exports, and compression.
-2. Allows users to **add expenses using voice commands**, extracting amount, category, and date.
-3. Maintains a **portfolio ledger** of investments, SIPs, assets, liabilities, insurance, and other financial records.
-4. Auto-computes:
+Calculates Net Worth, Financial Freedom Score, debt ratio,
+emergency-fund coverage and wealth allocation.
 
-   * Financial Freedom Score
-   * Net Worth
-   * Debt Ratio
-   * Emergency Fund months
-   * Wealth Allocation %
-   * Best/worst performing categories
-5. Manages:
+Manages Todos, Daily Todos and Goals through the dedicated Todos
+Hub.
 
-   * Todos
-   * Daily Todos
-   * Long-term Goals
-6. Allows users to **create todos using natural voice commands**, extracting:
+Supports voice-based Todo creation.
 
-   * Task
-   * Priority
-   * Due Date
-7. Supports optional voice stop commands such as **"done"** for hands-free input.
-8. Presents everything in a **single unified Dashboard** with KPIs and interactive charts.
-9. Supports **PDF / Excel / Word exports** of table data.
-10. JWT-authenticated, single-user, mobile-friendly PWA-style experience.
-11. Uses reusable voice-recognition infrastructure so additional voice-enabled modules can be added later.
+Provides PDF, Excel and Word exports.
 
----
+Uses JWT authentication and responsive/mobile-friendly UI.
 
-# 🛠 Tech Stack Summary
+Uses reusable components and voice infrastructure for future
+modules.
 
-* **Framework:** Next.js 16 (App Router, private route group `(private)`) + React 19
-* **Language:** TypeScript
-* **Styling:** Tailwind CSS v4
-* **State/Data:** React hooks + Axios + `@tanstack/react-query` (available)
-* **Charts:** Recharts
-* **Exports:** jsPDF + jspdf-autotable + xlsx + docx + file-saver
-* **Auth:** JWT (`localStorage`) + optional Firebase SDK
-* **Icons:** lucide-react
-* **Voice Recognition:** Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)
-* **Voice Features:** Natural-language expense and todo input
+🛠 Tech Stack
+
+Framework: Next.js 16 App Router + React 19
+
+Language: TypeScript
+
+Styling: Tailwind CSS v4 + custom CSS
+
+State/Data: React hooks + Axios + React Query available
+
+Charts: Recharts
+
+Exports: jsPDF, jspdf-autotable, XLSX, docx, file-saver
+
+Authentication: JWT + localStorage + optional Firebase SDK
+
+Icons: lucide-react
+
+Voice: Web Speech API
+
+Backend: REST API
