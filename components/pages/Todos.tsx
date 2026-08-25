@@ -1,4 +1,4 @@
-import { todoColumns } from "@/lib/columns";
+import { todoColumns, todoMobileColumns } from "@/lib/columns";
 import { CommonTable } from "../common/CommonTable";
 import { useGlobalApiLoading, useMediaQuery } from "@/lib/hooks";
 import { useEffect, useRef, useState } from "react";
@@ -231,7 +231,7 @@ export default function Todos() {
         tablePanel={
           <CommonTable
             data={sortedTodosWrtDate}
-            columns={todoColumns}
+            columns={isMobile ? todoMobileColumns : todoColumns}
             onDeleteClick={remove}
             onEditClick={handleEditClick}
           />

@@ -271,7 +271,7 @@ export default function ExpensesSection({
 
           gap: '10px',
 
-          marginBottom: '12px',
+          marginBottom: '8px',
         }}
       >
 

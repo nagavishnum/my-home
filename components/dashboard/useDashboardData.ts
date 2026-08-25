@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
 
 import { api } from '@/lib/api';
 
@@ -9,131 +12,240 @@ import {
   Todo,
   Goal,
   PaginatedResponse,
-  DashboardExpenseResponse,
-  ExpenseYearlySummary
+  ExpenseYearlySummary,
+  FinanceSnapshot,
 } from '@/lib/types';
 
 import { today } from '@/lib/helpers';
-import { getFinanceCalculations } from './calculations/getFinanceCalculations';
+
+import {
+  getFinanceCalculations,
+} from './calculations/getFinanceCalculations';
+
+import {
+  getExpenseCalculations,
+} from './calculations/getExpenseCalculations';
 
 export function useDashboardData() {
-  const currentDate = new Date();
+  const currentDate =
+    new Date();
 
-  const initialYear = currentDate.getFullYear();
-  const initialMonth = currentDate.getMonth() + 1;
+  const initialYear =
+    currentDate.getFullYear();
 
-  const [selectedYear, setSelectedYear] =
-    useState(initialYear);
+  const currentMonth =
+    currentDate.getMonth() + 1;
 
-  const [selectedMonth, setSelectedMonth] =
-    useState(initialMonth);
+  const [
+    selectedYear,
+    setSelectedYear,
+  ] = useState(
+    initialYear,
+  );
 
-  const [expenseSummaryData, setExpenseSummaryData] =
-    useState<ExpenseYearlySummary | null>(null);
+  const [
+    expenseSummaryData,
+    setExpenseSummaryData,
+  ] =
+    useState<ExpenseYearlySummary | null>(
+      null,
+    );
 
-  const [finance, setFinance] =
+  const [
+    finance,
+    setFinance,
+  ] =
     useState<Finance[]>([]);
 
-  const [todos, setTodos] =
+  const [
+    financeSnapshots,
+    setFinanceSnapshots,
+  ] =
+    useState<
+      FinanceSnapshot[]
+    >([]);
+
+  const [
+    todos,
+    setTodos,
+  ] =
     useState<Todo[]>([]);
 
-  const [goals, setGoals] =
+  const [
+    goals,
+    setGoals,
+  ] =
     useState<Goal[]>([]);
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
   // -----------------------------------
-  // EXPENSE APIs
+  // FETCH EXPENSE DATA
   // -----------------------------------
 
   const fetchExpenseData = async (
     year: number,
   ) => {
-    const [ summaryResponse] =
-      await Promise.all([
-        api.get<ExpenseYearlySummary>(
-          `/expenses/yearly-summary?year=${year}`
-        )
-      ]);
+    const response =
+      await api.get<
+        ExpenseYearlySummary
+      >(
+        `/expenses/yearly-summary?year=${year}`,
+      );
 
-    setExpenseSummaryData(summaryResponse.data);
+    setExpenseSummaryData(
+      response.data,
+    );
   };
 
   // -----------------------------------
-  // INITIAL DASHBOARD LOAD
+  // FETCH FULL YEAR SNAPSHOTS
+  // -----------------------------------
+
+  const fetchFinanceSnapshots = async (
+    year: number,
+  ) => {
+const response =
+  await api.get<{
+    data: FinanceSnapshot[];
+  }>(
+    `/finance-snapshots?from=${
+      year - 1
+    }12&to=${year}12`,
+  );
+
+    setFinanceSnapshots(
+      response.data.data,
+    );
+  };
+
+  // -----------------------------------
+  // INITIAL LOAD
   // -----------------------------------
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        setLoading(true);
+    const loadDashboard =
+      async () => {
+        try {
+          setLoading(true);
 
-        const [
-          summaryResponse,
-          financeResponse,
-          todoResponse,
-          goalResponse
-        ] = await Promise.all([
+          const [
+            summaryResponse,
+            financeResponse,
+            snapshotResponse,
+            todoResponse,
+            goalResponse,
+          ] =
+            await Promise.all([
+              api.get<
+                ExpenseYearlySummary
+              >(
+                `/expenses/yearly-summary?year=${initialYear}`,
+              ),
 
-          api.get<ExpenseYearlySummary>(
-            `/expenses/yearly-summary?year=${initialYear}`
-          ),
+              api.get<
+                PaginatedResponse<Finance>
+              >(
+                '/finance?limit=200',
+              ),
 
-          api.get<PaginatedResponse<Finance>>(
-            '/finance?limit=200'
-          ),
+              api.get<{
+                data: FinanceSnapshot[];
+              }>(
+                `/finance-snapshots?from=${initialYear}01&to=${initialYear}12`,
+              ),
 
-          api.get<PaginatedResponse<Todo>>(
-            '/todos?limit=200'
-          ),
+              api.get<
+                PaginatedResponse<Todo>
+              >(
+                '/todos?limit=200',
+              ),
 
-          api.get<PaginatedResponse<Goal>>(
-            '/goal?limit=200'
-          )
-        ]);
+              api.get<
+                PaginatedResponse<Goal>
+              >(
+                '/goal?limit=200',
+              ),
+            ]);
 
-        setExpenseSummaryData(summaryResponse.data);
+          setExpenseSummaryData(
+            summaryResponse.data,
+          );
 
-        setFinance(financeResponse.data.data);
-        setTodos(todoResponse.data.data);
-        setGoals(goalResponse.data.data);
+          setFinance(
+            financeResponse.data.data,
+          );
 
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setFinanceSnapshots(
+            snapshotResponse.data.data,
+          );
+
+          setTodos(
+            todoResponse.data.data,
+          );
+
+          setGoals(
+            goalResponse.data.data,
+          );
+        } catch (err) {
+          console.error(
+            'Dashboard load failed:',
+            err,
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
 
     loadDashboard();
   }, []);
 
   // -----------------------------------
-  // APPLY FILTER
+  // APPLY YEAR FILTER
   // -----------------------------------
 
   const onApplyFilter = async (
     year: number,
   ) => {
     try {
+      setLoading(true);
+
       setSelectedYear(year);
 
-      await fetchExpenseData(year);
-
+      await Promise.all([
+        fetchExpenseData(year),
+        fetchFinanceSnapshots(year),
+      ]);
     } catch (err) {
-      console.error(err);
+      console.error(
+        'Dashboard filter failed:',
+        err,
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   // -----------------------------------
-  // FINANCE
+  // FINANCE CALCULATIONS
   // -----------------------------------
 
-  const financeCalculations =
-    getFinanceCalculations(
-      finance,
-      expenseSummaryData
+const financeCalculations =
+  getFinanceCalculations(
+    finance,
+    expenseSummaryData,
+    financeSnapshots,
+    selectedYear,
+    new Date().getMonth() + 1,
+  );
+
+  const expenseCalculations =
+    getExpenseCalculations(
+      expenseSummaryData,
     );
 
   // -----------------------------------
@@ -143,26 +255,30 @@ export function useDashboardData() {
   const totalTodos =
     todos.length;
 
-  const todayDate = today();
+  const todayDate =
+    today();
 
   const totalTodosToday =
     todos.filter(
-      todo => todo.da?.startsWith(todayDate)
+      (todo) =>
+        todo.da?.startsWith(
+          todayDate,
+        ),
     ).length;
 
   return {
     // filters
     selectedYear,
-    selectedMonth,
 
     // expenses
-    expenseSummaryData,
+    ...expenseCalculations,
 
     // finance
     finance,
+    financeSnapshots,
     ...financeCalculations,
 
-    // todos/goals
+    // todos / goals
     todos,
     goals,
     totalTodos,
@@ -172,6 +288,6 @@ export function useDashboardData() {
     loading,
 
     // actions
-    onApplyFilter
+    onApplyFilter,
   };
 }

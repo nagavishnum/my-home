@@ -15,9 +15,90 @@ export default function Dashboard() {
     <div className="dashboard-wrapper">
       <div>
         <div className="dashboard">
-          <FinancialWarningSystem expensesSummaryData={data.expenseSummaryData} />
-          <ExpensesSection {...data} />
-          <FinanceSection {...data} />
+          <FinancialWarningSystem
+            expensesSummaryData={
+              data.expenseSummaryData
+            }
+          />
+
+          <ExpensesSection
+            {...data}
+          />
+
+          <FinanceSection
+            selectedYear={
+              data.selectedYear
+            }
+            metricMonthName={
+              data.metricMonthName
+            }
+            previousMetricMonthName={
+              data.previousMetricMonthName
+            }
+            networthValue={
+              data.networthValue
+            }
+            previousNetworthValue={
+              data.previousNetworthValue
+            }
+            networthChange={
+              data.networthChange
+            }
+            networthGrowth={
+              data.networthGrowth
+            }
+            totalAssetsValue={
+              data.totalAssetsValue
+            }
+            totalLiabilitiesValue={
+              data.totalLiabilitiesValue
+            }
+            debtToAssetRatio={
+              data.debtToAssetRatio
+            }
+            assetAllocation={
+              data.assetAllocation
+            }
+            investmentsValue={
+              data.investmentsValue
+            }
+            liquidAssetsValue={
+              data.liquidAssetsValue
+            }
+            selectedMonthExpenses={
+              data.selectedMonthExpenses
+            }
+            emergencyMonths={
+              data.emergencyMonths
+            }
+            wealthCreationRate={
+              data.wealthCreationRate
+            }
+            monthlyCapitalDeployment={
+              data.monthlyCapitalDeployment
+            }
+            financialFreedomNumber={
+              data.financialFreedomNumber
+            }
+            financialFreedomProgress={
+              data.financialFreedomProgress
+            }
+            wealthTrend={
+              data.wealthTrend
+            }
+            profitItems={
+              data.profitItems
+            }
+            lossItems={
+              data.lossItems
+            }
+            monthlyCategories={
+              data.monthlyCategories
+            }
+            monthlyCategoryRows={
+              data.monthlyCategoryRows
+            }
+          />
         </div>
       </div>
     </div>

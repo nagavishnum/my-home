@@ -49,14 +49,14 @@ table td {
   }
 
   .chart-card {
-    padding: 10px;
+    padding: 7px;
   }
 }
 
 .finance-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 10px;
 }
 
 /* MOBILE */
@@ -454,7 +454,7 @@ tr:nth-child(even) {
 
 .dash-section h3 {
   font-size: 18px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .dash-filter-row {

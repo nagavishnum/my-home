@@ -139,3 +139,15 @@ export type TableColumn<T> = {
   label: string;
   render?: (row: T) => React.ReactNode;
 };
+
+export type FinanceSnapshotCategory = {
+  k: string;
+  v: number;
+};
+
+export type FinanceSnapshot = {
+  p: number;
+  c: FinanceSnapshotCategory[];
+  createdAt?: string;
+  updatedAt?: string;
+};

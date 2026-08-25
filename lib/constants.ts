@@ -60,6 +60,9 @@ export const FINANCE_BUCKETS = {
     "SAVINGS",
     "EMERGENCY F",
     "LENT",
+    "GIFTS F",
+    "OTHER",
+    "HEALTH F",
   ],
 
   // Wealth creation assets only
@@ -83,7 +86,7 @@ export const FINANCE_BUCKETS = {
   GOALS_BUCKET: ["CHILD EDUC F", "ENTERTAINEMENT F", "GIFTS F"],
 
   // Money protection (not counted as assets)
-  INSURANCE_BUCKET: ["HEALTH I", "LIFE I", "TERM I", "HEALTH F"],
+  INSURANCE_BUCKET: ["HEALTH I", "LIFE I", "TERM I"],
 
   // Money you should receive back
   RECEIVABLES_BUCKET: ["LENT"],
