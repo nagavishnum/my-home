@@ -128,3 +128,507 @@ align-items:center;
 padding:12px 0;
 border-bottom:1px solid #efefef;
 }
+/* =========================================================
+   FINANCIAL COMMAND CENTER
+========================================================= */
+
+.finance-command-center {
+  margin-top: 2rem;
+}
+
+.finance-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.finance-section-header h2 {
+  margin: 0.25rem 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.finance-section-header p {
+  margin: 0;
+  opacity: 0.65;
+}
+
+.finance-eyebrow,
+.finance-card-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.finance-networth-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.finance-networth-value {
+  margin-top: 0.35rem;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.finance-baseline-message {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  font-size: 0.85rem;
+  opacity: 0.65;
+}
+
+.finance-baseline-message span {
+  font-size: 0.6rem;
+}
+
+.finance-growth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.8rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.finance-growth-badge.positive {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
+.finance-growth-badge.negative {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.finance-networth-side {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 1.5rem;
+}
+
+.finance-networth-side div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.finance-networth-side span {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.finance-networth-side strong {
+  font-size: 1.15rem;
+}
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+/* .finance-section-block {
+  margin-top: 1.5rem;
+} */
+
+.finance-section-title {
+  margin-bottom: 0.75rem;
+}
+
+.finance-section-title span {
+  display: block;
+  font-weight: 700;
+}
+
+.finance-section-title small {
+  display: block;
+  margin-top: 0.2rem;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.finance-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.chart-card {
+  border-radius: 14px;
+}
+
+.finance-card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.finance-card-heading h3 {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+}
+
+.finance-big-number {
+  margin: 1.25rem 0;
+  font-size: 2rem;
+  font-weight: 750;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.finance-status-pill {
+  display: inline-flex;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.finance-status-pill.success {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
+.finance-status-pill.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.finance-status-pill.danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid
+    rgba(128, 128, 128, 0.12);
+}
+
+.summary-row:last-child {
+  border-bottom: 0;
+}
+
+.summary-row span {
+  opacity: 0.7;
+}
+
+.summary-row strong {
+  text-align: right;
+}
+
+/* =========================================================
+   SAFETY BAR
+========================================================= */
+
+.finance-safety-bar {
+  height: 7px;
+  margin-top: 1.25rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.finance-safety-bar div {
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+}
+
+.finance-helper-text {
+  display: block;
+  margin-top: 0.45rem;
+  opacity: 0.55;
+}
+
+/* =========================================================
+   WEALTH TREND
+========================================================= */
+
+.finance-trend-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.finance-trend-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 10px;
+  background: rgba(128, 128, 128, 0.08);
+}
+
+.finance-trend-summary h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.finance-trend-summary p {
+  margin: 0.35rem 0 0;
+  opacity: 0.65;
+  line-height: 1.5;
+}
+
+.finance-empty-chart {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.finance-empty-chart p {
+  max-width: 420px;
+  margin: 1rem auto 0;
+  opacity: 0.6;
+}
+
+.finance-empty-chart-line {
+  width: 75%;
+  height: 80px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  border-bottom: 1px dashed
+    rgba(128, 128, 128, 0.25);
+}
+
+.finance-empty-chart-line span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.25;
+}
+
+/* =========================================================
+   ASSET ALLOCATION
+========================================================= */
+
+.asset-allocation-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(240px, 0.8fr)
+    minmax(0, 1.2fr);
+  align-items: center;
+  gap: 2rem;
+}
+
+.asset-allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.asset-allocation-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.asset-allocation-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.asset-allocation-progress {
+  height: 5px;
+  margin-top: 0.4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.asset-allocation-progress div {
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+}
+
+.asset-allocation-value {
+  min-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.asset-allocation-value strong {
+  font-size: 0.85rem;
+}
+
+.asset-allocation-value small {
+  opacity: 0.55;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.finance-table-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.finance-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.finance-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+.finance-table th,
+.finance-table td {
+  padding: 0.9rem 1rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid
+    rgba(128, 128, 128, 0.1);
+}
+
+.finance-table th:first-child,
+.finance-table td:first-child {
+  text-align: left;
+}
+
+.finance-table th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+}
+
+.finance-table td {
+  font-size: 0.88rem;
+}
+
+.finance-table td:first-child {
+  display: table-cell;
+}
+
+.finance-table td:first-child small {
+  display: block;
+  margin-top: 0.15rem;
+  opacity: 0.5;
+}
+
+.finance-table-primary {
+  font-weight: 750;
+}
+
+.finance-table tr.current-period {
+  background: rgba(128, 128, 128, 0.05);
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.finance-empty {
+  padding: 2rem;
+  text-align: center;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+  .finance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-networth-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .finance-networth-side {
+    width: 100%;
+  }
+
+  .asset-allocation-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-allocation-chart {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .finance-networth-hero {
+    padding: 1.25rem;
+  }
+
+  .finance-networth-value {
+    font-size: 2.6rem;
+  }
+
+  .finance-networth-side {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .finance-section-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .asset-allocation-row {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-allocation-value {
+    align-items: flex-start;
+  }
+}

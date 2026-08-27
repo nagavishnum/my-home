@@ -20,7 +20,7 @@ export const getExpenseCalculations = (
   };
   return {
     expenseSummaryCategories,
-    expenseSummaryData,
+    // expenseSummaryData,
     getExpenseAmount,
   };
 };

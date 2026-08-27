@@ -52,6 +52,14 @@ export function useDashboardData() {
     );
 
   const [
+    previousExpenseSummaryData,
+    setPreviousExpenseSummaryData,
+  ] =
+    useState<ExpenseYearlySummary | null>(
+      null,
+    );
+
+  const [
     finance,
     setFinance,
   ] =
@@ -83,49 +91,67 @@ export function useDashboardData() {
   ] =
     useState(true);
 
-  // -----------------------------------
-  // FETCH EXPENSE DATA
-  // -----------------------------------
+  /* =======================================================
+     EXPENSE DATA
+  ======================================================= */
 
   const fetchExpenseData = async (
     year: number,
   ) => {
-    const response =
-      await api.get<
-        ExpenseYearlySummary
-      >(
-        `/expenses/yearly-summary?year=${year}`,
-      );
+    const [
+      currentResponse,
+      previousResponse,
+    ] =
+      await Promise.all([
+        api.get<
+          ExpenseYearlySummary
+        >(
+          `/expenses/yearly-summary?year=${year}`,
+        ),
+
+        api.get<
+          ExpenseYearlySummary
+        >(
+          `/expenses/yearly-summary?year=${
+            year - 1
+          }`,
+        ),
+      ]);
 
     setExpenseSummaryData(
-      response.data,
+      currentResponse.data,
+    );
+
+    setPreviousExpenseSummaryData(
+      previousResponse.data,
     );
   };
 
-  // -----------------------------------
-  // FETCH FULL YEAR SNAPSHOTS
-  // -----------------------------------
+  /* =======================================================
+     FINANCE SNAPSHOTS
+  ======================================================= */
 
-  const fetchFinanceSnapshots = async (
-    year: number,
-  ) => {
-const response =
-  await api.get<{
-    data: FinanceSnapshot[];
-  }>(
-    `/finance-snapshots?from=${
-      year - 1
-    }12&to=${year}12`,
-  );
+  const fetchFinanceSnapshots =
+    async (
+      year: number,
+    ) => {
+      const response =
+        await api.get<{
+          data: FinanceSnapshot[];
+        }>(
+          `/finance-snapshots?from=${
+            year - 1
+          }12&to=${year}12`,
+        );
 
-    setFinanceSnapshots(
-      response.data.data,
-    );
-  };
+      setFinanceSnapshots(
+        response.data.data,
+      );
+    };
 
-  // -----------------------------------
-  // INITIAL LOAD
-  // -----------------------------------
+  /* =======================================================
+     INITIAL LOAD
+  ======================================================= */
 
   useEffect(() => {
     const loadDashboard =
@@ -135,6 +161,7 @@ const response =
 
           const [
             summaryResponse,
+            previousSummaryResponse,
             financeResponse,
             snapshotResponse,
             todoResponse,
@@ -148,6 +175,14 @@ const response =
               ),
 
               api.get<
+                ExpenseYearlySummary
+              >(
+                `/expenses/yearly-summary?year=${
+                  initialYear - 1
+                }`,
+              ),
+
+              api.get<
                 PaginatedResponse<Finance>
               >(
                 '/finance?limit=200',
@@ -156,7 +191,9 @@ const response =
               api.get<{
                 data: FinanceSnapshot[];
               }>(
-                `/finance-snapshots?from=${initialYear}01&to=${initialYear}12`,
+                `/finance-snapshots?from=${
+                  initialYear - 1
+                }12&to=${initialYear}12`,
               ),
 
               api.get<
@@ -174,6 +211,10 @@ const response =
 
           setExpenseSummaryData(
             summaryResponse.data,
+          );
+
+          setPreviousExpenseSummaryData(
+            previousSummaryResponse.data,
           );
 
           setFinance(
@@ -202,11 +243,11 @@ const response =
       };
 
     loadDashboard();
-  }, []);
+  }, [initialYear]);
 
-  // -----------------------------------
-  // APPLY YEAR FILTER
-  // -----------------------------------
+  /* =======================================================
+     YEAR FILTER
+  ======================================================= */
 
   const onApplyFilter = async (
     year: number,
@@ -230,27 +271,71 @@ const response =
     }
   };
 
-  // -----------------------------------
-  // FINANCE CALCULATIONS
-  // -----------------------------------
+  /* =======================================================
+     MERGE EXPENSE HISTORY
+  ======================================================= */
 
-const financeCalculations =
-  getFinanceCalculations(
-    finance,
-    expenseSummaryData,
-    financeSnapshots,
-    selectedYear,
-    new Date().getMonth() + 1,
-  );
+  /*
+   * Finance calculations need the
+   * selected year plus previous-year
+   * expense data for the 3-month
+   * rolling average.
+   *
+   * Keep the selected year's
+   * ExpenseYearlySummary API shape
+   * unchanged and combine only the
+   * months needed for calculations.
+   */
+  const financeExpenseSummaryData =
+    (() => {
+      if (
+        !expenseSummaryData
+      ) {
+        return null;
+      }
+
+      if (
+        !previousExpenseSummaryData
+      ) {
+        return expenseSummaryData;
+      }
+
+      return {
+        ...expenseSummaryData,
+        months: [
+          ...(previousExpenseSummaryData.months ??
+            []),
+          ...(expenseSummaryData.months ??
+            []),
+        ],
+      };
+    })();
+
+  /* =======================================================
+     FINANCE
+  ======================================================= */
+
+  const financeCalculations =
+    getFinanceCalculations(
+      finance,
+      financeExpenseSummaryData,
+      financeSnapshots,
+      selectedYear,
+      currentMonth,
+    );
+
+  /* =======================================================
+     EXPENSES
+  ======================================================= */
 
   const expenseCalculations =
     getExpenseCalculations(
       expenseSummaryData,
     );
 
-  // -----------------------------------
-  // TODOS
-  // -----------------------------------
+  /* =======================================================
+     TODOS
+  ======================================================= */
 
   const totalTodos =
     todos.length;
@@ -267,27 +352,40 @@ const financeCalculations =
     ).length;
 
   return {
-    // filters
+    /*
+     * Filters
+     */
     selectedYear,
 
-    // expenses
+    /*
+     * Expenses
+     */
+    expenseSummaryData,
     ...expenseCalculations,
 
-    // finance
+    /*
+     * Finance
+     */
     finance,
     financeSnapshots,
     ...financeCalculations,
 
-    // todos / goals
+    /*
+     * Todos / Goals
+     */
     todos,
     goals,
     totalTodos,
     totalTodosToday,
 
-    // loading
+    /*
+     * Loading
+     */
     loading,
 
-    // actions
+    /*
+     * Actions
+     */
     onApplyFilter,
   };
 }

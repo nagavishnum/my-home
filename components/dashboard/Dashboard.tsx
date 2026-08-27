@@ -9,7 +9,8 @@ import { FinancialWarningSystem } from './sections/SmartAlerts';
 import { useDashboardData } from './useDashboardData';
 
 export default function Dashboard() {
-  const data = useDashboardData();
+  const data =
+    useDashboardData();
 
   return (
     <div className="dashboard-wrapper">
@@ -29,74 +30,85 @@ export default function Dashboard() {
             selectedYear={
               data.selectedYear
             }
+
             metricMonthName={
               data.metricMonthName
             }
-            previousMetricMonthName={
-              data.previousMetricMonthName
-            }
+
             networthValue={
               data.networthValue
             }
+
             previousNetworthValue={
               data.previousNetworthValue
             }
+
             networthChange={
               data.networthChange
             }
+
             networthGrowth={
               data.networthGrowth
             }
+
+            hasPreviousSnapshot={
+              data.hasPreviousSnapshot
+            }
+
             totalAssetsValue={
               data.totalAssetsValue
             }
+
             totalLiabilitiesValue={
               data.totalLiabilitiesValue
             }
+
             debtToAssetRatio={
               data.debtToAssetRatio
             }
+
             assetAllocation={
               data.assetAllocation
             }
-            investmentsValue={
-              data.investmentsValue
+
+            investmentValue={
+              data.investmentValue
             }
+
+            retirementValue={
+              data.retirementValue
+            }
+
             liquidAssetsValue={
               data.liquidAssetsValue
             }
-            selectedMonthExpenses={
-              data.selectedMonthExpenses
+
+            averagePreviousThreeMonthExpenses={
+              data.averagePreviousThreeMonthExpenses
             }
+
             emergencyMonths={
               data.emergencyMonths
             }
-            wealthCreationRate={
-              data.wealthCreationRate
+
+            financialSafetyStatus={
+              data.financialSafetyStatus
             }
-            monthlyCapitalDeployment={
-              data.monthlyCapitalDeployment
+
+            insuranceStatus={
+              data.insuranceStatus
             }
-            financialFreedomNumber={
-              data.financialFreedomNumber
-            }
-            financialFreedomProgress={
-              data.financialFreedomProgress
-            }
+
             wealthTrend={
               data.wealthTrend
             }
-            profitItems={
-              data.profitItems
+
+            financeScore={
+              data.financeScore
             }
-            lossItems={
-              data.lossItems
-            }
-            monthlyCategories={
-              data.monthlyCategories
-            }
-            monthlyCategoryRows={
-              data.monthlyCategoryRows
+
+            financeHistory={
+              data.financeHistory
             }
           />
         </div>

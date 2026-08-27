@@ -1,109 +1,550 @@
 'use client';
 
-import { useMemo } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 
-type AssetAllocationItem = {
-  categoryId: string;
-  name: string;
-  value: number;
-  percentage: number;
-};
+import * as d3 from 'd3';
 
-type FinancePerformanceItem = {
-  name: string;
-  invested: number;
-  current: number;
-  profit: number;
-  returnPercentage: number;
-};
-
-type WealthTrend = {
-  status:
-    | 'insufficient-data'
-    | 'getting-richer'
-    | 'mixed'
-    | 'getting-poorer';
-
-  consecutiveGrowthMonths: number;
-  positiveMonths: number;
-  negativeMonths: number;
-};
-
-type MonthlyCategory = {
-  categoryId: string;
-  categoryName: string;
-};
-
-type MonthlyCategoryRow = {
-  month: number;
-  monthName: string;
-  values: Record<string, number>;
-};
+import {
+  AssetAllocationItem,
+  FinanceHistoryItem,
+  FinancialSafetyStatus,
+  FinanceScore,
+  InsuranceStatus,
+  WealthTrend,
+} from '../calculations/getFinanceCalculations';
+import { FinanceScoreCard } from './smartmetrics/finance/FinanceScore';
 
 type Props = {
   selectedYear: number;
-
   metricMonthName: string;
-  previousMetricMonthName: string;
 
   networthValue: number;
-  previousNetworthValue: number;
-  networthChange: number;
-  networthGrowth: number;
+  previousNetworthValue:
+    | number
+    | null;
+  networthChange:
+    | number
+    | null;
+  networthGrowth:
+    | number
+    | null;
+  hasPreviousSnapshot: boolean;
 
   totalAssetsValue: number;
   totalLiabilitiesValue: number;
   debtToAssetRatio: number;
 
-  assetAllocation: AssetAllocationItem[];
+  assetAllocation:
+    AssetAllocationItem[];
 
-  investmentsValue: number;
+  investmentValue: number;
+  retirementValue: number;
 
   liquidAssetsValue: number;
-  selectedMonthExpenses: number;
+  averagePreviousThreeMonthExpenses: number;
   emergencyMonths: number;
+  financialSafetyStatus:
+    FinancialSafetyStatus;
 
-  wealthCreationRate: number;
-  monthlyCapitalDeployment: number;
-
-  financialFreedomNumber: number;
-  financialFreedomProgress: number;
+  insuranceStatus: InsuranceStatus;
 
   wealthTrend: WealthTrend;
 
-  profitItems: FinancePerformanceItem[];
-  lossItems: FinancePerformanceItem[];
+  financeScore: FinanceScore;
 
-  monthlyCategories: MonthlyCategory[];
-  monthlyCategoryRows: MonthlyCategoryRow[];
+  financeHistory:
+    FinanceHistoryItem[];
 };
 
 const formatAmount = (
-  value: number,
+  value: number | null | undefined,
 ) => {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return '—';
+  }
+
   return `₹${Math.round(
     Number(value) || 0,
   ).toLocaleString('en-IN')}`;
 };
 
 const formatPercentage = (
+  value:
+    | number
+    | null
+    | undefined,
+) => {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return '—';
+  }
+
+  return `${Number(value).toFixed(
+    1,
+  )}%`;
+};
+
+const formatCompactAmount = (
   value: number,
 ) => {
-  return `${(
-    Number(value) || 0
-  ).toFixed(1)}%`;
+  const amount =
+    Number(value) || 0;
+
+  if (
+    Math.abs(amount) >=
+    10000000
+  ) {
+    return `₹${(
+      amount / 10000000
+    ).toFixed(2)}Cr`;
+  }
+
+  if (
+    Math.abs(amount) >=
+    100000
+  ) {
+    return `₹${(
+      amount / 100000
+    ).toFixed(1)}L`;
+  }
+
+  if (
+    Math.abs(amount) >=
+    1000
+  ) {
+    return `₹${(
+      amount / 1000
+    ).toFixed(0)}K`;
+  }
+
+  return `₹${Math.round(
+    amount,
+  ).toLocaleString(
+    'en-IN',
+  )}`;
 };
+
+/* =========================================================
+   NET WORTH D3 CHART
+========================================================= */
+
+function NetWorthChart({
+  history,
+}: {
+  history: FinanceHistoryItem[];
+}) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container =
+      containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = '';
+
+    if (history.length < 2) {
+      return;
+    }
+
+    const width =
+      container.clientWidth ||
+      700;
+
+    const height = 280;
+
+    const margin = {
+      top: 20,
+      right: 24,
+      bottom: 42,
+      left: 64,
+    };
+
+    const svg = d3
+      .select(container)
+      .append('svg')
+      .attr(
+        'width',
+        '100%',
+      )
+      .attr(
+        'viewBox',
+        `0 0 ${width} ${height}`,
+      )
+      .attr(
+        'preserveAspectRatio',
+        'xMidYMid meet',
+      );
+
+    const innerWidth =
+      width -
+      margin.left -
+      margin.right;
+
+    const innerHeight =
+      height -
+      margin.top -
+      margin.bottom;
+
+    const chart =
+      svg
+        .append('g')
+        .attr(
+          'transform',
+          `translate(${margin.left},${margin.top})`,
+        );
+
+    const x =
+      d3
+        .scalePoint<number>()
+        .domain(
+          history.map(
+            (item) =>
+              item.period,
+          ),
+        )
+        .range([
+          0,
+          innerWidth,
+        ]);
+
+    const values =
+      history.map(
+        (item) =>
+          item.netWorth,
+      );
+
+    const minValue =
+      Math.min(...values);
+
+    const maxValue =
+      Math.max(...values);
+
+    const padding =
+      Math.max(
+        (maxValue -
+          minValue) *
+          0.15,
+        1000,
+      );
+
+    const y =
+      d3
+        .scaleLinear()
+        .domain([
+          Math.max(
+            0,
+            minValue -
+              padding,
+          ),
+          maxValue +
+            padding,
+        ])
+        .nice()
+        .range([
+          innerHeight,
+          0,
+        ]);
+
+    chart
+      .append('g')
+      .call(
+        d3
+          .axisLeft(y)
+          .ticks(5)
+          .tickFormat(
+            (value) =>
+              formatCompactAmount(
+                Number(value),
+              ),
+          ),
+      )
+      .call((group) => {
+        group
+          .select('.domain')
+          .remove();
+
+        group
+          .selectAll(
+            '.tick line',
+          )
+          .attr(
+            'x2',
+            innerWidth,
+          )
+          .attr(
+            'stroke',
+            'currentColor',
+          )
+          .attr(
+            'opacity',
+            0.08,
+          );
+      });
+
+    chart
+      .append('g')
+      .attr(
+        'transform',
+        `translate(0,${innerHeight})`,
+      )
+      .call(
+        d3
+          .axisBottom(x)
+          .tickFormat(
+            (value) => {
+              const item =
+                history.find(
+                  (entry) =>
+                    entry.period ===
+                    Number(
+                      value,
+                    ),
+                );
+
+              return item
+                ? `${item.monthName.slice(
+                    0,
+                    3,
+                  )} ${item.year}`
+                : '';
+            },
+          ),
+      )
+      .call((group) => {
+        group
+          .select('.domain')
+          .attr(
+            'opacity',
+            0.15,
+          );
+
+        group
+          .selectAll(
+            '.tick line',
+          )
+          .remove();
+      });
+
+    const line =
+      d3
+        .line<FinanceHistoryItem>()
+        .x(
+          (item) =>
+            x(item.period) ??
+            0,
+        )
+        .y(
+          (item) =>
+            y(item.netWorth),
+        )
+        .curve(
+          d3.curveMonotoneX,
+        );
+
+    chart
+      .append('path')
+      .datum(history)
+      .attr(
+        'fill',
+        'none',
+      )
+      .attr(
+        'stroke',
+        'currentColor',
+      )
+      .attr(
+        'stroke-width',
+        3,
+      )
+      .attr(
+        'stroke-linecap',
+        'round',
+      )
+      .attr(
+        'd',
+        line,
+      );
+
+    chart
+      .selectAll(
+        '.net-worth-point',
+      )
+      .data(history)
+      .enter()
+      .append('circle')
+      .attr(
+        'class',
+        'net-worth-point',
+      )
+      .attr(
+        'cx',
+        (item) =>
+          x(item.period) ??
+          0,
+      )
+      .attr(
+        'cy',
+        (item) =>
+          y(item.netWorth),
+      )
+      .attr(
+        'r',
+        4,
+      )
+      .attr(
+        'fill',
+        'currentColor',
+      );
+
+    const tooltip =
+      d3
+        .select(container)
+        .append('div')
+        .style(
+          'position',
+          'absolute',
+        )
+        .style(
+          'display',
+          'none',
+        )
+        .style(
+          'pointer-events',
+          'none',
+        )
+        .style(
+          'padding',
+          '8px 10px',
+        )
+        .style(
+          'border',
+          '1px solid var(--border-color, #e5e7eb)',
+        )
+        .style(
+          'border-radius',
+          '8px',
+        )
+        .style(
+          'background',
+          'var(--card-bg, #fff)',
+        )
+        .style(
+          'font-size',
+          '12px',
+        )
+        .style(
+          'z-index',
+          '10',
+        );
+
+    chart
+      .selectAll(
+        '.net-worth-point',
+      )
+      .on(
+        'mouseenter',
+        function (
+          event,
+          item,
+        ) {
+          const entry =
+            item as FinanceHistoryItem;
+
+          tooltip
+            .style(
+              'display',
+              'block',
+            )
+            .html(
+              `<strong>${entry.monthName} ${entry.year}</strong><br/>${formatAmount(entry.netWorth)}`,
+            );
+
+          d3.select(this).attr(
+            'r',
+            6,
+          );
+
+          const [mouseX, mouseY] =
+            d3.pointer(
+              event,
+              container,
+            );
+
+          tooltip
+            .style(
+              'left',
+              `${mouseX + 12}px`,
+            )
+            .style(
+              'top',
+              `${mouseY - 12}px`,
+            );
+        },
+      )
+      .on(
+        'mouseleave',
+        function () {
+          tooltip.style(
+            'display',
+            'none',
+          );
+
+          d3.select(this).attr(
+            'r',
+            4,
+          );
+        },
+      );
+
+    return () => {
+      container.innerHTML = '';
+    };
+  }, [history]);
+
+  if (
+    history.length < 2
+  ) {
+    return null;
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="finance-d3-chart"
+      style={{
+        position: 'relative',
+        width: '100%',
+      }}
+    />
+  );
+}
+
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
 
 export default function FinanceSection({
   selectedYear,
-
   metricMonthName,
-  previousMetricMonthName,
 
   networthValue,
   previousNetworthValue,
   networthChange,
   networthGrowth,
+  hasPreviousSnapshot,
 
   totalAssetsValue,
   totalLiabilitiesValue,
@@ -111,25 +552,21 @@ export default function FinanceSection({
 
   assetAllocation,
 
-  investmentsValue,
+  investmentValue,
+  retirementValue,
 
   liquidAssetsValue,
-  selectedMonthExpenses,
+  averagePreviousThreeMonthExpenses,
   emergencyMonths,
+  financialSafetyStatus,
 
-  wealthCreationRate,
-  monthlyCapitalDeployment,
-
-  financialFreedomNumber,
-  financialFreedomProgress,
+  insuranceStatus,
 
   wealthTrend,
 
-  profitItems,
-  lossItems,
+  financeScore,
 
-  monthlyCategories,
-  monthlyCategoryRows,
+  financeHistory,
 }: Props) {
   const wealthTrendMessage =
     useMemo(() => {
@@ -138,11 +575,11 @@ export default function FinanceSection({
         'insufficient-data'
       ) {
         return {
-          icon: 'ℹ️',
+          icon: '⏳',
           title:
-            'Not enough history yet',
+            'Your wealth baseline is established',
           description:
-            `We need at least two monthly snapshots in ${selectedYear} to measure your wealth trend.`,
+            `${selectedYear} is your first finance snapshot. Future monthly snapshots will measure whether your net worth is actually growing.`,
         };
       }
 
@@ -153,7 +590,7 @@ export default function FinanceSection({
         return {
           icon: '🟢',
           title:
-            'Yes — you are getting richer',
+            'Yes — your net worth is growing',
           description:
             `${wealthTrend.consecutiveGrowthMonths} consecutive months of net-worth growth.`,
         };
@@ -168,7 +605,7 @@ export default function FinanceSection({
           title:
             'Your wealth trend is mixed',
           description:
-            `${wealthTrend.positiveMonths} months increased and ${wealthTrend.negativeMonths} months decreased in ${selectedYear}.`,
+            `${wealthTrend.positiveMonths} months increased and ${wealthTrend.negativeMonths} months decreased.`,
         };
       }
 
@@ -177,132 +614,95 @@ export default function FinanceSection({
         title:
           'Your net worth is trending down',
         description:
-          'Recent monthly snapshots show more declines than increases.',
+          'Recent snapshots show more declines than increases.',
       };
     }, [
       wealthTrend,
       selectedYear,
     ]);
 
-  return (
-    <div
-      className="dash-section"
-      id="finance-section"
-    >
-      <h2
-        style={{
-          textAlign: 'center',
-        }}
-      >
-        🏦 FINANCIAL COMMAND CENTER
-      </h2>
+  const historyForChart =
+    financeHistory.filter(
+      (item) =>
+        item.year <=
+        selectedYear,
+    );
 
-      {/* ================================================= */}
-      {/* CURRENT METRIC PERIOD */}
-      {/* ================================================= */}
+return (
+  <section
+    className="dash-section finance-command-center"
+    id="finance-section"
+  >
+    <div className="finance-section-header">
+      <div>
+        <span className="finance-eyebrow">
+          WEALTH TRACKING
+        </span>
 
-      <div
-        style={{
-          textAlign: 'center',
-          marginBottom: '1rem',
-          opacity: 0.75,
-        }}
-      >
-        {selectedYear} —{' '}
-        {metricMonthName} vs{' '}
-        {previousMetricMonthName}
+        <h2>
+          🏦 Financial Command Center
+        </h2>
+
+        <p>
+          {selectedYear} ·{' '}
+          {metricMonthName}
+        </p>
       </div>
+    </div>
 
-      {/* ================================================= */}
-      {/* NET WORTH + DEBT */}
-      {/* ================================================= */}
+    {/* ================================================= */}
+    {/* ROW 1 — NET WORTH + CAPITAL ALLOCATION */}
+    {/* ================================================= */}
 
-      <div className="finance-grid">
-        <div className="chart-card">
-          <h4>🏦 Net Worth</h4>
+    <div className="finance-grid">
+      {/* NET WORTH */}
 
-          <div
-            style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              marginBottom: '1rem',
-            }}
-          >
+      <div className="finance-networth-hero chart-card">
+        <div>
+          <span className="finance-card-label">
+            NET WORTH
+          </span>
+
+          <div className="finance-networth-value">
             {formatAmount(
               networthValue,
             )}
           </div>
 
-          <div className="summary-row">
-            <span>
-              {previousMetricMonthName}
-            </span>
-
-            <strong>
-              {formatAmount(
-                previousNetworthValue,
-              )}
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>Change</span>
-
-            <strong
-              style={{
-                color:
-                  networthChange >= 0
-                    ? '#16a34a'
-                    : '#dc2626',
-              }}
+          {!hasPreviousSnapshot ? (
+            <div className="finance-baseline-message">
+              <span>●</span>
+              Starting point established
+            </div>
+          ) : (
+            <div
+              className={`finance-growth-badge ${
+                (networthChange ?? 0) >=
+                0
+                  ? 'positive'
+                  : 'negative'
+              }`}
             >
-              {networthChange >= 0
-                ? '+'
-                : ''}
+              {(networthChange ?? 0) >=
+              0
+                ? '↑'
+                : '↓'}{' '}
               {formatAmount(
-                networthChange,
-              )}
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>Growth</span>
-
-            <strong
-              style={{
-                color:
-                  networthGrowth >= 0
-                    ? '#16a34a'
-                    : '#dc2626',
-              }}
-            >
-              {networthGrowth >= 0
-                ? '+'
-                : ''}
+                Math.abs(
+                  networthChange ?? 0,
+                ),
+              )}{' '}
+              ·{' '}
               {formatPercentage(
                 networthGrowth,
               )}
-            </strong>
-          </div>
+            </div>
+          )}
         </div>
 
-        <div className="chart-card">
-          <h4>💳 Debt Position</h4>
-
-          <div className="summary-row">
-            <span>
-              Total Liabilities
-            </span>
-
-            <strong>
-              {formatAmount(
-                totalLiabilitiesValue,
-              )}
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>Total Assets</span>
+        <div className="finance-networth-side">
+          <div>
+            <span>Assets</span>
 
             <strong>
               {formatAmount(
@@ -311,10 +711,16 @@ export default function FinanceSection({
             </strong>
           </div>
 
-          <div className="summary-row">
-            <span>
-              Debt / Asset
-            </span>
+          <div>
+            <span>Liabilities</span>
+
+            <strong>
+              {formatAmount(
+                totalLiabilitiesValue,
+              )}
+            </strong>
+            <br />
+            <span>Debt / Asset</span>
 
             <strong>
               {formatPercentage(
@@ -322,674 +728,392 @@ export default function FinanceSection({
               )}
             </strong>
           </div>
-
-          <div className="summary-row">
-            <span>Debt Status</span>
-
-            <strong
-              style={{
-                color:
-                  debtToAssetRatio <= 20
-                    ? '#16a34a'
-                    : debtToAssetRatio <= 40
-                      ? '#f59e0b'
-                      : '#dc2626',
-              }}
-            >
-              {debtToAssetRatio <= 20
-                ? 'Healthy'
-                : debtToAssetRatio <= 40
-                  ? 'Moderate'
-                  : 'High'}
-            </strong>
-          </div>
         </div>
       </div>
 
-      {/* ================================================= */}
-      {/* ASSET ALLOCATION + LIQUIDITY */}
-      {/* ================================================= */}
+      {/* CAPITAL ALLOCATION */}
 
-      <div className="finance-grid">
+      <div className="finance-section-block">
+
+
         <div className="chart-card">
-          <h4>📊 Asset Allocation</h4>
+                  <div className="finance-section-title">
+          <div>
+            <span>
+              📊 Capital Allocation
+            </span>
 
+            <small>
+              Where is my wealth currently
+              sitting?
+            </small>
+          </div>
+        </div>
           {assetAllocation.length >
           0 ? (
-            assetAllocation.map(
-              (item) => (
-                <div
-                  className="summary-row"
-                  key={
-                    item.categoryId
-                  }
-                >
-                  <span>
-                    {item.name}
-                  </span>
+            <div className="asset-allocation-layout">
+              <div className="asset-allocation-list">
+                {assetAllocation.map(
+                  (item) => (
+                    <div
+                      className="asset-allocation-row"
+                      key={
+                        item.categoryId
+                      }
+                    >
+                      <div>
+                        <span className="asset-allocation-name">
+                          {
+                            item.name
+                          }
+                        </span>
 
-                  <strong>
-                    {formatAmount(
-                      item.value,
-                    )}{' '}
-                    <small>
-                      (
-                      {formatPercentage(
-                        item.percentage,
-                      )}
-                      )
-                    </small>
-                  </strong>
-                </div>
-              ),
-            )
+                        <div className="asset-allocation-progress">
+                          <div
+                            style={{
+                              width: `${Math.min(
+                                item.percentage,
+                                100,
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="asset-allocation-value">
+                        <strong>
+                          {formatAmount(
+                            item.value,
+                          )}
+                        </strong>
+
+                        <small>
+                          {formatPercentage(
+                            item.percentage,
+                          )}
+                        </small>
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+            </div>
           ) : (
-            <p>
-              No asset data available.
+            <p className="finance-empty">
+              No asset allocation data
+              available.
             </p>
           )}
-
-          <div
-            className="summary-row"
-            style={{
-              marginTop: '1rem',
-              borderTop:
-                '1px solid #e5e7eb',
-              paddingTop: '0.75rem',
-            }}
-          >
-            <span>
-              Total Assets
-            </span>
-
-            <strong>
-              {formatAmount(
-                totalAssetsValue,
-              )}
-            </strong>
-          </div>
         </div>
+      </div>
+    </div>
 
-        <div className="chart-card">
-          <h4>
-            🛡️ Liquidity / Financial Safety
-          </h4>
+    {/* ================================================= */}
+    {/* ROW 2 — NET WORTH GRAPH + RISK BUFFER */}
+    {/* ================================================= */}
 
-          <div className="summary-row">
-            <span>
-              Liquid Assets
-            </span>
+    <div className="finance-grid">
+      {/* NET WORTH GRAPH */}
 
-            <strong>
-              {formatAmount(
-                liquidAssetsValue,
-              )}
-            </strong>
+      <div className="finance-section-block">
+        <div className="finance-trend-card chart-card">
+          <div className="finance-trend-summary">
+            <div className="finance-trend-icon">
+              {
+                wealthTrendMessage.icon
+              }
+            </div>
+
+            <div>
+              <h3>
+                {
+                  wealthTrendMessage.title
+                }
+              </h3>
+
+              <p>
+                {
+                  wealthTrendMessage.description
+                }
+              </p>
+            </div>
           </div>
 
-          <div className="summary-row">
-            <span>
-              Monthly Expenses
-            </span>
+          {historyForChart.length >=
+          2 ? (
+            <NetWorthChart
+              history={
+                historyForChart
+              }
+            />
+          ) : (
+            <div className="finance-empty-chart">
+              <div className="finance-empty-chart-line">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
 
-            <strong>
-              {formatAmount(
-                selectedMonthExpenses,
-              )}
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>
-              Emergency Coverage
-            </span>
-
-            <strong>
-              {emergencyMonths.toFixed(
-                1,
-              )}{' '}
-              months
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>Safety Status</span>
-
-            <strong
-              style={{
-                color:
-                  emergencyMonths >= 6
-                    ? '#16a34a'
-                    : emergencyMonths >= 3
-                      ? '#f59e0b'
-                      : '#dc2626',
-              }}
-            >
-              {emergencyMonths >= 6
-                ? 'Strong'
-                : emergencyMonths >= 3
-                  ? 'Moderate'
-                  : 'Low'}
-            </strong>
-          </div>
+              <p>
+                Your net-worth graph
+                will appear after
+                your second monthly
+                snapshot.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ================================================= */}
-      {/* WEALTH CREATION */}
-      {/* ================================================= */}
+      {/* RISK BUFFER */}
 
-      <div className="finance-grid">
-        <div className="chart-card">
-          <h4>
-            📈 Wealth Creation Rate
-          </h4>
-
-          <div className="summary-row">
-            <span>
-              Monthly Wealth Created
+      <div className="chart-card">
+        <div className="finance-card-heading">
+          <div>
+            <span className="finance-card-label">
+              RISK BUFFER
             </span>
 
-            <strong
-              style={{
-                color:
-                  wealthCreationRate >= 0
-                    ? '#16a34a'
-                    : '#dc2626',
-              }}
-            >
-              {wealthCreationRate >= 0
-                ? '+'
-                : ''}
-              {formatAmount(
-                wealthCreationRate,
-              )}
-            </strong>
+            <h3>
+              🛡️ Financial Safety
+            </h3>
           </div>
 
-          <div className="summary-row">
-            <span>
-              Net Worth Growth
-            </span>
-
-            <strong
-              style={{
-                color:
-                  networthGrowth >= 0
-                    ? '#16a34a'
-                    : '#dc2626',
-              }}
-            >
-              {networthGrowth >= 0
-                ? '+'
-                : ''}
-              {formatPercentage(
-                networthGrowth,
-              )}
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>
-              Current Investments
-            </span>
-
-            <strong>
-              {formatAmount(
-                investmentsValue,
-              )}
-            </strong>
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <h4>
-            💰 Monthly Capital Deployment
-          </h4>
-
-          <div
-            style={{
-              fontSize: '1.8rem',
-              fontWeight: 700,
-              marginBottom: '0.75rem',
-            }}
-          >
-            {formatAmount(
-              monthlyCapitalDeployment,
-            )}
-          </div>
-
-          <p
-            style={{
-              margin: 0,
-              opacity: 0.75,
-            }}
-          >
-            Amount deployed during{' '}
-            {metricMonthName}.
-          </p>
-        </div>
-      </div>
-
-      {/* ================================================= */}
-      {/* FINANCIAL FREEDOM + WEALTH TREND */}
-      {/* ================================================= */}
-
-      <div className="finance-grid">
-        <div className="chart-card">
-          <h4>
-            🕊️ Financial Freedom Number
-          </h4>
-
-          <div
-            style={{
-              fontSize: '1.8rem',
-              fontWeight: 700,
-              marginBottom: '1rem',
-            }}
-          >
-            {formatAmount(
-              financialFreedomNumber,
-            )}
-          </div>
-
-          <div className="summary-row">
-            <span>
-              Current Net Worth
-            </span>
-
-            <strong>
-              {formatAmount(
-                networthValue,
-              )}
-            </strong>
-          </div>
-
-          <div className="summary-row">
-            <span>
-              Freedom Progress
-            </span>
-
-            <strong>
-              {formatPercentage(
-                financialFreedomProgress,
-              )}
-            </strong>
-          </div>
-
-          <p
-            style={{
-              marginTop: '0.75rem',
-              marginBottom: 0,
-              opacity: 0.75,
-            }}
-          >
-            Based on 25× annual expenses.
-          </p>
-        </div>
-
-        <div className="chart-card">
-          <h4>
-            📈 Am I Actually Getting Richer?
-          </h4>
-
-          <div
-            style={{
-              fontSize: '1.3rem',
-              fontWeight: 700,
-              marginBottom: '0.75rem',
-            }}
-          >
-            {wealthTrendMessage.icon}{' '}
-            {wealthTrendMessage.title}
-          </div>
-
-          <p
-            style={{
-              margin: 0,
-              opacity: 0.75,
-            }}
+          <span
+            className={`finance-status-pill ${
+              financialSafetyStatus ===
+              'Strong'
+                ? 'success'
+                : financialSafetyStatus ===
+                    'Moderate'
+                  ? 'warning'
+                  : 'danger'
+            }`}
           >
             {
-              wealthTrendMessage.description
+              financialSafetyStatus
             }
-          </p>
-
-          {wealthTrend.status !==
-            'insufficient-data' && (
-            <>
-              <div
-                className="summary-row"
-                style={{
-                  marginTop: '1rem',
-                }}
-              >
-                <span>
-                  Positive Months
-                </span>
-
-                <strong>
-                  {
-                    wealthTrend.positiveMonths
-                  }
-                </strong>
-              </div>
-
-              <div className="summary-row">
-                <span>
-                  Negative Months
-                </span>
-
-                <strong>
-                  {
-                    wealthTrend.negativeMonths
-                  }
-                </strong>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ================================================= */}
-      {/* PERFORMANCE */}
-      {/* ================================================= */}
-
-      <div className="finance-grid">
-        <div className="chart-card">
-          <h4>
-            📈 Top Performing Categories
-          </h4>
-
-          {profitItems.length >
-          0 ? (
-            profitItems
-              .slice(0, 5)
-              .map((item) => (
-                <div
-                  className="profit-item"
-                  key={item.name}
-                >
-                  <strong>
-                    {item.name}
-                  </strong>
-
-                  <div
-                    style={{
-                      color:
-                        '#16a34a',
-                    }}
-                  >
-                    +
-                    {formatAmount(
-                      item.profit,
-                    )}{' '}
-                    (
-                    {formatPercentage(
-                      item.returnPercentage,
-                    )}
-                    )
-                  </div>
-                </div>
-              ))
-          ) : (
-            <p>
-              No profit data.
-            </p>
-          )}
+          </span>
         </div>
 
-        <div className="chart-card">
-          <h4>
-            📉 Worst Performing Categories
-          </h4>
+        <div className="summary-row">
+          <span>
+            Liquid Assets
+          </span>
 
-          {lossItems.length > 0 ? (
-            lossItems
-              .slice(0, 5)
-              .map((item) => (
-                <div
-                  className="profit-item"
-                  key={item.name}
-                >
-                  <strong>
-                    {item.name}
-                  </strong>
-
-                  <div
-                    style={{
-                      color:
-                        '#dc2626',
-                    }}
-                  >
-                    {formatAmount(
-                      item.profit,
-                    )}{' '}
-                    (
-                    {formatPercentage(
-                      item.returnPercentage,
-                    )}
-                    )
-                  </div>
-                </div>
-              ))
-          ) : (
-            <p>
-              No loss data.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ================================================= */}
-      {/* YEARLY MONTHLY CATEGORY TABLE */}
-      {/* ================================================= */}
-
-      {/* ================================================= */}
-      {/* YEARLY MONTHLY CATEGORY TABLE */}
-      {/* ================================================= */}
-
-      <div
-        className="chart-card"
-        style={{
-          marginTop: '1.5rem',
-          overflowX: 'auto',
-        }}
-      >
-        <div
-          style={{
-            marginBottom: '1rem',
-          }}
-        >
-          <h4
-            style={{
-              marginBottom: '0.25rem',
-            }}
-          >
-            📅 {selectedYear} Monthly
-            Category Summary
-          </h4>
-
-          <small
-            style={{
-              opacity: 0.7,
-            }}
-          >
-            All 12 months are shown.
-            The highest value for each
-            category is highlighted.
-          </small>
+          <strong>
+            {formatAmount(
+              liquidAssetsValue,
+            )}
+          </strong>
         </div>
 
-        {monthlyCategories.length ===
-        0 ? (
-          <p>
-            No monthly finance snapshot
-            data available for{' '}
-            {selectedYear}.
-          </p>
-        ) : (
+        <div className="summary-row">
+          <span>
+            Avg. Previous 3 Months
+          </span>
+
+          <strong>
+            {formatAmount(
+              averagePreviousThreeMonthExpenses,
+            )}
+          </strong>
+        </div>
+
+        <div className="summary-row">
+          <span>
+            Emergency Coverage
+          </span>
+
+          <strong>
+            {emergencyMonths.toFixed(
+              1,
+            )}{' '}
+            months
+          </strong>
+        </div>
+
+        <div className="finance-safety-bar">
           <div
             style={{
-              overflowX: 'auto',
+              width: `${Math.min(
+                (emergencyMonths /
+                  6) *
+                  100,
+                100,
+              )}%`,
             }}
-          >
-            <table
-              style={{
-                width: '100%',
-                borderCollapse:
-                  'collapse',
-                minWidth: '1100px',
-              }}
-            >
+          />
+        </div>
+
+        <small className="finance-helper-text">
+          Target: 6 months of
+          average previous
+          3-month expenses
+        </small>
+
+        {/* INSURANCE */}
+
+        <div className="finance-risk-buffer-insurance">
+          <div className="summary-row">
+            <span>
+              Health Insurance
+            </span>
+
+            <strong>
+              {insuranceStatus
+                .healthInsurance
+                .active
+                ? '✓ Yes'
+                : '✕ No'}
+            </strong>
+          </div>
+
+          <div className="summary-row">
+            <span>
+              Term Insurance
+            </span>
+
+            <strong>
+              {insuranceStatus
+                .termInsurance
+                .active
+                ? '✓ Yes'
+                : '✕ No'}
+            </strong>
+          </div>
+
+          {insuranceStatus
+            .lifeInsurance
+            .active && (
+            <div className="summary-row">
+              <span>
+                Life Insurance
+              </span>
+
+              <strong>
+                ✓ Yes
+              </strong>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* ================================================= */}
+    {/* ROW 3 — WEALTH BUILDER SCORE + MONTHLY METRICS */}
+    {/* ================================================= */}
+
+    <div className="finance-grid">
+      {/* WEALTH BUILDER SCORE */}
+
+      <div className="finance-section-block">
+        <FinanceScoreCard
+          financeScore={
+            financeScore
+          }
+        />
+      </div>
+
+      {/* MONTHLY METRICS */}
+
+      <div
+        className="chart-card finance-table-card"
+      >
+        {financeHistory.length ===
+        0 ? (
+          <p className="finance-empty">
+            No finance snapshots
+            available.
+          </p>
+        ) : (
+          <div className="finance-table-wrapper">
+            <table className="finance-table">
               <thead>
                 <tr>
-                  {/* CATEGORY */}
-                  <th
-                    style={{
-                      position:
-                        'sticky',
-                      left: 0,
-                      background:
-                        'var(--card-bg, #fff)',
-                      textAlign: 'left',
-                      padding: '0.75rem',
-                      borderBottom:
-                        '2px solid #e5e7eb',
-                      zIndex: 2,
-                      whiteSpace:
-                        'nowrap',
-                    }}
-                  >
-                    Category
+                  <th>
+                    Month
                   </th>
 
-                  {/* MONTHS */}
-                  {monthlyCategoryRows.map(
-                    (row) => (
-                      <th
-                        key={row.month}
-                        style={{
-                          textAlign:
-                            'right',
-                          padding:
-                            '0.75rem',
-                          borderBottom:
-                            '2px solid #e5e7eb',
-                          whiteSpace:
-                            'nowrap',
-                        }}
-                      >
-                        {row.monthName}
-                      </th>
-                    ),
-                  )}
+                  <th>
+                    Net Worth
+                  </th>
+
+                  <th>
+                    Assets
+                  </th>
+
+                  <th>
+                    Liabilities
+                  </th>
+
+                  <th>
+                    Debt / Asset
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {monthlyCategories.map(
-                  (category) => {
-                    const highest =
-                      Math.max(
-                        ...monthlyCategoryRows.map(
-                          (row) =>
-                            row.values[
-                              category
-                                .categoryId
-                            ] ?? 0,
-                        ),
-                      );
-
-                    return (
-                      <tr
-                        key={
-                          category.categoryId
-                        }
-                      >
-                        {/* CATEGORY NAME */}
-                        <td
-                          style={{
-                            position:
-                              'sticky',
-                            left: 0,
-                            background:
-                              'var(--card-bg, #fff)',
-                            padding:
-                              '0.75rem',
-                            borderBottom:
-                              '1px solid #e5e7eb',
-                            fontWeight: 600,
-                            whiteSpace:
-                              'nowrap',
-                            zIndex: 1,
-                          }}
-                        >
+                {financeHistory.map(
+                  (item) => (
+                    <tr
+                      key={
+                        item.period
+                      }
+                      className={
+                        item.period ===
+                        Number(
+                          `${selectedYear}${String(
+                            item.month,
+                          ).padStart(
+                            2,
+                            '0',
+                          )}`,
+                        )
+                          ? 'current-period'
+                          : ''
+                      }
+                    >
+                      <td>
+                        <strong>
                           {
-                            category.categoryName
+                            item.monthName
                           }
-                        </td>
+                        </strong>
 
-                        {/* MONTH VALUES */}
-                        {monthlyCategoryRows.map(
-                          (row) => {
-                            const value =
-                              row.values[
-                                category
-                                  .categoryId
-                              ] ?? 0;
+                        <small>
+                          {
+                            item.year
+                          }
+                        </small>
+                      </td>
 
-                            const isHighest =
-                              highest > 0 &&
-                              value ===
-                                highest;
-
-                            return (
-                              <td
-                                key={
-                                  row.month
-                                }
-                                style={{
-                                  textAlign:
-                                    'right',
-                                  padding:
-                                    '0.75rem',
-                                  borderBottom:
-                                    '1px solid #e5e7eb',
-                                  fontWeight:
-                                    isHighest
-                                      ? 700
-                                      : 400,
-                                  background:
-                                    isHighest
-                                      ? 'rgba(22, 163, 74, 0.12)'
-                                      : undefined,
-                                  whiteSpace:
-                                    'nowrap',
-                                }}
-                              >
-                                {formatAmount(
-                                  value,
-                                )}
-
-                                {isHighest && (
-                                  <span
-                                    title="Highest value for this category"
-                                    style={{
-                                      marginLeft:
-                                        '0.35rem',
-                                    }}
-                                  >
-                                    ⭐
-                                  </span>
-                                )}
-                              </td>
-                            );
-                          },
+                      <td className="finance-table-primary">
+                        {formatAmount(
+                          item.netWorth,
                         )}
-                      </tr>
-                    );
-                  },
+                      </td>
+
+                      <td>
+                        {formatAmount(
+                          item.assets,
+                        )}
+                      </td>
+
+                      <td>
+                        {formatAmount(
+                          item.liabilities,
+                        )}
+                      </td>
+
+                      <td>
+                        {formatPercentage(
+                          item.debtToAssetRatio,
+                        )}
+                      </td>
+                    </tr>
+                  ),
                 )}
               </tbody>
             </table>
@@ -997,5 +1121,6 @@ export default function FinanceSection({
         )}
       </div>
     </div>
-  );
+  </section>
+);
 }

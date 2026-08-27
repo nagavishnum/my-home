@@ -40,32 +40,74 @@ type SnapshotCategoryValue = {
   value: number;
 };
 
-type WealthTrend = {
+export type AssetAllocationItem = {
+  categoryId: string;
+  name: string;
+  value: number;
+  percentage: number;
+};
+
+export type FinanceHistoryItem = {
+  period: number;
+  year: number;
+  month: number;
+  monthName: string;
+  assets: number;
+  liabilities: number;
+  netWorth: number;
+  debtToAssetRatio: number;
+};
+
+export type WealthTrend = {
   status:
     | 'insufficient-data'
     | 'getting-richer'
     | 'mixed'
     | 'getting-poorer';
 
-  consecutiveGrowthMonths: number;
   positiveMonths: number;
   negativeMonths: number;
+  consecutiveGrowthMonths: number;
 };
 
-export type MonthlyCategory = {
-  categoryId: string;
-  categoryName: string;
+export type FinancialSafetyStatus =
+  | 'Strong'
+  | 'Moderate'
+  | 'Low'
+  | 'No expense data';
+
+export type InsuranceStatus = {
+  healthInsurance: {
+    active: boolean;
+    value: number;
+  };
+
+  termInsurance: {
+    active: boolean;
+    value: number;
+  };
+
+  lifeInsurance: {
+    active: boolean;
+    value: number;
+  };
+
+  score: number;
+  maxScore: number;
 };
 
-export type MonthlyCategoryRow = {
-  month: number;
-  monthName: string;
-  values: Record<string, number>;
+export type FinanceScoreImprovement = {
+  priority: 'High' | 'Medium' | 'Low';
+  title: string;
+  description: string;
 };
 
-/* =========================================================
-   BASIC HELPERS
-========================================================= */
+export type FinanceScore = {
+  score: number;
+  maxScore: 10;
+  label: string;
+  improvements: FinanceScoreImprovement[];
+};
 
 const getCategoryName = (
   item: FinanceItem,
@@ -81,37 +123,12 @@ const getCategoryId = (
   );
 };
 
-const getCurrentValue = (
-  item: FinanceItem,
-): number => {
-  return Number(
-    item.cv ?? item.a ?? 0,
-  );
-};
-
-const getInvestedValue = (
-  item: FinanceItem,
-): number => {
-  return Number(item.a ?? 0);
-};
-
-const isInBucket = (
-  category: string,
-  bucket: readonly string[],
-): boolean => {
-  return bucket.includes(category);
-};
-
 const getMonthPeriod = (
   year: number,
   month: number,
 ): number => {
   return year * 100 + month;
 };
-
-/* =========================================================
-   SNAPSHOT HELPERS
-========================================================= */
 
 const getSnapshotForPeriod = (
   snapshots: FinanceSnapshot[],
@@ -120,9 +137,28 @@ const getSnapshotForPeriod = (
   return (
     snapshots.find(
       (snapshot) =>
-        snapshot.p === period,
+        Number(snapshot.p) === period,
     ) ?? null
   );
+};
+
+const buildCategoryMap = (
+  finance: FinanceItem[],
+): Map<string, string> => {
+  const map = new Map<string, string>();
+
+  finance.forEach((item) => {
+    const id = getCategoryId(item);
+
+    if (id) {
+      map.set(
+        id,
+        getCategoryName(item),
+      );
+    }
+  });
+
+  return map;
 };
 
 const getSnapshotCategoryValues = (
@@ -133,27 +169,14 @@ const getSnapshotCategoryValues = (
     return [];
   }
 
-  const categoryNames = new Map<
-    string,
-    string
-  >();
-
-  finance.forEach((item) => {
-    const id = getCategoryId(item);
-
-    if (id) {
-      categoryNames.set(
-        id,
-        getCategoryName(item),
-      );
-    }
-  });
+  const categoryMap =
+    buildCategoryMap(finance);
 
   return (snapshot.c ?? []).map(
     (item) => ({
       categoryId: String(item.k),
       categoryName:
-        categoryNames.get(
+        categoryMap.get(
           String(item.k),
         ) ?? 'OTHER',
       value:
@@ -162,6 +185,12 @@ const getSnapshotCategoryValues = (
   );
 };
 
+/*
+ * IMPORTANT:
+ *
+ * All financial classification goes
+ * through FINANCE_BUCKETS.
+ */
 const getSnapshotBucketValue = (
   snapshot: FinanceSnapshot | null,
   finance: FinanceItem[],
@@ -172,9 +201,8 @@ const getSnapshotBucketValue = (
     finance,
   )
     .filter((item) =>
-      isInBucket(
+      bucket.includes(
         item.categoryName,
-        bucket,
       ),
     )
     .reduce(
@@ -214,20 +242,15 @@ const getNetWorthFromSnapshot = (
     return 0;
   }
 
-  const assets =
+  return (
     getSnapshotAssets(
       snapshot,
       finance,
-    );
-
-  const liabilities =
+    ) -
     getSnapshotLiabilities(
       snapshot,
       finance,
-    );
-
-  return (
-    assets - liabilities
+    )
   );
 };
 
@@ -243,173 +266,37 @@ const getMetricMonth = (
   const currentYear =
     new Date().getFullYear();
 
-  /*
-   * Current year:
-   * Always use the actual current month.
-   */
-  if (
-    selectedYear ===
-    currentYear
-  ) {
-    return currentMonth;
-  }
-
-  /*
-   * Previous year:
-   * Use the latest available snapshot
-   * in that selected year.
-   */
   const yearSnapshots =
     snapshots
       .filter(
         (snapshot) =>
           Math.floor(
-            snapshot.p / 100,
+            Number(snapshot.p) / 100,
           ) === selectedYear,
       )
       .sort(
         (a, b) =>
-          b.p - a.p,
+          Number(b.p) -
+          Number(a.p),
       );
 
   if (
     yearSnapshots.length > 0
   ) {
     return (
-      yearSnapshots[0].p % 100
+      Number(
+        yearSnapshots[0].p,
+      ) % 100
     );
+  }
+
+  if (
+    selectedYear === currentYear
+  ) {
+    return currentMonth;
   }
 
   return 12;
-};
-
-/* =========================================================
-   EXPENSES
-========================================================= */
-
-const getSelectedMonthExpenses = (
-  expenseSummaryData:
-    | ExpenseSummaryData
-    | null,
-  year: number,
-  month: number,
-): number => {
-  if (
-    !expenseSummaryData?.months
-  ) {
-    return 0;
-  }
-
-  const monthName =
-    MONTHS[month - 1];
-
-  const metricMonth =
-    expenseSummaryData.months.find(
-      (item) =>
-        item.m === monthName,
-    );
-
-  return Number(
-    metricMonth?.t ?? 0,
-  );
-};
-
-/* =========================================================
-   CAPITAL DEPLOYMENT
-========================================================= */
-
-const getCapitalDeployment = (
-  finance: FinanceItem[],
-  year: number,
-  month: number,
-): number => {
-  return finance
-    .filter((item) => {
-      if (!item.md) {
-        return false;
-      }
-
-      const date =
-        new Date(item.md);
-
-      return (
-        date.getFullYear() ===
-          year &&
-        date.getMonth() + 1 ===
-          month
-      );
-    })
-    .reduce(
-      (sum, item) =>
-        sum +
-        getInvestedValue(item),
-      0,
-    );
-};
-
-/* =========================================================
-   CATEGORY PERFORMANCE
-========================================================= */
-
-const getCategoryPerformance = (
-  finance: FinanceItem[],
-) => {
-  const map = new Map<
-    string,
-    {
-      name: string;
-      invested: number;
-      current: number;
-      profit: number;
-      returnPercentage: number;
-    }
-  >();
-
-  finance.forEach((item) => {
-    const name =
-      getCategoryName(item);
-
-    const invested =
-      getInvestedValue(item);
-
-    const current =
-      getCurrentValue(item);
-
-    const existing =
-      map.get(name);
-
-    if (existing) {
-      existing.invested +=
-        invested;
-
-      existing.current +=
-        current;
-
-      existing.profit +=
-        current - invested;
-    } else {
-      map.set(name, {
-        name,
-        invested,
-        current,
-        profit:
-          current - invested,
-        returnPercentage: 0,
-      });
-    }
-  });
-
-  return Array.from(
-    map.values(),
-  ).map((item) => ({
-    ...item,
-    returnPercentage:
-      item.invested > 0
-        ? (item.profit /
-            item.invested) *
-          100
-        : 0,
-  }));
 };
 
 /* =========================================================
@@ -419,14 +306,17 @@ const getCategoryPerformance = (
 const getAssetAllocation = (
   snapshot: FinanceSnapshot | null,
   finance: FinanceItem[],
-) => {
+): AssetAllocationItem[] => {
   const totalAssets =
     getSnapshotAssets(
       snapshot,
       finance,
     );
 
-  if (!totalAssets) {
+  if (
+    !snapshot ||
+    totalAssets <= 0
+  ) {
     return [];
   }
 
@@ -435,10 +325,12 @@ const getAssetAllocation = (
     finance,
   )
     .filter((item) =>
-      isInBucket(
+      FINANCE_BUCKETS.ASSETS_BUCKET.includes(
         item.categoryName,
-        FINANCE_BUCKETS.ASSETS_BUCKET,
       ),
+    )
+    .filter(
+      (item) => item.value > 0,
     )
     .map((item) => ({
       categoryId:
@@ -457,37 +349,249 @@ const getAssetAllocation = (
 };
 
 /* =========================================================
+   INVESTMENTS
+========================================================= */
+
+const getInvestmentValue = (
+  snapshot: FinanceSnapshot | null,
+  finance: FinanceItem[],
+): number => {
+  return getSnapshotBucketValue(
+    snapshot,
+    finance,
+    FINANCE_BUCKETS.INVESTMENTS_BUCKET,
+  );
+};
+
+const getRetirementValue = (
+  snapshot: FinanceSnapshot | null,
+  finance: FinanceItem[],
+): number => {
+  return getSnapshotBucketValue(
+    snapshot,
+    finance,
+    FINANCE_BUCKETS.RETIREMENT_BUCKET,
+  );
+};
+
+/* =========================================================
+   INSURANCE
+========================================================= */
+
+const getInsuranceStatus = (
+  snapshot: FinanceSnapshot | null,
+  finance: FinanceItem[],
+): InsuranceStatus => {
+  const healthInsurance =
+    getSnapshotBucketValue(
+      snapshot,
+      finance,
+      ['HEALTH I'],
+    );
+
+  const termInsurance =
+    getSnapshotBucketValue(
+      snapshot,
+      finance,
+      ['TERM I'],
+    );
+
+  const lifeInsurance =
+    getSnapshotBucketValue(
+      snapshot,
+      finance,
+      ['LIFE I'],
+    );
+
+  let score = 0;
+
+  if (healthInsurance > 0) {
+    score += 1;
+  }
+
+  if (termInsurance > 0) {
+    score += 1;
+  }
+
+  return {
+    healthInsurance: {
+      active:
+        healthInsurance > 0,
+      value: healthInsurance,
+    },
+
+    termInsurance: {
+      active:
+        termInsurance > 0,
+      value: termInsurance,
+    },
+
+    lifeInsurance: {
+      active:
+        lifeInsurance > 0,
+      value: lifeInsurance,
+    },
+
+    score,
+    maxScore: 2,
+  };
+};
+
+/* =========================================================
+   EXPENSES
+========================================================= */
+
+const getExpenseMonthValue = (
+  expenseSummaryData:
+    | ExpenseSummaryData
+    | null,
+  month: number,
+): number => {
+  if (
+    !expenseSummaryData?.months
+  ) {
+    return 0;
+  }
+
+  const monthName =
+    MONTHS[month - 1];
+
+  const monthData =
+    expenseSummaryData.months.find(
+      (item) =>
+        item.m === monthName,
+    );
+
+  return Number(
+    monthData?.t ?? 0,
+  );
+};
+
+/*
+ * Emergency fund calculation:
+ *
+ * Current month is excluded.
+ * We use the previous 3 available
+ * months.
+ */
+const getPreviousThreeMonthAverageExpenses = (
+  expenseSummaryData: ExpenseSummaryData | null,
+  currentMonth: number,
+): number => {
+  if (!expenseSummaryData?.months) return 0;
+
+  const previousMonths: number[] = [];
+
+  for (let offset = 1; offset <= 3; offset++) {
+    const month = currentMonth - offset;
+
+    if (month < 1) break;
+
+    const monthData = expenseSummaryData.months.find(
+      (item) => item.m === MONTHS[month - 1],
+    );
+
+    if (!monthData) continue;
+
+    const total = Number(monthData.t ?? 0);
+
+    const assetExpense = Number(
+      monthData.c?.find(
+        (category) => category.n === 'ASSET',
+      )?.a ?? 0,
+    );
+
+    const actualExpense = total - assetExpense;
+
+    if (actualExpense > 0) {
+      previousMonths.push(actualExpense);
+    }
+  }
+
+  if (previousMonths.length === 0) return 0;
+
+  return (
+    previousMonths.reduce(
+      (sum, value) => sum + value,
+      0,
+    ) / previousMonths.length
+  );
+};
+
+/* =========================================================
+   WEALTH HISTORY
+========================================================= */
+
+const getFinanceHistory = (
+  snapshots: FinanceSnapshot[],
+  finance: FinanceItem[],
+): FinanceHistoryItem[] => {
+  return snapshots
+    .map((snapshot) => {
+      const period =
+        Number(snapshot.p);
+
+      const year =
+        Math.floor(period / 100);
+
+      const month =
+        period % 100;
+
+      const assets =
+        getSnapshotAssets(
+          snapshot,
+          finance,
+        );
+
+      const liabilities =
+        getSnapshotLiabilities(
+          snapshot,
+          finance,
+        );
+
+      const netWorth =
+        assets - liabilities;
+
+      const debtToAssetRatio =
+        assets > 0
+          ? (liabilities /
+              assets) *
+            100
+          : 0;
+
+      return {
+        period,
+        year,
+        month,
+        monthName:
+          MONTHS[month - 1] ??
+          'Unknown',
+        assets,
+        liabilities,
+        netWorth,
+        debtToAssetRatio,
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.period - b.period,
+    );
+};
+
+/* =========================================================
    WEALTH TREND
 ========================================================= */
 
 const getWealthTrend = (
-  snapshots: FinanceSnapshot[],
-  finance: FinanceItem[],
-  selectedYear: number,
+  history: FinanceHistoryItem[],
 ): WealthTrend => {
-  const selectedYearSnapshots =
-    snapshots
-      .filter(
-        (snapshot) =>
-          Math.floor(
-            snapshot.p / 100,
-          ) === selectedYear,
-      )
-      .sort(
-        (a, b) =>
-          a.p - b.p,
-      );
-
-  if (
-    selectedYearSnapshots.length <
-    2
-  ) {
+  if (history.length < 2) {
     return {
       status:
         'insufficient-data',
-      consecutiveGrowthMonths: 0,
       positiveMonths: 0,
       negativeMonths: 0,
+      consecutiveGrowthMonths: 0,
     };
   }
 
@@ -495,28 +599,19 @@ const getWealthTrend = (
   let negativeMonths = 0;
 
   for (
-    let index = 1;
-    index <
-    selectedYearSnapshots.length;
-    index++
+    let i = 1;
+    i < history.length;
+    i++
   ) {
     const previous =
-      getNetWorthFromSnapshot(
-        selectedYearSnapshots[
-          index - 1
-        ],
-        finance,
-      );
+      history[i - 1].netWorth;
 
     const current =
-      getNetWorthFromSnapshot(
-        selectedYearSnapshots[
-          index
-        ],
-        finance,
-      );
+      history[i].netWorth;
 
-    if (current > previous) {
+    if (
+      current > previous
+    ) {
       positiveMonths++;
     } else if (
       current < previous
@@ -528,29 +623,20 @@ const getWealthTrend = (
   let consecutiveGrowthMonths = 0;
 
   for (
-    let index =
-      selectedYearSnapshots.length -
-      1;
-    index > 0;
-    index--
+    let i =
+      history.length - 1;
+    i > 0;
+    i--
   ) {
     const current =
-      getNetWorthFromSnapshot(
-        selectedYearSnapshots[
-          index
-        ],
-        finance,
-      );
+      history[i].netWorth;
 
     const previous =
-      getNetWorthFromSnapshot(
-        selectedYearSnapshots[
-          index - 1
-        ],
-        finance,
-      );
+      history[i - 1].netWorth;
 
-    if (current > previous) {
+    if (
+      current > previous
+    ) {
       consecutiveGrowthMonths++;
     } else {
       break;
@@ -561,10 +647,11 @@ const getWealthTrend = (
     consecutiveGrowthMonths >= 3
   ) {
     return {
-      status: 'getting-richer',
-      consecutiveGrowthMonths,
+      status:
+        'getting-richer',
       positiveMonths,
       negativeMonths,
+      consecutiveGrowthMonths,
     };
   }
 
@@ -574,177 +661,505 @@ const getWealthTrend = (
   ) {
     return {
       status: 'mixed',
-      consecutiveGrowthMonths,
       positiveMonths,
       negativeMonths,
+      consecutiveGrowthMonths,
     };
   }
 
   return {
-    status: 'getting-poorer',
-    consecutiveGrowthMonths,
+    status:
+      'getting-poorer',
     positiveMonths,
     negativeMonths,
+    consecutiveGrowthMonths,
   };
 };
 
 /* =========================================================
-   YEARLY MONTHLY CATEGORY TABLE
+   FINANCIAL SAFETY
 ========================================================= */
 
-const getMonthlyCategoryData = (
-  snapshots: FinanceSnapshot[],
-  finance: FinanceItem[],
-  selectedYear: number,
-): {
-  monthlyCategories: MonthlyCategory[];
-  monthlyCategoryRows: MonthlyCategoryRow[];
-} => {
-  const selectedYearSnapshots =
-    snapshots.filter(
-      (snapshot) =>
-        Math.floor(
-          snapshot.p / 100,
-        ) === selectedYear,
-    );
+const getFinancialSafetyStatus = (
+  emergencyMonths: number,
+  liquidAssets: number,
+): FinancialSafetyStatus => {
+  if (
+    liquidAssets <= 0
+  ) {
+    return 'Low';
+  }
+
+  if (
+    emergencyMonths >= 6
+  ) {
+    return 'Strong';
+  }
+
+  if (
+    emergencyMonths >= 3
+  ) {
+    return 'Moderate';
+  }
+
+  return 'Low';
+};
+
+/* =========================================================
+   FINANCE SCORE
+========================================================= */
+
+const getFinanceScore = ({
+  totalAssets,
+  totalLiabilities,
+  debtToAssetRatio,
+  liquidAssets,
+  emergencyMonths,
+  investmentValue,
+  retirementValue,
+  insuranceStatus,
+  assetAllocation,
+  wealthTrend,
+}: {
+  totalAssets: number;
+  totalLiabilities: number;
+  debtToAssetRatio: number;
+  liquidAssets: number;
+  emergencyMonths: number;
+  investmentValue: number;
+  retirementValue: number;
+  insuranceStatus: InsuranceStatus;
+  assetAllocation: AssetAllocationItem[];
+  wealthTrend: WealthTrend;
+}): FinanceScore => {
+  /*
+   * 10-point billionaire-style score.
+   *
+   * Focus:
+   * 1. Net worth quality
+   * 2. Debt control
+   * 3. Liquidity
+   * 4. Emergency protection
+   * 5. Investment allocation
+   * 6. Retirement
+   * 7. Insurance
+   * 8. Diversification
+   * 9. Wealth trend
+   * 10. Balance-sheet strength
+   */
+
+  let score = 0;
+
+  const improvements: FinanceScoreImprovement[] =
+    [];
 
   /*
-   * Category ID -> category name
+   * 1. Debt — 1.5 points
    */
-  const categoryNames =
-    new Map<string, string>();
+  let debtScore = 0;
 
-  finance.forEach((item) => {
-    const id = getCategoryId(item);
-
-    if (id) {
-      categoryNames.set(
-        id,
-        getCategoryName(item),
-      );
+  if (
+    totalAssets > 0
+  ) {
+    if (
+      debtToAssetRatio <= 10
+    ) {
+      debtScore = 1.5;
+    } else if (
+      debtToAssetRatio <= 20
+    ) {
+      debtScore = 1.25;
+    } else if (
+      debtToAssetRatio <= 35
+    ) {
+      debtScore = 0.75;
+    } else if (
+      debtToAssetRatio <= 50
+    ) {
+      debtScore = 0.4;
     }
-  });
+  }
+
+  score += debtScore;
+
+  if (
+    debtToAssetRatio > 35
+  ) {
+    improvements.push({
+      priority: 'High',
+      title:
+        'Reduce debt exposure',
+      description:
+        'Your debt-to-asset ratio is above the preferred range. Prioritize reducing liabilities before aggressively increasing lifestyle spending.',
+    });
+  }
 
   /*
-   * Collect every category that
-   * appears in any snapshot for
-   * the selected year.
+   * 2. Liquidity — 1.5 points
    */
-  const categoryMap =
-    new Map<
-      string,
-      string
-    >();
+  let liquidityScore = 0;
 
-  selectedYearSnapshots.forEach(
-    (snapshot) => {
-      (snapshot.c ?? []).forEach(
-        (item) => {
-          const categoryId =
-            String(item.k);
+  if (
+    totalAssets > 0
+  ) {
+    const liquidityRatio =
+      liquidAssets /
+      totalAssets;
 
-          const categoryName =
-            categoryNames.get(
-              categoryId,
-            ) ?? 'OTHER';
+    if (
+      liquidityRatio >= 0.15 &&
+      liquidityRatio <= 0.4
+    ) {
+      liquidityScore = 1.5;
+    } else if (
+      liquidityRatio >= 0.1
+    ) {
+      liquidityScore = 1;
+    } else if (
+      liquidityRatio > 0
+    ) {
+      liquidityScore = 0.5;
+    }
+  }
 
-          categoryMap.set(
-            categoryId,
-            categoryName,
-          );
-        },
-      );
-    },
+  score += liquidityScore;
+
+  if (
+    liquidAssets <= 0
+  ) {
+    improvements.push({
+      priority: 'High',
+      title:
+        'Build liquid reserves',
+      description:
+        'Increase immediately accessible cash and savings so short-term financial shocks do not force you to sell long-term assets.',
+    });
+  }
+
+  /*
+   * 3. Emergency fund — 1.5 points
+   */
+  let emergencyScore = 0;
+
+  if (
+    emergencyMonths >= 6
+  ) {
+    emergencyScore = 1.5;
+  } else if (
+    emergencyMonths >= 3
+  ) {
+    emergencyScore = 1;
+  } else if (
+    emergencyMonths > 0
+  ) {
+    emergencyScore = 0.5;
+  }
+
+  score += emergencyScore;
+
+  if (
+    emergencyMonths < 6
+  ) {
+    improvements.push({
+      priority:
+        emergencyMonths < 3
+          ? 'High'
+          : 'Medium',
+      title:
+        'Increase emergency fund',
+      description:
+        `You currently have ${emergencyMonths.toFixed(
+          1,
+        )} months of expense coverage. Target at least 6 months.`,
+    });
+  }
+
+  /*
+   * 4. Investments — 1.5 points
+   */
+  let investmentScore = 0;
+
+  if (
+    totalAssets > 0
+  ) {
+    const investmentRatio =
+      investmentValue /
+      totalAssets;
+
+    if (
+      investmentRatio >= 0.3
+    ) {
+      investmentScore = 1.5;
+    } else if (
+      investmentRatio >= 0.2
+    ) {
+      investmentScore = 1;
+    } else if (
+      investmentRatio > 0
+    ) {
+      investmentScore = 0.5;
+    }
+  }
+
+  score += investmentScore;
+
+  if (
+    investmentValue <= 0
+  ) {
+    improvements.push({
+      priority: 'High',
+      title:
+        'Build wealth-producing investments',
+      description:
+        'Increase assets classified under INVESTMENTS_BUCKET instead of allowing all wealth to remain in cash or non-investment assets.',
+    });
+  } else if (
+    totalAssets > 0 &&
+    investmentValue /
+      totalAssets <
+      0.2
+  ) {
+    improvements.push({
+      priority: 'Medium',
+      title:
+        'Increase investment allocation',
+      description:
+        'Your investment bucket is below 20% of total assets. Gradually increase productive long-term investments.',
+    });
+  }
+
+  /*
+   * 5. Retirement — 1 point
+   */
+  let retirementScore = 0;
+
+  if (
+    totalAssets > 0
+  ) {
+    const retirementRatio =
+      retirementValue /
+      totalAssets;
+
+    if (
+      retirementRatio >= 0.15
+    ) {
+      retirementScore = 1;
+    } else if (
+      retirementRatio > 0
+    ) {
+      retirementScore = 0.5;
+    }
+  }
+
+  score += retirementScore;
+
+  if (
+    retirementValue <= 0
+  ) {
+    improvements.push({
+      priority: 'Medium',
+      title:
+        'Strengthen retirement corpus',
+      description:
+        'Increase long-term retirement assets so future financial independence does not depend entirely on active income.',
+    });
+  }
+
+  /*
+   * 6. Insurance — 1 point
+   */
+  const insuranceScore =
+    insuranceStatus.score /
+    insuranceStatus.maxScore;
+
+  score += insuranceScore;
+
+  if (
+    !insuranceStatus
+      .healthInsurance.active
+  ) {
+    improvements.push({
+      priority: 'High',
+      title:
+        'Add health insurance',
+      description:
+        'Health insurance is missing from your risk buffer. Protect the balance sheet from major medical expenses.',
+    });
+  }
+
+  if (
+    !insuranceStatus
+      .termInsurance.active
+  ) {
+    improvements.push({
+      priority: 'High',
+      title:
+        'Add term insurance',
+      description:
+        'Term insurance is missing from your risk buffer. Add adequate protection for your dependents and liabilities.',
+    });
+  }
+
+  /*
+   * 7. Diversification — 0.75 points
+   */
+  let diversificationScore = 0;
+
+  if (
+    assetAllocation.length >= 4
+  ) {
+    diversificationScore = 0.75;
+  } else if (
+    assetAllocation.length >= 3
+  ) {
+    diversificationScore = 0.5;
+  } else if (
+    assetAllocation.length >= 2
+  ) {
+    diversificationScore = 0.25;
+  }
+
+  score += diversificationScore;
+
+  if (
+    assetAllocation.length < 3
+  ) {
+    improvements.push({
+      priority: 'Medium',
+      title:
+        'Improve asset diversification',
+      description:
+        'Your current asset allocation is concentrated. Build exposure across multiple asset categories represented in your finance buckets.',
+    });
+  }
+
+  /*
+   * 8. Wealth trend — 1.25 points
+   */
+  let trendScore = 0;
+
+  if (
+    wealthTrend.status ===
+    'getting-richer'
+  ) {
+    trendScore = 1.25;
+  } else if (
+    wealthTrend.status ===
+    'mixed'
+  ) {
+    trendScore = 0.75;
+  } else if (
+    wealthTrend.status ===
+    'insufficient-data'
+  ) {
+    trendScore = 0.5;
+  }
+
+  score += trendScore;
+
+  if (
+    wealthTrend.status ===
+    'getting-poorer'
+  ) {
+    improvements.push({
+      priority: 'High',
+      title:
+        'Reverse the declining wealth trend',
+      description:
+        'Recent snapshots show declining net worth. Focus on reducing liabilities and increasing productive assets.',
+    });
+  }
+
+  /*
+   * 9. Balance-sheet strength — 1 point
+   */
+  let balanceSheetScore = 0;
+
+  if (
+    totalAssets > 0
+  ) {
+    const netWorth =
+      totalAssets -
+      totalLiabilities;
+
+    const netWorthRatio =
+      netWorth /
+      totalAssets;
+
+    if (
+      netWorthRatio >= 0.8
+    ) {
+      balanceSheetScore = 1;
+    } else if (
+      netWorthRatio >= 0.6
+    ) {
+      balanceSheetScore = 0.75;
+    } else if (
+      netWorthRatio >= 0.4
+    ) {
+      balanceSheetScore = 0.5;
+    } else {
+      balanceSheetScore = 0.25;
+    }
+  }
+
+  score += balanceSheetScore;
+
+  /*
+   * Round to one decimal.
+   */
+  score =
+    Math.round(
+      score * 10,
+    ) / 10;
+
+  let label = 'Needs Attention';
+
+  if (score >= 9) {
+    label = 'Elite';
+  } else if (score >= 8) {
+    label = 'Excellent';
+  } else if (score >= 7) {
+    label = 'Strong';
+  } else if (score >= 6) {
+    label = 'Good';
+  } else if (score >= 4) {
+    label = 'Fair';
+  }
+
+  /*
+   * Highest-impact improvements first.
+   */
+  const priorityWeight = {
+    High: 3,
+    Medium: 2,
+    Low: 1,
+  };
+
+  improvements.sort(
+    (a, b) =>
+      priorityWeight[
+        b.priority
+      ] -
+      priorityWeight[
+        a.priority
+      ],
   );
 
-  const monthlyCategories =
-    Array.from(
-      categoryMap.entries(),
-    )
-      .map(
-        ([
-          categoryId,
-          categoryName,
-        ]) => ({
-          categoryId,
-          categoryName,
-        }),
-      )
-      .sort((a, b) =>
-        a.categoryName.localeCompare(
-          b.categoryName,
-        ),
-      );
-
-  /*
-   * Always return all 12 months.
-   */
-  const monthlyCategoryRows =
-    MONTHS.map(
-      (monthName, index) => {
-        const month =
-          index + 1;
-
-        const snapshot =
-          selectedYearSnapshots.find(
-            (item) =>
-              item.p ===
-              getMonthPeriod(
-                selectedYear,
-                month,
-              ),
-          );
-
-        const values: Record<
-          string,
-          number
-        > = {};
-
-        monthlyCategories.forEach(
-          (category) => {
-            values[
-              category.categoryId
-            ] = 0;
-          },
-        );
-
-        if (snapshot) {
-          (
-            snapshot.c ?? []
-          ).forEach((item) => {
-            const categoryId =
-              String(item.k);
-
-            if (
-              categoryMap.has(
-                categoryId,
-              )
-            ) {
-              values[
-                categoryId
-              ] =
-                Number(item.v) ||
-                0;
-            }
-          });
-        }
-
-        return {
-          month,
-          monthName,
-          values,
-        };
-      },
-    );
-
   return {
-    monthlyCategories,
-    monthlyCategoryRows,
+    score,
+    maxScore: 10,
+    label,
+    improvements:
+      improvements.slice(
+        0,
+        4,
+      ),
   };
 };
 
 /* =========================================================
-   MAIN CALCULATIONS
+   MAIN
 ========================================================= */
 
 export const getFinanceCalculations = (
@@ -762,17 +1177,17 @@ export const getFinanceCalculations = (
   const safeFinance =
     finance as FinanceItem[];
 
-  /*
-   * IMPORTANT:
-   * metricMonth is calculated INSIDE
-   * the function.
-   *
-   * This fixes:
-   * Cannot find name 'financeSnapshots'
-   */
+  const sortedSnapshots =
+    [...financeSnapshots]
+      .sort(
+        (a, b) =>
+          Number(a.p) -
+          Number(b.p),
+      );
+
   const metricMonth =
     getMetricMonth(
-      financeSnapshots,
+      sortedSnapshots,
       selectedYear,
       currentMonth,
     );
@@ -782,50 +1197,34 @@ export const getFinanceCalculations = (
       metricMonth - 1
     ] ?? MONTHS[0];
 
-  /*
-   * Previous month.
-   */
-  const previousMetricMonth =
-    metricMonth === 1
-      ? 12
-      : metricMonth - 1;
-
-  const previousMetricYear =
-    metricMonth === 1
-      ? selectedYear - 1
-      : selectedYear;
-
-  const previousMetricMonthName =
-    MONTHS[
-      previousMetricMonth - 1
-    ] ?? MONTHS[11];
-
   const currentPeriod =
     getMonthPeriod(
       selectedYear,
       metricMonth,
     );
 
-  const previousPeriod =
-    getMonthPeriod(
-      previousMetricYear,
-      previousMetricMonth,
-    );
-
   const currentSnapshot =
     getSnapshotForPeriod(
-      financeSnapshots,
+      sortedSnapshots,
       currentPeriod,
     );
 
-  const previousSnapshot =
-    getSnapshotForPeriod(
-      financeSnapshots,
-      previousPeriod,
+  const currentIndex =
+    sortedSnapshots.findIndex(
+      (snapshot) =>
+        Number(snapshot.p) ===
+        currentPeriod,
     );
 
+  const previousSnapshot =
+    currentIndex > 0
+      ? sortedSnapshots[
+          currentIndex - 1
+        ]
+      : null;
+
   /* =======================================================
-     NET WORTH
+     CORE WEALTH
   ======================================================= */
 
   const totalAssetsValue =
@@ -844,27 +1243,35 @@ export const getFinanceCalculations = (
     totalAssetsValue -
     totalLiabilitiesValue;
 
+  const hasPreviousSnapshot =
+    Boolean(previousSnapshot);
+
   const previousNetworthValue =
-    getNetWorthFromSnapshot(
-      previousSnapshot,
-      safeFinance,
-    );
+    previousSnapshot
+      ? getNetWorthFromSnapshot(
+          previousSnapshot,
+          safeFinance,
+        )
+      : null;
 
   const networthChange =
     previousSnapshot
       ? networthValue -
-        previousNetworthValue
-      : 0;
+        (previousNetworthValue ?? 0)
+      : null;
 
   const networthGrowth =
     previousSnapshot &&
+    previousNetworthValue !==
+      null &&
     previousNetworthValue !== 0
-      ? (networthChange /
+      ? ((networthValue -
+          previousNetworthValue) /
           Math.abs(
             previousNetworthValue,
           )) *
         100
-      : 0;
+      : null;
 
   /* =======================================================
      ASSET ALLOCATION
@@ -880,11 +1287,16 @@ export const getFinanceCalculations = (
      INVESTMENTS
   ======================================================= */
 
-  const investmentsValue =
-    getSnapshotBucketValue(
+  const investmentValue =
+    getInvestmentValue(
       currentSnapshot,
       safeFinance,
-      FINANCE_BUCKETS.INVESTMENTS_BUCKET,
+    );
+
+  const retirementValue =
+    getRetirementValue(
+      currentSnapshot,
+      safeFinance,
     );
 
   /* =======================================================
@@ -898,18 +1310,41 @@ export const getFinanceCalculations = (
       FINANCE_BUCKETS.LIQUID_ASSETS_BUCKET,
     );
 
-  const selectedMonthExpenses =
-    getSelectedMonthExpenses(
+  /*
+   * IMPORTANT:
+   *
+   * Current month is excluded.
+   * Emergency fund is based on
+   * previous 3 months average.
+   */
+  const averagePreviousThreeMonthExpenses =
+    getPreviousThreeMonthAverageExpenses(
       expenseSummaryData,
-      selectedYear,
       metricMonth,
     );
 
   const emergencyMonths =
-    selectedMonthExpenses > 0
+    averagePreviousThreeMonthExpenses >
+    0
       ? liquidAssetsValue /
-        selectedMonthExpenses
+        averagePreviousThreeMonthExpenses
       : 0;
+
+  const financialSafetyStatus =
+    getFinancialSafetyStatus(
+      emergencyMonths,
+      liquidAssetsValue,
+    );
+
+  /* =======================================================
+     INSURANCE / RISK BUFFER
+  ======================================================= */
+
+  const insuranceStatus =
+    getInsuranceStatus(
+      currentSnapshot,
+      safeFinance,
+    );
 
   /* =======================================================
      DEBT
@@ -923,120 +1358,69 @@ export const getFinanceCalculations = (
       : 0;
 
   /* =======================================================
-     WEALTH CREATION
+     HISTORY
   ======================================================= */
 
-  const wealthCreationRate =
-    networthChange;
-
-  /* =======================================================
-     CAPITAL DEPLOYMENT
-  ======================================================= */
-
-  const monthlyCapitalDeployment =
-    getCapitalDeployment(
+  const financeHistory =
+    getFinanceHistory(
+      sortedSnapshots,
       safeFinance,
-      selectedYear,
-      metricMonth,
     );
-
-  /* =======================================================
-     FINANCIAL FREEDOM
-  ======================================================= */
-
-  const financialFreedomNumber =
-    selectedMonthExpenses *
-    12 *
-    25;
-
-  const financialFreedomProgress =
-    financialFreedomNumber > 0
-      ? Math.min(
-          100,
-          (networthValue /
-            financialFreedomNumber) *
-            100,
-        )
-      : 0;
-
-  /* =======================================================
-     WEALTH TREND
-  ======================================================= */
 
   const wealthTrend =
     getWealthTrend(
-      financeSnapshots,
-      safeFinance,
-      selectedYear,
+      financeHistory,
     );
 
   /* =======================================================
-     PERFORMANCE
+     FINANCE SCORE
   ======================================================= */
 
-  const financePerformance =
-    getCategoryPerformance(
-      safeFinance,
-    );
+  const financeScore =
+    getFinanceScore({
+      totalAssets:
+        totalAssetsValue,
 
-  const profitItems =
-    financePerformance
-      .filter(
-        (item) =>
-          item.profit > 0,
-      )
-      .sort(
-        (a, b) =>
-          b.profit - a.profit,
-      );
+      totalLiabilities:
+        totalLiabilitiesValue,
 
-  const lossItems =
-    financePerformance
-      .filter(
-        (item) =>
-          item.profit < 0,
-      )
-      .sort(
-        (a, b) =>
-          a.profit - b.profit,
-      );
+      debtToAssetRatio,
 
-  /* =======================================================
-     YEARLY MONTHLY CATEGORY TABLE
-  ======================================================= */
+      liquidAssets:
+        liquidAssetsValue,
 
-  const {
-    monthlyCategories,
-    monthlyCategoryRows,
-  } = getMonthlyCategoryData(
-    financeSnapshots,
-    safeFinance,
-    selectedYear,
-  );
+      emergencyMonths,
+
+      investmentValue,
+
+      retirementValue,
+
+      insuranceStatus,
+
+      assetAllocation,
+
+      wealthTrend,
+    });
 
   /* =======================================================
      RETURN
   ======================================================= */
 
   return {
-    /*
-     * Selected period
-     */
     metricMonth,
     metricMonthName,
-    previousMetricMonth,
-    previousMetricMonthName,
 
     /*
-     * Hero
+     * Net worth
      */
     networthValue,
     previousNetworthValue,
     networthChange,
     networthGrowth,
+    hasPreviousSnapshot,
 
     /*
-     * Core
+     * Assets / liabilities
      */
     totalAssetsValue,
     totalLiabilitiesValue,
@@ -1046,49 +1430,43 @@ export const getFinanceCalculations = (
      * Allocation
      */
     assetAllocation,
-    investmentsValue,
+
+    /*
+     * Investments
+     */
+    investmentValue,
+    retirementValue,
 
     /*
      * Liquidity
      */
     liquidAssetsValue,
-    selectedMonthExpenses,
+
+    /*
+     * Emergency fund
+     */
+    averagePreviousThreeMonthExpenses,
     emergencyMonths,
+    financialSafetyStatus,
 
     /*
-     * Wealth creation
+     * Insurance
      */
-    wealthCreationRate,
-    monthlyCapitalDeployment,
+    insuranceStatus,
 
     /*
-     * Freedom
-     */
-    financialFreedomNumber,
-    financialFreedomProgress,
-
-    /*
-     * Trend
+     * Wealth trend
      */
     wealthTrend,
 
     /*
-     * Performance
+     * Finance score
      */
-    financePerformance,
-    profitItems,
-    lossItems,
+    financeScore,
 
     /*
-     * Monthly category table
+     * Graph data only.
      */
-    monthlyCategories,
-    monthlyCategoryRows,
-
-    /*
-     * Snapshots
-     */
-    currentSnapshot,
-    previousSnapshot,
+    financeHistory,
   };
 };

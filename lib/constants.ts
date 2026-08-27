@@ -30,7 +30,10 @@ export const YEARS = Array.from(
     ),
 );
 
-export const PRIORITY_COLORS: Record<string, string> = {
+export const PRIORITY_COLORS: Record<
+  string,
+  string
+> = {
   low: "#22c55e",
   medium: "#fbbf24",
   high: "#f97316",
@@ -49,7 +52,10 @@ export const CHART_COLORS = [
 ];
 
 export const FINANCE_BUCKETS = {
-  // Everything you own that contributes to net worth
+  /*
+   * Everything explicitly classified
+   * as an asset contributes to net worth.
+   */
   ASSETS_BUCKET: [
     "ASSETS",
     "INVESTMENTS",
@@ -65,7 +71,10 @@ export const FINANCE_BUCKETS = {
     "HEALTH F",
   ],
 
-  // Wealth creation assets only
+  /*
+   * Wealth-producing / long-term
+   * investment assets.
+   */
   INVESTMENTS_BUCKET: [
     "INVESTMENTS",
     "RETIREMENT F",
@@ -73,63 +82,112 @@ export const FINANCE_BUCKETS = {
     "ENTERTAINEMENT F",
   ],
 
-  // Immediately available money
-  LIQUID_ASSETS_BUCKET: ["CASH", "SAVINGS", "EMERGENCY F"],
+  /*
+   * Immediately accessible money.
+   */
+  LIQUID_ASSETS_BUCKET: [
+    "CASH",
+    "SAVINGS",
+    "EMERGENCY F",
+  ],
 
-  // Physical / personal assets
-  REAL_ASSETS_BUCKET: ["ASSETS"],
+  /*
+   * Physical assets.
+   */
+  REAL_ASSETS_BUCKET: [
+    "ASSETS",
+  ],
 
-  // Retirement and long-term security
-  RETIREMENT_BUCKET: ["RETIREMENT F"],
+  /*
+   * Retirement assets.
+   */
+  RETIREMENT_BUCKET: [
+    "RETIREMENT F",
+  ],
 
-  // Goal-based funds
-  GOALS_BUCKET: ["CHILD EDUC F", "ENTERTAINEMENT F", "GIFTS F"],
+  /*
+   * Goal-based funds.
+   */
+  GOALS_BUCKET: [
+    "CHILD EDUC F",
+    "ENTERTAINEMENT F",
+    "GIFTS F",
+  ],
 
-  // Money protection (not counted as assets)
-  INSURANCE_BUCKET: ["HEALTH I", "LIFE I", "TERM I"],
+  /*
+   * Insurance is protection.
+   *
+   * It is deliberately NOT part
+   * of ASSETS_BUCKET.
+   */
+  INSURANCE_BUCKET: [
+    "HEALTH I",
+    "LIFE I",
+    "TERM I",
+  ],
 
-  // Money you should receive back
-  RECEIVABLES_BUCKET: ["LENT"],
+  /*
+   * Money receivable.
+   *
+   * LENT is explicitly classified
+   * as an asset above, therefore it
+   * contributes to net worth but does
+   * not become an investment.
+   */
+  RECEIVABLES_BUCKET: [
+    "LENT",
+  ],
 
-  // What you owe
-  LIABILITY_BUCKET: ["LOAN"],
+  /*
+   * Actual liability.
+   *
+   * EMI is intentionally NOT here.
+   */
+  LIABILITY_BUCKET: [
+    "LOAN",
+  ],
 
-  // Monthly cash flow obligations
-  COMMITMENTS_BUCKET: ["EMI"],
+  /*
+   * Monthly commitments / cash flow.
+   *
+   * These do not become liabilities
+   * merely because they are EMIs.
+   */
+  COMMITMENTS_BUCKET: [
+    "EMI",
+  ],
 
-  // Uncategorized
-  OTHER_BUCKET: ["OTHER"],
+  OTHER_BUCKET: [
+    "OTHER",
+  ],
 };
 
 export const EXPENSE_BUCKETS = {
-  // -----------------------------
-  // Essential / Regular Expenses
-  // -----------------------------
-
   ESSENTIAL_BUCKET: [
     "HOME FOOD",
-
     "NEED",
-
     "MEDICINE",
-
     "HOME GOODS",
     "OUTSIDE HEALTHY FOOD",
   ],
-  AVOID_BUCKET: ["OUTSIDE FOOD", "ENTERTAINMENT", "LUXURY", "CLOTHES"],
 
-  // -----------------------------
-  // Financial / Wealth Related
-  // -----------------------------
+  AVOID_BUCKET: [
+    "OUTSIDE FOOD",
+    "ENTERTAINMENT",
+    "LUXURY",
+    "CLOTHES",
+  ],
 
-  ASSET_BUCKET: ["ASSET"],
+  ASSET_BUCKET: [
+    "ASSET",
+  ],
 
-  // -----------------------------
-  // Miscellaneous
-  // -----------------------------
-
-  OTHER_BUCKET: ["OTHER", "TRAVEL"],
+  OTHER_BUCKET: [
+    "OTHER",
+    "TRAVEL",
+  ],
 };
+
 export const EXPENSE_BUCKET_STYLES = {
   ESSENTIAL_BUCKET: {
     label: "Essential",
