@@ -13,27 +13,16 @@ export const MONTHS = [
   "December",
 ] as const;
 
-export const CURRENT_YEAR =
-  new Date().getFullYear();
+export const CURRENT_YEAR = new Date().getFullYear();
 
 export const YEARS = Array.from(
   {
-    length:
-      Math.max(
-        CURRENT_YEAR - 2026 + 1,
-        1,
-      ),
+    length: Math.max(CURRENT_YEAR - 2026 + 1, 1),
   },
-  (_, index) =>
-    String(
-      CURRENT_YEAR - index,
-    ),
+  (_, index) => String(CURRENT_YEAR - index),
 );
 
-export const PRIORITY_COLORS: Record<
-  string,
-  string
-> = {
+export const PRIORITY_COLORS: Record<string, string> = {
   low: "#22c55e",
   medium: "#fbbf24",
   high: "#f97316",
@@ -85,34 +74,22 @@ export const FINANCE_BUCKETS = {
   /*
    * Immediately accessible money.
    */
-  LIQUID_ASSETS_BUCKET: [
-    "CASH",
-    "SAVINGS",
-    "EMERGENCY F",
-  ],
+  LIQUID_ASSETS_BUCKET: ["CASH", "SAVINGS", "EMERGENCY F"],
 
   /*
    * Physical assets.
    */
-  REAL_ASSETS_BUCKET: [
-    "ASSETS",
-  ],
+  REAL_ASSETS_BUCKET: ["ASSETS"],
 
   /*
    * Retirement assets.
    */
-  RETIREMENT_BUCKET: [
-    "RETIREMENT F",
-  ],
+  RETIREMENT_BUCKET: ["RETIREMENT F"],
 
   /*
    * Goal-based funds.
    */
-  GOALS_BUCKET: [
-    "CHILD EDUC F",
-    "ENTERTAINEMENT F",
-    "GIFTS F",
-  ],
+  GOALS_BUCKET: ["CHILD EDUC F", "ENTERTAINEMENT F", "GIFTS F"],
 
   /*
    * Insurance is protection.
@@ -120,11 +97,7 @@ export const FINANCE_BUCKETS = {
    * It is deliberately NOT part
    * of ASSETS_BUCKET.
    */
-  INSURANCE_BUCKET: [
-    "HEALTH I",
-    "LIFE I",
-    "TERM I",
-  ],
+  INSURANCE_BUCKET: ["HEALTH I", "LIFE I", "TERM I"],
 
   /*
    * Money receivable.
@@ -134,18 +107,14 @@ export const FINANCE_BUCKETS = {
    * contributes to net worth but does
    * not become an investment.
    */
-  RECEIVABLES_BUCKET: [
-    "LENT",
-  ],
+  RECEIVABLES_BUCKET: ["LENT"],
 
   /*
    * Actual liability.
    *
    * EMI is intentionally NOT here.
    */
-  LIABILITY_BUCKET: [
-    "LOAN",
-  ],
+  LIABILITY_BUCKET: ["LOAN"],
 
   /*
    * Monthly commitments / cash flow.
@@ -153,13 +122,10 @@ export const FINANCE_BUCKETS = {
    * These do not become liabilities
    * merely because they are EMIs.
    */
-  COMMITMENTS_BUCKET: [
-    "EMI",
-  ],
+  COMMITMENTS_BUCKET: ["EMI"],
 
-  OTHER_BUCKET: [
-    "OTHER",
-  ],
+  OTHER_BUCKET: ["OTHER"],
+  TARGET_RELATED_BUCKET: ["ASSETS", "INVESTMENTS", "SAVINGS", "LENT"],
 };
 
 export const EXPENSE_BUCKETS = {
@@ -171,21 +137,11 @@ export const EXPENSE_BUCKETS = {
     "OUTSIDE HEALTHY FOOD",
   ],
 
-  AVOID_BUCKET: [
-    "OUTSIDE FOOD",
-    "ENTERTAINMENT",
-    "LUXURY",
-    "CLOTHES",
-  ],
+  AVOID_BUCKET: ["OUTSIDE FOOD", "ENTERTAINMENT", "LUXURY", "CLOTHES"],
 
-  ASSET_BUCKET: [
-    "ASSET",
-  ],
+  ASSET_BUCKET: ["ASSET"],
 
-  OTHER_BUCKET: [
-    "OTHER",
-    "TRAVEL",
-  ],
+  OTHER_BUCKET: ["OTHER", "TRAVEL"],
 };
 
 export const EXPENSE_BUCKET_STYLES = {

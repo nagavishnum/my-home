@@ -17,6 +17,7 @@ import {
   WealthTrend,
 } from '../calculations/getFinanceCalculations';
 import { FinanceScoreCard } from './smartmetrics/finance/FinanceScore';
+import './financesection.css';
 
 type Props = {
   selectedYear: number;
@@ -137,6 +138,397 @@ const formatCompactAmount = (
    NET WORTH D3 CHART
 ========================================================= */
 
+const WEALTH_MILESTONE_TARGET =
+  20000000; // ₹1 Crore
+
+const WEALTH_MILESTONE_HORIZON_MONTHS =
+  60; // 5 years
+
+const WEALTH_SAFETY_SPLIT = 0.4;
+
+const WEALTH_GROWTH_SPLIT = 0.6;
+
+/*
+ * Illustrative FD / income-yield assumption.
+ *
+ * This is NOT a guaranteed return.
+ * It is only used to estimate recurring
+ * income capacity after reaching the milestone.
+ */
+const WEALTH_RECURRING_INCOME_RATE =
+  0.065;
+
+type WealthMilestoneStatus =
+  | 'achieved'
+  | 'on-track'
+  | 'building'
+  | 'slow'
+  | 'no-momentum';
+
+type WealthMilestoneData = {
+  target: number;
+  current: number;
+  remaining: number;
+  progress: number;
+
+  averageMonthlyGrowth: number;
+  latestMonthlyGrowth: number;
+
+  requiredMonthlyGrowth: number;
+
+  estimatedMonthsToTarget:
+    | number
+    | null;
+
+  estimatedTargetDate:
+    | Date
+    | null;
+
+  status: WealthMilestoneStatus;
+
+  safetyCapital: number;
+  growthCapital: number;
+
+  estimatedMonthlyIncome: number;
+  estimatedAnnualIncome: number;
+};
+
+/*
+ * Calculates the actual wealth-building
+ * velocity from existing finance snapshots.
+ *
+ * No new API.
+ * No new database field.
+ */
+const getAverageMonthlyWealthGrowth = (
+  history: FinanceHistoryItem[],
+): number => {
+  if (history.length < 2) {
+    return 0;
+  }
+
+  const growthValues: number[] = [];
+
+  for (
+    let index = 1;
+    index < history.length;
+    index++
+  ) {
+    const previous =
+      history[index - 1].netWorth;
+
+    const current =
+      history[index].netWorth;
+
+    const growth =
+      current - previous;
+
+    /*
+     * We only use positive wealth creation
+     * when calculating the long-term velocity.
+     *
+     * A negative month is still visible through
+     * the existing wealth trend, but should not
+     * artificially make the required-growth
+     * calculation explode.
+     */
+    if (growth > 0) {
+      growthValues.push(growth);
+    }
+  }
+
+  if (
+    growthValues.length === 0
+  ) {
+    return 0;
+  }
+
+  return (
+    growthValues.reduce(
+      (sum, value) =>
+        sum + value,
+      0,
+    ) /
+    growthValues.length
+  );
+};
+
+const getLatestMonthlyWealthGrowth = (
+  history: FinanceHistoryItem[],
+): number => {
+  if (history.length < 2) {
+    return 0;
+  }
+
+  const latest =
+    history[history.length - 1];
+
+  const previous =
+    history[history.length - 2];
+
+  return (
+    latest.netWorth -
+    previous.netWorth
+  );
+};
+
+const getRequiredMonthlyWealthGrowth = (
+  currentNetWorth: number,
+  target: number,
+  months: number,
+): number => {
+  if (
+    currentNetWorth >= target ||
+    months <= 0
+  ) {
+    return 0;
+  }
+
+  return (
+    target -
+    currentNetWorth
+  ) / months;
+};
+
+const getWealthMilestoneStatus = ({
+  current,
+  target,
+  averageMonthlyGrowth,
+  requiredMonthlyGrowth,
+}: {
+  current: number;
+  target: number;
+  averageMonthlyGrowth: number;
+  requiredMonthlyGrowth: number;
+}): WealthMilestoneStatus => {
+  if (current >= target) {
+    return 'achieved';
+  }
+
+  if (
+    averageMonthlyGrowth <= 0
+  ) {
+    return 'no-momentum';
+  }
+
+  /*
+   * 110%+ of required pace
+   */
+  if (
+    averageMonthlyGrowth >=
+    requiredMonthlyGrowth * 1.1
+  ) {
+    return 'on-track';
+  }
+
+  /*
+   * 75% - 109%
+   */
+  if (
+    averageMonthlyGrowth >=
+    requiredMonthlyGrowth * 0.75
+  ) {
+    return 'building';
+  }
+
+  return 'slow';
+};
+
+const getWealthMilestoneData = (
+  currentNetWorth: number,
+  history: FinanceHistoryItem[],
+): WealthMilestoneData => {
+  const target =
+    WEALTH_MILESTONE_TARGET;
+
+  const current =
+    Math.max(
+      0,
+      currentNetWorth,
+    );
+
+  const remaining =
+    Math.max(
+      0,
+      target - current,
+    );
+
+  const progress =
+    target > 0
+      ? Math.min(
+          (current / target) *
+            100,
+          100,
+        )
+      : 0;
+
+  const averageMonthlyGrowth =
+    getAverageMonthlyWealthGrowth(
+      history,
+    );
+
+  const latestMonthlyGrowth =
+    getLatestMonthlyWealthGrowth(
+      history,
+    );
+
+  const requiredMonthlyGrowth =
+    getRequiredMonthlyWealthGrowth(
+      current,
+      target,
+      WEALTH_MILESTONE_HORIZON_MONTHS,
+    );
+
+  let estimatedMonthsToTarget:
+    | number
+    | null = null;
+
+  let estimatedTargetDate:
+    | Date
+    | null = null;
+
+  if (current >= target) {
+    estimatedMonthsToTarget = 0;
+
+    estimatedTargetDate =
+      new Date();
+  } else if (
+    averageMonthlyGrowth > 0
+  ) {
+    estimatedMonthsToTarget =
+      Math.ceil(
+        remaining /
+          averageMonthlyGrowth,
+      );
+
+    estimatedTargetDate =
+      new Date();
+
+    estimatedTargetDate.setMonth(
+      estimatedTargetDate.getMonth() +
+        estimatedMonthsToTarget,
+    );
+  }
+
+  const status =
+    getWealthMilestoneStatus({
+      current,
+      target,
+      averageMonthlyGrowth,
+      requiredMonthlyGrowth,
+    });
+
+  /*
+   * Once ₹1 Cr is achieved:
+   *
+   * 50% -> safety / recurring income
+   * 50% -> growth
+   */
+  const safetyCapital =
+    target *
+    WEALTH_SAFETY_SPLIT;
+
+  const growthCapital =
+    target *
+    WEALTH_GROWTH_SPLIT;
+
+  const estimatedAnnualIncome =
+    safetyCapital *
+    WEALTH_RECURRING_INCOME_RATE;
+
+  const estimatedMonthlyIncome =
+    estimatedAnnualIncome / 12;
+
+  return {
+    target,
+    current,
+    remaining,
+    progress,
+
+    averageMonthlyGrowth,
+    latestMonthlyGrowth,
+
+    requiredMonthlyGrowth,
+
+    estimatedMonthsToTarget,
+    estimatedTargetDate,
+
+    status,
+
+    safetyCapital,
+    growthCapital,
+
+    estimatedMonthlyIncome,
+    estimatedAnnualIncome,
+  };
+};
+
+const formatTargetDate = (
+  date: Date | null,
+): string => {
+  if (!date) {
+    return '—';
+  }
+
+  return date.toLocaleDateString(
+    'en-IN',
+    {
+      month: 'short',
+      year: 'numeric',
+    },
+  );
+};
+
+const getMilestoneStatusUI = (
+  status: WealthMilestoneStatus,
+) => {
+  switch (status) {
+    case 'achieved':
+      return {
+        icon: '🏆',
+        label: 'MILESTONE ACHIEVED',
+        className: 'success',
+        description:
+          'You have crossed your first major capital milestone. The strategy now shifts from accumulation to capital architecture.',
+      };
+
+    case 'on-track':
+      return {
+        icon: '🟢',
+        label: 'ON TRACK',
+        className: 'success',
+        description:
+          'Your current wealth-creation velocity is sufficient to reach the ₹1 Cr milestone within the planned horizon.',
+      };
+
+    case 'building':
+      return {
+        icon: '🟡',
+        label: 'BUILDING',
+        className: 'warning',
+        description:
+          'You are moving toward the milestone, but increasing monthly capital creation would accelerate the journey.',
+      };
+
+    case 'slow':
+      return {
+        icon: '🟠',
+        label: 'TOO SLOW',
+        className: 'warning',
+        description:
+          'You are creating wealth, but not fast enough for the current target horizon.',
+      };
+
+    default:
+      return {
+        icon: '🔴',
+        label: 'NO MOMENTUM',
+        className: 'danger',
+        description:
+          'Your recent snapshots do not show enough positive wealth creation to project a reliable path to the milestone.',
+      };
+  }
+}
 function NetWorthChart({
   history,
 }: {
@@ -144,6 +536,10 @@ function NetWorthChart({
 }) {
   const containerRef =
     useRef<HTMLDivElement>(null);
+/* =========================================================
+   WEALTH MILESTONE ENGINE
+   ADD-ONLY SECTION
+========================================================= */
 
   useEffect(() => {
     const container =
@@ -531,7 +927,6 @@ function NetWorthChart({
     />
   );
 }
-
 /* =========================================================
    MAIN COMPONENT
 ========================================================= */
@@ -627,27 +1022,54 @@ export default function FinanceSection({
         item.year <=
         selectedYear,
     );
+  /* =======================================================
+     WEALTH MILESTONE
+  ======================================================= */
 
+  const wealthMilestone =
+    useMemo(
+      () =>
+        getWealthMilestoneData(
+          networthValue,
+          financeHistory,
+        ),
+      [
+        networthValue,
+        financeHistory,
+      ],
+    );
+
+  const wealthMilestoneUI =
+    getMilestoneStatusUI(
+      wealthMilestone.status,
+    );
+
+  const milestoneMonthlyGap =
+    Math.max(
+      0,
+      wealthMilestone.requiredMonthlyGrowth -
+        wealthMilestone.averageMonthlyGrowth,
+    );
+
+  const milestonePacePercentage =
+    wealthMilestone.requiredMonthlyGrowth >
+    0
+      ? Math.min(
+          (wealthMilestone.averageMonthlyGrowth /
+            wealthMilestone.requiredMonthlyGrowth) *
+            100,
+          200,
+        )
+      : 100;
 return (
   <section
     className="dash-section finance-command-center"
     id="finance-section"
   >
     <div className="finance-section-header">
-      <div>
-        <span className="finance-eyebrow">
-          WEALTH TRACKING
-        </span>
-
-        <h2>
-          🏦 Financial Command Center
-        </h2>
-
-        <p>
-          {selectedYear} ·{' '}
-          {metricMonthName}
-        </p>
-      </div>
+        <h3>
+          WEALTH OVERVIEW
+        </h3>
     </div>
 
     {/* ================================================= */}
@@ -657,79 +1079,217 @@ return (
     <div className="finance-grid">
       {/* NET WORTH */}
 
-      <div className="finance-networth-hero chart-card">
+<div className="finance-section-block">
+  <div className="chart-card wealth-capital-engine">
+
+    {/* ================================================= */}
+    {/* HEADER */}
+    {/* ================================================= */}
+
+    <div className="finance-card-heading">
+      <div>
+        <span className="finance-card-label">
+          FINANCIAL FREEDOM TARGET
+        </span>
+
+        <h3>
+          🎯 ₹2 Crore
+        </h3>
+
+        <p className="finance-helper-text">
+          Build capital first. Then create income from
+          part of it and keep the rest growing.
+        </p>
+      </div>
+    </div>
+
+    {/* ================================================= */}
+    {/* CURRENT NET WORTH */}
+    {/* ================================================= */}
+
+    <div className="wealth-engine-overview">
+
+      <div className="wealth-engine-primary">
+
+        <span className="finance-card-label">
+          CURRENT NET WORTH
+        </span>
+
+        <strong>
+          {formatAmount(networthValue)}
+        </strong>
+
+        {!hasPreviousSnapshot ? (
+          <small>
+            Starting point established
+          </small>
+        ) : (
+          <div
+            className={`wealth-engine-change ${
+              (networthChange ?? 0) >= 0
+                ? 'finance-positive'
+                : 'finance-negative'
+            }`}
+          >
+            {(networthChange ?? 0) >= 0 ? '↑' : '↓'}{' '}
+            {formatAmount(
+              Math.abs(networthChange ?? 0),
+            )}{' '}
+            ·{' '}
+            {formatPercentage(networthGrowth)}
+          </div>
+        )}
+
+      </div>
+
+      <div className="wealth-engine-stat">
+
+        <span>
+          ASSETS
+        </span>
+
+        <strong>
+          {formatAmount(totalAssetsValue)}
+        </strong>
+
+      </div>
+
+      <div className="wealth-engine-stat">
+
+        <span>
+          LIABILITIES
+        </span>
+
+        <strong>
+          {formatAmount(totalLiabilitiesValue)}
+        </strong>
+
+      </div>
+
+      <div className="wealth-engine-stat">
+
+        <span>
+          DEBT / ASSET
+        </span>
+
+        <strong>
+          {formatPercentage(debtToAssetRatio)}
+        </strong>
+
+      </div>
+
+    </div>
+
+    {/* ================================================= */}
+    {/* ₹2 CRORE PROGRESS */}
+    {/* ================================================= */}
+
+    <div className="wealth-engine-target">
+
+      <div className="wealth-engine-target-header">
+
         <div>
           <span className="finance-card-label">
-            NET WORTH
+            CAPITAL PROGRESS
           </span>
 
-          <div className="finance-networth-value">
-            {formatAmount(
-              networthValue,
+          <strong>
+            {formatCompactAmount(
+              wealthMilestone.current,
             )}
-          </div>
+          </strong>
 
-          {!hasPreviousSnapshot ? (
-            <div className="finance-baseline-message">
-              <span>●</span>
-              Starting point established
-            </div>
-          ) : (
-            <div
-              className={`finance-growth-badge ${
-                (networthChange ?? 0) >=
-                0
-                  ? 'positive'
-                  : 'negative'
-              }`}
-            >
-              {(networthChange ?? 0) >=
-              0
-                ? '↑'
-                : '↓'}{' '}
-              {formatAmount(
-                Math.abs(
-                  networthChange ?? 0,
-                ),
-              )}{' '}
-              ·{' '}
-              {formatPercentage(
-                networthGrowth,
-              )}
-            </div>
-          )}
+          <small>
+            of {formatCompactAmount(
+              wealthMilestone.target,
+            )} target
+          </small>
         </div>
 
-        <div className="finance-networth-side">
-          <div>
-            <span>Assets</span>
+        <div className="wealth-engine-target-gap">
 
-            <strong>
-              {formatAmount(
-                totalAssetsValue,
-              )}
-            </strong>
-          </div>
+          <span>
+            CAPITAL GAP
+          </span>
 
-          <div>
-            <span>Liabilities</span>
+          <strong>
+            {wealthMilestone.remaining > 0
+              ? formatCompactAmount(
+                  wealthMilestone.remaining,
+                )
+              : '₹0'}
+          </strong>
 
-            <strong>
-              {formatAmount(
-                totalLiabilitiesValue,
-              )}
-            </strong>
-            <br />
-            <span>Debt / Asset</span>
+          <small>
+            {wealthMilestone.progress.toFixed(1)}% achieved
+          </small>
 
-            <strong>
-              {formatPercentage(
-                debtToAssetRatio,
-              )}
-            </strong>
-          </div>
         </div>
+
       </div>
+
+      <div className="wealth-engine-progress-header">
+        <span>₹0</span>
+
+        <strong>
+          {wealthMilestone.progress.toFixed(1)}%
+        </strong>
+
+        <span>₹2 Cr</span>
+      </div>
+
+      <div className="wealth-engine-progress">
+
+        <div
+          style={{
+            width: `${Math.min(
+              wealthMilestone.progress,
+              100,
+            )}%`,
+          }}
+        />
+
+      </div>
+
+    </div>
+
+    {/* ================================================= */}
+    {/* CURRENT CAPITAL ALLOCATION */}
+    {/* ================================================= */}
+
+
+
+    {/* ================================================= */}
+    {/* ₹2 CRORE CAPITAL ARCHITECTURE */}
+    {/* ================================================= */}
+
+    {/* ================================================= */}
+    {/* CORE RULE */}
+    {/* ================================================= */}
+
+    <div className="wealth-engine-rule">
+
+      <span>
+        💡 THE WEALTH-BUILDING RULE
+      </span>
+
+      <strong>
+        Build capital → create income → keep the
+        remaining capital growing → rebalance as
+        expenses increase.
+      </strong>
+
+      <p>
+        The ₹2 Cr milestone is not the end goal.
+        It is the point where your capital starts
+        working alongside your income to fund your
+        lifestyle and build future wealth.
+      </p>
+
+    </div>
+
+  </div>
+</div>
 
       {/* CAPITAL ALLOCATION */}
 
@@ -1120,7 +1680,15 @@ return (
           </div>
         )}
       </div>
+          {/* ================================================= */}
+    {/* ROW 4 — WEALTH MILESTONE / CAPITAL ENGINE */}
+    {/* ================================================= */}
+
+
+    
     </div>
+
+
   </section>
 );
 }

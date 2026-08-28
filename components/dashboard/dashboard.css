@@ -447,14 +447,14 @@ border-bottom:1px solid #efefef;
    ASSET ALLOCATION
 ========================================================= */
 
-.asset-allocation-layout {
+/* .asset-allocation-layout {
   display: grid;
   grid-template-columns:
     minmax(240px, 0.8fr)
     minmax(0, 1.2fr);
   align-items: center;
   gap: 2rem;
-}
+} */
 
 .asset-allocation-list {
   display: flex;
