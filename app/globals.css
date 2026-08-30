@@ -1,7 +1,7 @@
 * {
   margin: 0;
   padding: 0;
- box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
@@ -9,21 +9,15 @@ body {
   color: #111;
   font-family: Arial, Helvetica, sans-serif;
 }
-
-.chart-card {
-  min-width: 0;
-}
-
 table th,
 table td {
   white-space: nowrap;
 }
 
-
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -32,24 +26,9 @@ table td {
 }
 
 @media (max-width: 768px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .charts-row {
-    grid-template-columns: 1fr;
-  }
-
-  .metric-value {
-    font-size: 14px;
-  }
-
   .dashboard {
     padding: 10px;
-  }
-
-  .chart-card {
-    padding: 7px;
+    position: relative;
   }
 }
 
@@ -67,8 +46,8 @@ table td {
 }
 
 .modal-container {
-  width: 90%;
-  max-width: 500px;
+  /* width: 90%; */
+  max-width: 350px;
   background: white;
   border-radius: 10px;
   padding: 16px;
@@ -101,7 +80,6 @@ table td {
   overflow-x: auto;
 }
 
-
 @media (max-width: 768px) {
   .table-layout {
     grid-template-columns: 1fr;
@@ -131,16 +109,6 @@ table td {
     min-width: 700px;
   }
 }
-@media (max-width: 480px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .metric-value {
-    font-size: 13px;
-  }
-}
-
 
 table {
   min-width: 900px;
@@ -414,66 +382,9 @@ tr:nth-child(even) {
   justify-content: center;
 }
 
-
-
-.metrics-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.metric-card {
-  cursor: pointer;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  min-width: 170px;
-  flex: 1;
-}
-
-.highlight-card {
-  background: #eff6ff;
-  border: 1.5px solid #93c5fd;
-}
-
-.metric-label {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.metric-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #111;
-}
-
 .dash-section h3 {
   font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.dash-filter-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.charts-row {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.chart-card h4 {
-  font-size: 14px;
-  margin-bottom: 12px;
-  color: #333;
+  margin-bottom: 5px;
 }
 
 .no-data {
@@ -481,19 +392,6 @@ tr:nth-child(even) {
   font-size: 13px;
   padding: 30px 0;
   text-align: center;
-}
-
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .app-header {
@@ -522,27 +420,7 @@ tr:nth-child(even) {
   }
 }
 
-.profit-loss-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.profit-item {
-  padding: 12px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.profit-item small {
-  opacity: 0.7;
-  display: block;
-  margin-top: 4px;
-}
-
-
-.action-buttons{
+.action-buttons {
   display: flex;
   gap: 8px;
 }

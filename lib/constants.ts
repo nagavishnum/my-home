@@ -69,6 +69,7 @@ export const FINANCE_BUCKETS = {
     "RETIREMENT F",
     "CHILD EDUC F",
     "ENTERTAINEMENT F",
+    "LENT",
   ],
 
   /*

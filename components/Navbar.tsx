@@ -8,10 +8,10 @@ const tabs = [
     name: 'Dashboard',
     path: '/dashboard'
   },
-  {
-    name: 'Expenses',
-    path: '/expenses'
-  },
+  // {
+  //   name: 'Expenses',
+  //   path: '/expenses'
+  // },
   {
     name: 'Finance',
     path: '/financebook'

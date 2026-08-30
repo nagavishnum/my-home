@@ -7,7 +7,7 @@ import { Expense, Category, PaginatedResponse } from "@/lib/types";
 
 import { today } from "@/lib/helpers";
 
-import TableFilters, {
+import {
   applyFilters,
   emptyFilters,
   FilterValues,

@@ -3,7 +3,6 @@
 import { useGlobalApiLoading } from "@/lib/hooks";
 import { Category } from "@/lib/types";
 import VoiceInput from "@/lib/voicecommand/voicebutton";
-import VoiceExpenseInput from "@/lib/voicecommand/voicebutton";
 import { parseExpenseSpeech } from "@/lib/voicecommand/voiceExpenseParser";
 
 type ExpenseFormState = {
@@ -116,9 +115,7 @@ export const ExpensesForm = ({
             Cancel
           </button>
         )}
-      </div>
-
-      {!editingId && (
+              {!editingId && (
         <VoiceInput
           parser={(transcript) => parseExpenseSpeech(transcript, cats)}
           onParsed={handleVoiceExpense}
@@ -126,6 +123,7 @@ export const ExpensesForm = ({
           title="Add expense using voice"
         />
       )}
+      </div>
     </div>
   );
 };
