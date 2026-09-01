@@ -104,9 +104,48 @@ export default function Todos() {
 
   const filtered = applyFilters(data, filters, "da");
 
-  const sortedTodosWrtDate = [...filtered].sort((a, b) =>
-    a.da.localeCompare(b.da),
-  );
+const sortedTodosWrtDate = [...filtered].sort((a, b) => {
+  const todayDate = new Date(today());
+  todayDate.setHours(0, 0, 0, 0);
+
+  const dateA = new Date(a.da);
+  const dateB = new Date(b.da);
+
+  dateA.setHours(0, 0, 0, 0);
+  dateB.setHours(0, 0, 0, 0);
+
+  const getPriority = (date: Date) => {
+    if (date.getTime() === todayDate.getTime()) {
+      return 0; // Today
+    }
+
+    if (date < todayDate) {
+      return 1; // Past
+    }
+
+    return 2; // Future
+  };
+
+  const priorityA = getPriority(dateA);
+  const priorityB = getPriority(dateB);
+
+  // First: Today → Past → Future
+  if (priorityA !== priorityB) {
+    return priorityA - priorityB;
+  }
+
+  // Within past: nearest past first
+  if (priorityA === 1) {
+    return dateB.getTime() - dateA.getTime();
+  }
+
+  // Within future: nearest future first
+  if (priorityA === 2) {
+    return dateA.getTime() - dateB.getTime();
+  }
+
+  return 0;
+});
 
   const handleFormModelClose = () => {
     setForm(initial);

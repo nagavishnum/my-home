@@ -133,6 +133,37 @@ const getWealthMilestoneData = (
   };
 };
 
+const getBestValue = (
+  history: FinanceHistoryItem[],
+  key: keyof FinanceHistoryItem,
+  higherIsBetter: boolean,
+): number | null => {
+  if (history.length === 0) {
+    return null;
+  }
+
+  const values = history
+    .map((item) => Number(item[key]))
+    .filter((value) => Number.isFinite(value));
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  return higherIsBetter
+    ? Math.max(...values)
+    : Math.min(...values);
+};
+
+const isBestValue = (
+  value: number,
+  bestValue: number | null,
+): boolean => {
+  console.log("isBestValue", { value, bestValue });
+  return bestValue !== null && value === bestValue;
+};
+
+
 export default function FinanceSection({
   networthValue,
   networthChange,
@@ -150,7 +181,25 @@ export default function FinanceSection({
     () => getWealthMilestoneData(networthValue, financeHistory),
     [networthValue, financeHistory],
   );
+const bestNetWorth = useMemo(
+  () => getBestValue(financeHistory, "netWorth", true),
+  [financeHistory],
+);
 
+const bestAssets = useMemo(
+  () => getBestValue(financeHistory, "assets", true),
+  [financeHistory],
+);
+
+const bestLiabilities = useMemo(
+  () => getBestValue(financeHistory, "liabilities", false),
+  [financeHistory],
+);
+
+const bestDebtToAssetRatio = useMemo(
+  () => getBestValue(financeHistory, "debtToAssetRatio", false),
+  [financeHistory],
+);
   return (
     <div className="finance-grid">
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -239,40 +288,69 @@ export default function FinanceSection({
                   </tr>
                 </thead>
 
-                <tbody>
-                  {financeHistory.map((item) => (
-                    <tr
-                      key={item.period}
-                      className={
-                        item.period ===
-                        Number(
-                          `${CURRENT_YEAR}${String(item.month).padStart(
-                            2,
-                            "0",
-                          )}`,
-                        )
-                          ? "current-period"
-                          : ""
-                      }
-                    >
-                      <td>
-                        <strong>{item.monthName}</strong>
+<tbody>
+  {financeHistory.map((item) => (
+    <tr
+      key={item.period}
+      className={
+        item.period ===
+        Number(
+          `${CURRENT_YEAR}${String(item.month).padStart(2, "0")}`,
+        )
+          ? "current-period"
+          : ""
+      }
+    >
+      <td>
+        <strong>{item.monthName}</strong>
+        <small>{item.year}</small>
+      </td>
 
-                        <small>{item.year}</small>
-                      </td>
+      <td
+        className={
+          isBestValue(item.netWorth, bestNetWorth)
+            ? "finance-best-cell"
+            : "finance-table-primary"
+        }
+      >
+        {formatAmount(item.netWorth)}
+      </td>
 
-                      <td className="finance-table-primary">
-                        {formatAmount(item.netWorth)}
-                      </td>
+      <td
+        className={
+          isBestValue(item.assets, bestAssets)
+            ? "finance-best-cell"
+            : ""
+        }
+      >
+        {formatAmount(item.assets)}
+      </td>
 
-                      <td>{formatAmount(item.assets)}</td>
+      <td
+        className={
+          isBestValue(item.liabilities, bestLiabilities)
+            ? "finance-best-cell"
+            : ""
+        }
+      >
+        {formatAmount(item.liabilities)}
+      </td>
 
-                      <td>{formatAmount(item.liabilities)}</td>
-
-                      <td>{formatPercentage(item.debtToAssetRatio)}</td>
-                    </tr>
-                  ))}
-                </tbody>
+      <td
+        className={
+          isBestValue(
+            item.debtToAssetRatio,
+            bestDebtToAssetRatio,
+          )
+            ? "finance-best-cell"
+            : ""
+        }
+      >
+        {formatPercentage(item.debtToAssetRatio)}
+      </td>
+    </tr>
+  ))}
+</tbody>
               </table>
             </div>
           )}

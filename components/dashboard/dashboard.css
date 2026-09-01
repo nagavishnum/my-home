@@ -165,6 +165,7 @@
   width: 100%;
   min-width: 700px;
   border-collapse: collapse;
+  background: #fff;
 }
 
 .finance-table th,
@@ -203,10 +204,6 @@
 
 .finance-table-primary {
   font-weight: 750;
-}
-
-.finance-table tr.current-period {
-  background: rgba(128, 128, 128, 0.05);
 }
 
 /* =========================================================
