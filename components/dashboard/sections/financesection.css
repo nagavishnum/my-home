@@ -1,12 +1,20 @@
 .wealth-capital-engine {
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .wealth-engine-overview {
   display: grid;
-  grid-template-columns: 1.6fr repeat(4, 1fr);
+  grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-top: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .wealth-engine-primary,
@@ -14,6 +22,10 @@
   padding: 18px;
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 14px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .wealth-engine-primary strong {
@@ -21,6 +33,7 @@
   margin-top: 7px;
   font-size: 32px;
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .wealth-engine-stat span {
@@ -28,24 +41,28 @@
   font-size: 11px;
   font-weight: 600;
   opacity: 0.65;
+  overflow-wrap: anywhere;
 }
 
 .wealth-engine-stat strong {
   display: block;
   margin-top: 8px;
   font-size: 20px;
+  overflow-wrap: anywhere;
 }
 
 .wealth-engine-primary small {
   display: block;
   margin-top: 7px;
   opacity: 0.65;
+  overflow-wrap: anywhere;
 }
 
 .wealth-engine-change {
   margin-top: 8px;
   font-size: 13px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .finance-positive {
@@ -55,14 +72,130 @@
 .finance-negative {
   color: var(--danger-color, inherit);
 }
+
 .finance-best-cell {
   background: rgba(34, 197, 94, 0.08);
   color: #15803d;
   font-weight: 700;
 }
+
+/* ---------------------------------------------------------
+   FINANCE GRID
+   --------------------------------------------------------- */
+
+.finance-grid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* IMPORTANT:
+   This targets the anonymous flex container visible
+   in the rendered DOM:
+   <div style="display:flex; flex-direction:column...">
+*/
+.finance-grid > div {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.finance-section-block {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.chart-card,
+.finance-table-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   FINANCE TABLE
+   --------------------------------------------------------- */
+
+.finance-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.finance-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.finance-table th,
+.finance-table td {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   ASSET ALLOCATION
+   --------------------------------------------------------- */
+
+.asset-allocation-layout,
+.asset-allocation-list {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.asset-allocation-row {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.asset-allocation-row > div:first-child {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.asset-allocation-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-allocation-progress {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.asset-allocation-value {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.asset-allocation-value strong {
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   TABLET
+   --------------------------------------------------------- */
+
 @media (max-width: 900px) {
   .wealth-engine-overview {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .wealth-engine-primary {
@@ -70,13 +203,45 @@
   }
 }
 
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
 @media (max-width: 640px) {
+  .finance-grid,
+  .finance-grid > div,
+  .finance-section-block,
+  .chart-card,
+  .finance-table-card,
+  .wealth-capital-engine {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
   .wealth-engine-overview {
-    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .wealth-engine-primary,
+  .wealth-engine-stat {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .wealth-engine-primary {
     grid-column: auto;
+  }
+
+  .wealth-engine-primary strong {
+    font-size: 28px;
   }
 
   .wealth-engine-target-header {
@@ -88,9 +253,39 @@
   }
 
   .wealth-engine-split {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
-    .wealth-engine-primary strong {
-    font-size: 28px;
+
+  .finance-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .finance-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .finance-table th,
+  .finance-table td {
+    min-width: 0;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .asset-allocation-row {
+    min-width: 0;
+  }
+
+  .asset-allocation-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

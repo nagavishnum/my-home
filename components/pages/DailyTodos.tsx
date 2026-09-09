@@ -43,6 +43,7 @@ import {
 } from '@/lib/hooks';
 
 import "../../components/dashboard/dashboard.css";
+import "./data-list.css";
 import "./dailytodos.css";
 
 const initial = {
@@ -801,10 +802,10 @@ const [completionState, setCompletionState] =
 
             <div
               className="daily-todo-grid"
-              style={{
-                gridTemplateColumns:
-                  'minmax(150px, 1.4fr) repeat(7, minmax(42px, 1fr))',
-              }}
+style={{
+  gridTemplateColumns:
+    'minmax(220px, 1fr) repeat(7, minmax(42px, 1fr))',
+}}
             >
 
               {/* Header */}
@@ -853,10 +854,10 @@ const [completionState, setCompletionState] =
     {todo.t ?? '-'}
   </span>
 
-  <div className="daily-todo-grid-actions">
+  <div className="common-list-actions">
     <button
       type="button"
-      className="daily-todo-grid-action edit"
+      className="common-list-action edit"
       onClick={() =>
         handleEditClick(todo)
       }
@@ -868,7 +869,7 @@ const [completionState, setCompletionState] =
 
     <button
       type="button"
-      className="daily-todo-grid-action delete"
+      className="common-list-action delete"
       onClick={() =>
         remove(todo._id)
       }

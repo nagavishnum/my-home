@@ -24,13 +24,14 @@ import {
 
 import "../../components/dashboard/dashboard.css"
 
-import { ListFilter } from 'lucide-react';
+import { ListFilter, Pencil, Trash2 } from 'lucide-react';
 import TableFilters, { applyFilters, emptyFilters, FilterValues } from '../common/TableFilters';
 import { GoalsForm } from '../forms/GoalsForm';
 import CategoriesModal from './CategoriesModel';
 import TablePlusFiltersLayout from '../common/TablePlusFilters';
 import { Column, CommonTable } from '../common/CommonTable';
 import Loader from '../common/Loader';
+import './data-list.css';
 
 const initial = {
   t: '',
@@ -434,31 +435,98 @@ onCancelEdit={onCancelEdit}        />
       <div className="table-wrapper">
         <TablePlusFiltersLayout
           isMobile={isMobile}
-          filtersPanel={  isMobile ? null : (
-            <TableFilters 
-              config={{
-                categories: cats,
-                showDateRange: true,
-                month: true,
-                year: true,
-              }}
-              filters={filters}
-              onChange={setFilters}
-            />)
+          filtersPanel={
+            isMobile
+              ? null
+              : (
+                <TableFilters
+                  config={{
+                    categories: cats,
+                    showDateRange: true,
+                    month: true,
+                    year: true,
+                  }}
+                  filters={filters}
+                  onChange={setFilters}
+                />
+              )
           }
           tablePanel={
-            <CommonTable
-              data={sortedTodosWrtDate}
-              columns={
-                goalsColumns
+            isMobile ? (
+<section className="common-list-card">
+  <div className="daily-todos-card-header">
+    <div>
+      <h3>Goals</h3>
+      <span>Your financial goals</span>
+    </div>
+  </div>
+
+  {sortedTodosWrtDate.length === 0 ? (
+    <div className="common-list-empty">
+      <p>No goals found.</p>
+      <span>Add a goal to get started.</span>
+    </div>
+  ) : (
+    <div className="common-list">
+      {sortedTodosWrtDate.map((goal) => (
+        <div
+          key={goal._id}
+          className="common-list-item"
+        >
+          <span
+            className="common-list-title"
+            title={goal.t ?? ''}
+          >
+            {goal.t ?? '-'}
+          </span>
+
+          <span
+            className="goal-category-symbol"
+            title={goal.c?.n ?? 'Category'}
+          >
+            {getGoalsCategoryIcon(
+              goal.c?.n ?? ''
+            ) || '-'}
+          </span>
+
+          <div className="common-list-actions">
+            <button
+              type="button"
+              className="common-list-action edit"
+              onClick={() =>
+                handleEditClick(goal)
               }
-              onDeleteClick={
-                remove
+              aria-label={`Edit ${goal.t}`}
+              title="Edit"
+            >
+              <Pencil size={14} />
+            </button>
+
+            <button
+              type="button"
+              className="common-list-action delete"
+              onClick={() =>
+                remove(goal._id)
               }
-              onEditClick={
-                handleEditClick
-              }
-            />
+              aria-label={`Delete ${goal.t}`}
+              title="Delete"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+            ) : (
+              <CommonTable
+                data={sortedTodosWrtDate}
+                columns={goalsColumns}
+                onDeleteClick={remove}
+                onEditClick={handleEditClick}
+              />
+            )
           }
         />
       </div>

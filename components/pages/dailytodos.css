@@ -226,6 +226,7 @@
 }
 
 .daily-todo-grid {
+  width: 100%;
   min-width: 700px;
   display: grid;
   border: 1px solid #e8e8e8;
@@ -278,96 +279,33 @@
 
 .daily-todo-grid-task {
   min-width: 0;
-  height: 48px;
-
+  min-height: 48px;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  gap: 6px;
-  padding: 0 8px 0 12px;
-
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
   border-bottom: 1px solid #eeeeee;
-
   font-size: 12px;
   font-weight: 500;
-
-  overflow: hidden;
 }
 
 .daily-todo-grid-task-name {
+  flex: 1 1 auto;
   min-width: 0;
-  flex: 1;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.4;
 }
-
+.daily-todo-grid-task-name::-webkit-scrollbar {
+  display: none;
+}
 /* ---------------------------------------------------------
    EDIT / DELETE
    --------------------------------------------------------- */
 
-.daily-todo-grid-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.daily-todo-grid-action {
-  width: 26px !important;
-  height: 26px !important;
-  min-width: 26px !important;
-
-  padding: 0 !important;
-  margin: 0 !important;
-
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px solid transparent !important;
-  border-radius: 5px !important;
-
-  background: transparent !important;
-
-  cursor: pointer;
-
-  opacity: 1 !important;
-  visibility: visible !important;
-
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.daily-todo-grid-action svg {
-  display: block !important;
-  width: 14px;
-  height: 14px;
-}
-
-.daily-todo-grid-action.edit {
-  color: #6b7280 !important;
-}
-
-.daily-todo-grid-action.edit:hover {
-  color: #374151 !important;
-  background: #f3f4f6 !important;
-  border-color: #e5e7eb !important;
-}
-
-.daily-todo-grid-action.delete {
-  color: #dc2626 !important;
-}
-
-.daily-todo-grid-action.delete:hover {
-  color: #b91c1c !important;
-  background: #fef2f2 !important;
-  border-color: #fecaca !important;
-}
 
 /* ---------------------------------------------------------
    CHECKBOX CELLS

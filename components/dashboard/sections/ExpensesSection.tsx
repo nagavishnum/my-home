@@ -183,14 +183,11 @@ export default function ExpensesSection({
                 <th
                   style={{
                     padding: "8px 10px",
-
                     textAlign: "left",
-
                     position: "sticky",
-
                     left: 0,
                     whiteSpace: "nowrap",
-                    background: "inherit",
+                    background: "var(--card-background, #fff)",
                     width: "1px",
                     zIndex: 2,
                   }}
@@ -234,12 +231,12 @@ export default function ExpensesSection({
                       style={{
                         width: "1px",
                         padding: "7px 10px",
-                        fontWeight: 600,
+                        fontSize: 9,
                         whiteSpace: "nowrap",
                         position: "sticky",
                         left: 0,
-                        background: "inherit",
-                        zIndex: 1,
+                        background: "var(--card-background, #fff)",
+                        zIndex: 2,
                       }}
                     >
                       <div
@@ -319,18 +316,14 @@ export default function ExpensesSection({
                 <td
                   style={{
                     padding: "8px 10px",
-
                     position: "sticky",
-
                     left: 0,
-
-                    background: "inherit",
-
-                    zIndex: 1,
+                    background: "var(--card-background, #fff)",
+                    zIndex: 2,
                   }}
                 >
                   Total
-                </td>
+                </td> 
 
                 {expenseSummaryData.months.map((month) => (
                   <td

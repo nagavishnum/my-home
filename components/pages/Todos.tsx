@@ -1,5 +1,3 @@
-import { todoColumns, todoMobileColumns } from "@/lib/columns";
-import { CommonTable } from "../common/CommonTable";
 import { useGlobalApiLoading, useMediaQuery } from "@/lib/hooks";
 import { useEffect, useRef, useState } from "react";
 import { PaginatedResponse, Todo } from "@/lib/types";
@@ -10,9 +8,10 @@ import TableFilters, {
   emptyFilters,
   FilterValues,
 } from "../common/TableFilters";
-import { ListFilter } from "lucide-react";
 import { TodosForm } from "../forms/TodosForm";
 import TablePlusFiltersLayout from "../common/TablePlusFilters";
+import { ListFilter, Pencil, Trash2 } from "lucide-react";
+import './data-list.css';
 
 const initial = {
   t: "",
@@ -267,14 +266,54 @@ const sortedTodosWrtDate = [...filtered].sort((a, b) => {
             />
           )
         }
-        tablePanel={
-          <CommonTable
-            data={sortedTodosWrtDate}
-            columns={isMobile ? todoMobileColumns : todoColumns}
-            onDeleteClick={remove}
-            onEditClick={handleEditClick}
-          />
-        }
+tablePanel={
+  <section className="common-list-card">
+    {sortedTodosWrtDate.length === 0 ? (
+      <div className="common-list-empty">
+        <p>No todos found.</p>
+        <span>Add a todo to get started.</span>
+      </div>
+    ) : (
+      <div className="common-list">
+        {sortedTodosWrtDate.map((todo) => (
+          <div
+            key={todo._id}
+            className="common-list-item"
+          >
+            <span
+              className="common-list-title"
+              title={todo.t}
+            >
+              {todo.t || "-"}
+            </span>
+
+            <div className="common-list-actions">
+              <button
+                type="button"
+                className="common-list-action edit"
+                onClick={() => handleEditClick(todo)}
+                aria-label={`Edit ${todo.t}`}
+                title="Edit"
+              >
+                <Pencil size={14} />
+              </button>
+
+              <button
+                type="button"
+                className="common-list-action delete"
+                onClick={() => remove(todo._id)}
+                aria-label={`Delete ${todo.t}`}
+                title="Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+}
       />
     </>
   );
