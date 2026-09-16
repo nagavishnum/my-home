@@ -61,7 +61,7 @@ export const GoalsForm = ({
           </option>
         ))}
       </select>
-
+{/* 
       <input
         placeholder="Description"
         value={form.d}
@@ -69,7 +69,7 @@ export const GoalsForm = ({
         type="text"
         maxLength={100}
         required
-      />
+      /> */}
 
       <input
         type="date"
@@ -77,7 +77,7 @@ export const GoalsForm = ({
         onChange={(e) => set("td", e.target.value)}
       />
 
-      <select
+      {/* <select
         value={form.p}
         onChange={(e) => set("p", e.target.value)}
         onKeyDown={(e) => {
@@ -87,9 +87,9 @@ export const GoalsForm = ({
         <option value="low">Low</option>
         <option value="medium">Medium</option>
         <option value="high">High</option>
-      </select>
+      </select> */}
 
-      <select
+      {/* <select
         value={form.s}
         onChange={(e) => set("s", e.target.value)}
         onKeyDown={(e) => {
@@ -99,7 +99,7 @@ export const GoalsForm = ({
         <option value="pending">Pending</option>
         <option value="inprogress">In Progress</option>
         <option value="completed">Completed</option>
-      </select>
+      </select> */}
 
       {isFinance && (
         <>

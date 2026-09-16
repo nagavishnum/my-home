@@ -167,8 +167,7 @@ export default function ExpensesSection({
         >
           <table
             style={{
-              width: "100%",
-
+              width: "auto",
               minWidth: isMobile ? "900px" : "100%",
 
               borderCollapse: "collapse",
@@ -182,7 +181,6 @@ export default function ExpensesSection({
               <tr>
                 <th
                   style={{
-                    padding: "8px 10px",
                     textAlign: "left",
                     position: "sticky",
                     left: 0,
@@ -199,8 +197,6 @@ export default function ExpensesSection({
                   <th
                     key={month.m}
                     style={{
-                      padding: "8px 10px",
-
                       textAlign: "right",
 
                       whiteSpace: "nowrap",
@@ -230,8 +226,7 @@ export default function ExpensesSection({
                     <td
                       style={{
                         width: "1px",
-                        padding: "7px 10px",
-                        fontSize: 9,
+                        fontSize: isMobile ? 8 : 16,
                         whiteSpace: "nowrap",
                         position: "sticky",
                         left: 0,
@@ -242,10 +237,9 @@ export default function ExpensesSection({
                       <div
                         style={{
                           display: "flex",
-
                           alignItems: "center",
 
-                          gap: 7,
+                          gap: 3,
                         }}
                       >
                         <span
@@ -277,12 +271,9 @@ export default function ExpensesSection({
                         <td
                           key={month.m}
                           style={{
-                            padding: "7px 10px",
-
                             textAlign: "right",
-
                             whiteSpace: "nowrap",
-
+                            fontSize: isMobile ? 10 : 16,
                             fontVariantNumeric: "tabular-nums",
 
                             fontWeight: isHighest ? 700 : 400,
@@ -292,7 +283,6 @@ export default function ExpensesSection({
                             background: isHighest
                               ? `${bucketStyle.color}12`
                               : "transparent",
-
                             borderRadius: isHighest ? 4 : undefined,
                           }}
                         >
@@ -315,7 +305,6 @@ export default function ExpensesSection({
               >
                 <td
                   style={{
-                    padding: "8px 10px",
                     position: "sticky",
                     left: 0,
                     background: "var(--card-background, #fff)",
@@ -329,8 +318,7 @@ export default function ExpensesSection({
                   <td
                     key={month.m}
                     style={{
-                      padding: "8px 10px",
-
+                      fontSize: isMobile ? 10 : 18,
                       textAlign: "right",
 
                       whiteSpace: "nowrap",

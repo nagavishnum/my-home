@@ -234,7 +234,7 @@ export default function Expenses() {
           >
             Add Expense
           </button>
-          <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} />
+          {/* <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} /> */}
           {Object.values(filters).some((v) => v !== "") && (
             <button
               className="btn-secondary"

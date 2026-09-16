@@ -48,7 +48,7 @@ export const TodosForm = ({
   const handleVoiceTodo = (data: TodosFormState) => {
     setForm((current) => ({
       t: data.t || current.t,
-      p: data.p || current.p,
+      p: "low",
       da: data.da || current.da,
     }));
   };
@@ -74,28 +74,6 @@ export const TodosForm = ({
           maxLength={100}
           required
         />
-
-        <select
-          value={form.p}
-          onChange={(e) => setForm((f) => ({ ...f, p: e.target.value }))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
-          }}
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="mandatory">Mandatory</option>
-        </select>
-        <button
-          type="button"
-          className="date-nav-btn"
-          onClick={() => changeDate("prev")}
-          aria-label="Previous Day"
-          title="Previous Day"
-        >
-          <ArrowLeftIcon size={18} />
-        </button>
 
         <input
           type="date"

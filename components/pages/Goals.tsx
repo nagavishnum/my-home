@@ -46,25 +46,25 @@ const initial = {
 
 export const goalsColumns: Column<Goal>[] = [
   {
-    key: 't',
+    key: 't', 
     label: 'Goal',
     render: (row) => row.t ?? '-',
   },
-  {
-    key: 'c',
-    label: 'Category',
-    render: (row) => getGoalsCategoryIcon(row.c?.n ?? '') || '-',
-  },
-  {
-    key: 'p',
-    label: 'Priority',
-    render: (row) =>     getPriorityIcon(row.p ?? '') || '-',
-  },
-{
-  key: 's',
-  label: 'Status',
-  render: (row) => getStatusIcon(row?.s?.toLowerCase() ?? '') || '-'  ,
-},
+  // {
+  //   key: 'c',
+  //   label: 'Category',
+  //   render: (row) => getGoalsCategoryIcon(row.c?.n ?? '') || '-',
+  // },
+//   {
+//     key: 'p',
+//     label: 'Priority',
+//     render: (row) =>     getPriorityIcon(row.p ?? '') || '-',
+//   },
+// {
+//   key: 's',
+//   label: 'Status',
+//   render: (row) => getStatusIcon(row?.s?.toLowerCase() ?? '') || '-'  ,
+// },
   {
     key: 'td',
     label: 'Target Date',
@@ -196,8 +196,8 @@ export default function Goals() {
         d: form.d.trim(),
         c: form.c,
         td: form.td,
-        p: form.p,
-        s: form.s,
+        p: form.p || 'medium',
+        s: form.s || 'pending',
         tv: Number(form.tv) || 0,
         cv: Number(form.cv) || 0,
       };
@@ -345,7 +345,7 @@ export default function Goals() {
         >
           Add Goal
         </button>
-            <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} />
+            {/* <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} /> */}
           {Object.values(filters).some((v) => v !== "") && (
             <button
               className="btn-secondary"
@@ -435,22 +435,23 @@ onCancelEdit={onCancelEdit}        />
       <div className="table-wrapper">
         <TablePlusFiltersLayout
           isMobile={isMobile}
-          filtersPanel={
-            isMobile
-              ? null
-              : (
-                <TableFilters
-                  config={{
-                    categories: cats,
-                    showDateRange: true,
-                    month: true,
-                    year: true,
-                  }}
-                  filters={filters}
-                  onChange={setFilters}
-                />
-              )
-          }
+          // filtersPanel={
+          //   isMobile
+          //     ? null
+          //     : (
+          //       <TableFilters
+          //         config={{
+          //           categories: cats,
+          //           showDateRange: true,
+          //           month: true,
+          //           year: true,
+          //         }}
+          //         filters={filters}
+          //         onChange={setFilters}
+          //       />
+          //     )
+          // }
+          filtersPanel={null}
           tablePanel={
             isMobile ? (
 <section className="common-list-card">

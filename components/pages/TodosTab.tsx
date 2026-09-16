@@ -2,102 +2,60 @@
 
 import { useEffect, useState } from "react";
 
-
-
-
-
 import Goals from "./Goals";
-
-
-import {
-  useGlobalApiLoading,
-} from "@/lib/hooks";
-
-
-
-
 import DailyTodos from "./DailyTodos";
 import Todos from "./Todos";
 
-
-
 export default function TodosTab() {
-const [activeTab, setActiveTab] = useState<
-  "todo" | "goal" | "dailytodo"
->(() => {
-  if (typeof window === "undefined") {
-    return "todo";
-  }
+  const [windowWidth, setWindowWidth] = useState(1200);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, []);
+
+  const isMobile = windowWidth < 740;
 
   return (
-    (localStorage.getItem("activeTab") as
-      | "todo"
-      | "goal"
-      | "dailytodo") || "todo"
-  );
-});
-    useEffect(() => {
-  localStorage.setItem(
-    "activeTab",
-    activeTab
-  );
-}, [activeTab]);
-
-  const isApiLoading =
-    useGlobalApiLoading();
-
-  return (
-    <div>
-      <div className="tabs">
-        <button
-          className={
-            activeTab === "todo"
-              ? "tab active-tab"
-              : "tab"
-          }
-          onClick={() =>
-            setActiveTab("todo")
-          }
-          disabled={isApiLoading}
-        >
-          Todos
-        </button>
-
-        <button
-          className={
-            activeTab === "goal"
-              ? "tab active-tab"
-              : "tab"
-          }
-          onClick={() =>
-            setActiveTab("goal")
-          }
-          disabled={isApiLoading}
-        >
-          Goals
-        </button>
-                <button
-          className={
-            activeTab === "dailytodo"
-              ? "tab active-tab"
-              : "tab"
-          }
-          onClick={() =>
-            setActiveTab("dailytodo")
-          }
-          disabled={isApiLoading}
-        >
-          Daily Todos
-        </button>
+    <div
+      style={{
+        display: "flex",
+        gap: 4,
+        flexDirection: isMobile ? "column" : "row",
+        width: "100%",
+      }}
+    >
+      <div>
+        <Todos />
       </div>
 
-      {activeTab === "goal" ? (
+      <hr
+        style={{
+          display: isMobile ? "block" : "flex",
+        }}
+      />
+
+      <div>
+        <DailyTodos />
+      </div>
+
+      <hr
+        style={{
+          display: isMobile ? "block" : "flex",
+        }}
+      />
+
+      <div>
         <Goals />
-      ) :activeTab === "dailytodo" ? (
-      <DailyTodos/>
-    ) : (
-<Todos/>
-      )}
+      </div>
     </div>
   );
 }

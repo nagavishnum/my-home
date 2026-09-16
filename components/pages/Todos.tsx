@@ -11,7 +11,7 @@ import TableFilters, {
 import { TodosForm } from "../forms/TodosForm";
 import TablePlusFiltersLayout from "../common/TablePlusFilters";
 import { ListFilter, Pencil, Trash2 } from "lucide-react";
-import './data-list.css';
+import "./data-list.css";
 
 const initial = {
   t: "",
@@ -56,7 +56,7 @@ export default function Todos() {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const submit = async () => {
-    if (!form.t.trim() || !form.da || !form.p) {
+    if (!form.t.trim() || !form.da) {
       alert("Please fill all fields");
 
       return;
@@ -66,7 +66,7 @@ export default function Todos() {
       const payload = {
         t: form.t.trim(),
         da: form.da,
-        p: form.p,
+        p: "low",
       };
 
       if (editingId) {
@@ -103,48 +103,48 @@ export default function Todos() {
 
   const filtered = applyFilters(data, filters, "da");
 
-const sortedTodosWrtDate = [...filtered].sort((a, b) => {
-  const todayDate = new Date(today());
-  todayDate.setHours(0, 0, 0, 0);
+  const sortedTodosWrtDate = [...filtered].sort((a, b) => {
+    const todayDate = new Date(today());
+    todayDate.setHours(0, 0, 0, 0);
 
-  const dateA = new Date(a.da);
-  const dateB = new Date(b.da);
+    const dateA = new Date(a.da);
+    const dateB = new Date(b.da);
 
-  dateA.setHours(0, 0, 0, 0);
-  dateB.setHours(0, 0, 0, 0);
+    dateA.setHours(0, 0, 0, 0);
+    dateB.setHours(0, 0, 0, 0);
 
-  const getPriority = (date: Date) => {
-    if (date.getTime() === todayDate.getTime()) {
-      return 0; // Today
+    const getPriority = (date: Date) => {
+      if (date.getTime() === todayDate.getTime()) {
+        return 0; // Today
+      }
+
+      if (date < todayDate) {
+        return 1; // Past
+      }
+
+      return 2; // Future
+    };
+
+    const priorityA = getPriority(dateA);
+    const priorityB = getPriority(dateB);
+
+    // First: Today → Past → Future
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
     }
 
-    if (date < todayDate) {
-      return 1; // Past
+    // Within past: nearest past first
+    if (priorityA === 1) {
+      return dateB.getTime() - dateA.getTime();
     }
 
-    return 2; // Future
-  };
+    // Within future: nearest future first
+    if (priorityA === 2) {
+      return dateA.getTime() - dateB.getTime();
+    }
 
-  const priorityA = getPriority(dateA);
-  const priorityB = getPriority(dateB);
-
-  // First: Today → Past → Future
-  if (priorityA !== priorityB) {
-    return priorityA - priorityB;
-  }
-
-  // Within past: nearest past first
-  if (priorityA === 1) {
-    return dateB.getTime() - dateA.getTime();
-  }
-
-  // Within future: nearest future first
-  if (priorityA === 2) {
-    return dateA.getTime() - dateB.getTime();
-  }
-
-  return 0;
-});
+    return 0;
+  });
 
   const handleFormModelClose = () => {
     setForm(initial);
@@ -210,7 +210,7 @@ const sortedTodosWrtDate = [...filtered].sort((a, b) => {
           >
             Add Todo
           </button>
-          <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} />
+          {/* <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} /> */}
           {Object.values(filters).some((v) => v !== "") && (
             <button
               className="btn-secondary"
@@ -240,7 +240,7 @@ const sortedTodosWrtDate = [...filtered].sort((a, b) => {
           </div>
         </div>
       )}
-
+<div style={{display:'flex', flexDirection:'column'}}>
       {!isMobile && (
         <TodosForm
           form={form}
@@ -253,68 +253,73 @@ const sortedTodosWrtDate = [...filtered].sort((a, b) => {
 
       <TablePlusFiltersLayout
         isMobile={isMobile}
-        filtersPanel={
-          isMobile ? null : (
-            <TableFilters
-              config={{
-                showDateRange: true,
-                month: true,
-                year: true,
-              }}
-              filters={filters}
-              onChange={setFilters}
-            />
-          )
+        // filtersPanel={
+        //   isMobile ? null : (
+        //     <TableFilters
+        //       config={{
+        //         showDateRange: true,
+        //         month: true,
+        //         year: true,
+        //       }}
+        //       filters={filters}
+        //       onChange={setFilters}
+        //     />
+        //   )
+        // }
+        filtersPanel={null}
+        tablePanel={
+          <section className="common-list-card">
+            {sortedTodosWrtDate.length === 0 ? (
+              <div className="common-list-empty">
+                <p>No todos found.</p>
+                <span>Add a todo to get started.</span>
+              </div>
+            ) : (
+              <div className="common-list">
+                {sortedTodosWrtDate.map((todo) => (
+                  <div
+                    key={todo._id}
+                    className={`common-list-item ${
+                      new Date(todo.da).toISOString().split("T")[0] === today()
+                        ? "today-todo"
+                        : new Date(todo.da) < new Date(today())
+                          ? "overdue-todo"
+                          : "future-todo"
+                    }`}
+                  >
+                    <span className="common-list-title" title={todo.t}>
+                      {todo.t || "-"}
+                    </span>
+
+                    <div className="common-list-actions">
+                      <button
+                        type="button"
+                        className="common-list-action edit"
+                        onClick={() => handleEditClick(todo)}
+                        aria-label={`Edit ${todo.t}`}
+                        title="Edit"
+                      >
+                        <Pencil size={14} />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="common-list-action delete"
+                        onClick={() => remove(todo._id)}
+                        aria-label={`Delete ${todo.t}`}
+                        title="Delete"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         }
-tablePanel={
-  <section className="common-list-card">
-    {sortedTodosWrtDate.length === 0 ? (
-      <div className="common-list-empty">
-        <p>No todos found.</p>
-        <span>Add a todo to get started.</span>
-      </div>
-    ) : (
-      <div className="common-list">
-        {sortedTodosWrtDate.map((todo) => (
-          <div
-            key={todo._id}
-            className="common-list-item"
-          >
-            <span
-              className="common-list-title"
-              title={todo.t}
-            >
-              {todo.t || "-"}
-            </span>
-
-            <div className="common-list-actions">
-              <button
-                type="button"
-                className="common-list-action edit"
-                onClick={() => handleEditClick(todo)}
-                aria-label={`Edit ${todo.t}`}
-                title="Edit"
-              >
-                <Pencil size={14} />
-              </button>
-
-              <button
-                type="button"
-                className="common-list-action delete"
-                onClick={() => remove(todo._id)}
-                aria-label={`Delete ${todo.t}`}
-                title="Delete"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-  </section>
-}
       />
+      </div>
     </>
   );
 }

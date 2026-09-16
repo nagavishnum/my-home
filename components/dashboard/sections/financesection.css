@@ -127,6 +127,7 @@
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
+  overflow-x: auto;
 }
 
 .finance-table {

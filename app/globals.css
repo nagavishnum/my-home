@@ -27,7 +27,6 @@ table td {
 
 @media (max-width: 768px) {
   .dashboard {
-    padding: 10px;
     position: relative;
   }
 }
@@ -196,7 +195,7 @@ th {
 
 th,
 td {
-  padding: 16px;
+  padding: 7px;
   border: 1px solid #e5e5e5;
 }
 
