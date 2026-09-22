@@ -1,12 +1,6 @@
-'use client';
+"use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   BarChart,
@@ -16,7 +10,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
+} from "recharts";
 
 import {
   Check,
@@ -25,37 +19,29 @@ import {
   Pencil,
   Plus,
   Trash2,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { api } from '@/lib/api';
+import { api } from "@/lib/api";
 
-import {
-  DailyTodo,
-} from '@/lib/types';
+import { DailyTodo } from "@/lib/types";
 
-import Loader from '../common/Loader';
+import Loader from "../common/Loader";
 
-import { DailyTodosForm } from '../forms/DailyTodosForm';
+import { DailyTodosForm } from "../forms/DailyTodosForm";
 
-import {
-  useGlobalApiLoading,
-  useMediaQuery,
-} from '@/lib/hooks';
+import { useGlobalApiLoading, useMediaQuery } from "@/lib/hooks";
 
 import "../../components/dashboard/dashboard.css";
 import "./data-list.css";
 import "./dailytodos.css";
 
 const initial = {
-  t: '',
+  t: "",
 };
 
-const STORAGE_KEY = 'daily-todos-completion';
+const STORAGE_KEY = "daily-todos-completion";
 
-type TodoCompletionState = Record<
-  string,
-  Record<string, boolean>
->;
+type TodoCompletionState = Record<string, Record<string, boolean>>;
 
 type WeekDay = {
   key: string;
@@ -66,8 +52,8 @@ type WeekDay = {
 
 const getDateKey = (date: Date) => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 };
@@ -92,11 +78,11 @@ const getWeekDays = (weekStart: Date): WeekDay[] => {
 
     return {
       key: getDateKey(date),
-      label: date.toLocaleDateString('en-US', {
-        weekday: 'long',
+      label: date.toLocaleDateString("en-US", {
+        weekday: "long",
       }),
-      shortLabel: date.toLocaleDateString('en-US', {
-        weekday: 'short',
+      shortLabel: date.toLocaleDateString("en-US", {
+        weekday: "short",
       }),
       date,
     };
@@ -108,99 +94,73 @@ const formatWeekRange = (weekStart: Date) => {
 
   weekEnd.setDate(weekStart.getDate() + 6);
 
-  const start = weekStart.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
+  const start = weekStart.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
   });
 
-  const end = weekEnd.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  const end = weekEnd.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 
   return `${start} – ${end}`;
 };
 
 export default function DailyTodos() {
-  const [data, setData] =
-    useState<DailyTodo[]>([]);
+  const [data, setData] = useState<DailyTodo[]>([]);
 
-  const [form, setForm] =
-    useState(initial);
+  const [form, setForm] = useState(initial);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [editingId, setEditingId] =
-    useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [
-    addDailyTodoModel,
-    setAddDailyTodoModel,
-  ] = useState(false);
+  const [addDailyTodoModel, setAddDailyTodoModel] = useState(false);
 
-  const [
-    openFilterModel,
-    setOpenFilterModel,
-  ] = useState(false);
+  const [openFilterModel, setOpenFilterModel] = useState(false);
 
-const [completionState, setCompletionState] =
-  useState<TodoCompletionState>(() => {
-    if (typeof window === 'undefined') {
-      return {};
-    }
+  const [completionState, setCompletionState] = useState<TodoCompletionState>(
+    () => {
+      if (typeof window === "undefined") {
+        return {};
+      }
 
-    try {
-      const stored =
-        localStorage.getItem(STORAGE_KEY);
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
 
-      return stored
-        ? JSON.parse(stored)
-        : {};
-    } catch {
-      return {};
-    }
-  });
+        return stored ? JSON.parse(stored) : {};
+      } catch {
+        return {};
+      }
+    },
+  );
 
-  const [weekStart, setWeekStart] =
-    useState(() => getMonday(new Date()));
+  const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
 
-  const isApiLoading =
-    useGlobalApiLoading();
+  const isApiLoading = useGlobalApiLoading();
 
-  const isMobile =
-    useMediaQuery(
-      '(max-width:768px)'
-    );
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   /*
    * Load localStorage completion data.
    * This does not affect the existing API logic.
    */
- 
 
-  const load = useCallback(
-    async () => {
-      try {
-        setError(null);
+  const load = useCallback(async () => {
+    try {
+      setError(null);
 
-        const res =
-          await api.get<DailyTodo[]>(
-            '/todos/dailytodo?limit=200'
-          );
+      const res = await api.get<DailyTodo[]>("/todos/dailytodo?limit=200");
 
-        setData(res.data);
+      setData(res.data);
 
-        setError(null);
-      } catch {
-        setError(
-          'Failed to load daily todos'
-        );
-      }
-    },
-    []
-  );
+      setError(null);
+    } catch {
+      setError("Failed to load daily todos");
+    }
+  }, []);
 
   const mounted = useRef(false);
 
@@ -216,7 +176,7 @@ const [completionState, setCompletionState] =
     setError(null);
 
     if (!form.t.trim()) {
-      alert('Please fill task');
+      alert("Please fill task");
       return;
     }
 
@@ -228,25 +188,13 @@ const [completionState, setCompletionState] =
       let response;
 
       if (editingId) {
-        response = await api.put(
-          `todos/dailytodo/${editingId}`,
-          body
-        );
+        response = await api.put(`todos/dailytodo/${editingId}`, body);
       } else {
-        response = await api.post(
-          'todos/dailytodo',
-          body
-        );
+        response = await api.post("todos/dailytodo", body);
       }
 
-      if (
-        response.status >= 200 &&
-        response.status < 300
-      ) {
-        const latest =
-          await api.get<DailyTodo[]>(
-            '/todos/dailytodo?limit=200'
-          );
+      if (response.status >= 200 && response.status < 300) {
+        const latest = await api.get<DailyTodo[]>("/todos/dailytodo?limit=200");
 
         setData(latest.data);
 
@@ -255,31 +203,18 @@ const [completionState, setCompletionState] =
         setAddDailyTodoModel(false);
       }
     } catch {
-      setError(
-        'Failed to save daily todo'
-      );
+      setError("Failed to save daily todo");
     }
   };
 
-  const remove = async (
-    id: string
-  ) => {
+  const remove = async (id: string) => {
     try {
       setError(null);
 
-      const response =
-        await api.delete(
-          `/todos/dailytodo/${id}`
-        );
+      const response = await api.delete(`/todos/dailytodo/${id}`);
 
-      if (
-        response.status >= 200 &&
-        response.status < 300
-      ) {
-        const latest =
-          await api.get<DailyTodo[]>(
-            '/todos/dailytodo?limit=200'
-          );
+      if (response.status >= 200 && response.status < 300) {
+        const latest = await api.get<DailyTodo[]>("/todos/dailytodo?limit=200");
 
         setData(latest.data);
 
@@ -295,10 +230,7 @@ const [completionState, setCompletionState] =
           delete next[id];
 
           try {
-            localStorage.setItem(
-              STORAGE_KEY,
-              JSON.stringify(next)
-            );
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
           } catch {
             // Ignore localStorage errors.
           }
@@ -307,86 +239,69 @@ const [completionState, setCompletionState] =
         });
       }
     } catch {
-      setError(
-        'Failed to delete daily todo'
-      );
+      setError("Failed to delete daily todo");
     }
   };
 
-  const handleEditClick =
-    (item: DailyTodo) => {
-      setEditingId(item._id);
+  const handleEditClick = (item: DailyTodo) => {
+    setEditingId(item._id);
 
-      setAddDailyTodoModel(true);
+    setAddDailyTodoModel(true);
 
-      setForm({
-        t: item.t ?? '',
-      });
-    };
+    setForm({
+      t: item.t ?? "",
+    });
+  };
 
-  const handleFormModelClose =
-    () => {
-      setForm(initial);
+  const handleFormModelClose = () => {
+    setForm(initial);
 
-      setEditingId(null);
+    setEditingId(null);
 
-      setAddDailyTodoModel(false);
-    };
+    setAddDailyTodoModel(false);
+  };
 
-  const onCancelEdit =
-    () => {
-      setEditingId(null);
+  const onCancelEdit = () => {
+    setEditingId(null);
 
-      setForm(initial);
+    setForm(initial);
 
-      setAddDailyTodoModel(false);
-    };
+    setAddDailyTodoModel(false);
+  };
 
   /*
    * Current week's seven days.
    */
-  const weekDays = useMemo(
-    () => getWeekDays(weekStart),
-    [weekStart]
-  );
+  const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
 
   /*
    * Checkbox handler.
    *
    * Only this interaction updates localStorage.
    */
-  const handleToggle =
-    (
-      todoId: string,
-      dateKey: string
-    ) => {
-      setCompletionState((previous) => {
-        const currentTodo =
-          previous[todoId] ?? {};
+  const handleToggle = (todoId: string, dateKey: string) => {
+    setCompletionState((previous) => {
+      const currentTodo = previous[todoId] ?? {};
 
-        const nextValue =
-          !currentTodo[dateKey];
+      const nextValue = !currentTodo[dateKey];
 
-        const nextState = {
-          ...previous,
-          [todoId]: {
-            ...currentTodo,
-            [dateKey]: nextValue,
-          },
-        };
+      const nextState = {
+        ...previous,
+        [todoId]: {
+          ...currentTodo,
+          [dateKey]: nextValue,
+        },
+      };
 
-        try {
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(nextState)
-          );
-        } catch {
-          // Ignore localStorage errors.
-        }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+      } catch {
+        // Ignore localStorage errors.
+      }
 
-        return nextState;
-      });
-    };
+      return nextState;
+    });
+  };
 
   /*
    * Daily completion statistics.
@@ -396,23 +311,13 @@ const [completionState, setCompletionState] =
    */
   const dailyProgress = useMemo(() => {
     return weekDays.map((day) => {
-      const total =
-        data.length;
+      const total = data.length;
 
-      const done =
-        data.filter(
-          (todo) =>
-            completionState[
-              todo._id
-            ]?.[day.key] === true
-        ).length;
+      const done = data.filter(
+        (todo) => completionState[todo._id]?.[day.key] === true,
+      ).length;
 
-      const percentage =
-        total === 0
-          ? 0
-          : Math.round(
-              (done / total) * 100
-            );
+      const percentage = total === 0 ? 0 : Math.round((done / total) * 100);
 
       return {
         ...day,
@@ -421,11 +326,7 @@ const [completionState, setCompletionState] =
         percentage,
       };
     });
-  }, [
-    data,
-    completionState,
-    weekDays,
-  ]);
+  }, [data, completionState, weekDays]);
 
   /*
    * Weekly percentage.
@@ -434,33 +335,19 @@ const [completionState, setCompletionState] =
    * todos × 7 days.
    */
   const weeklyStats = useMemo(() => {
-    const totalPossible =
-      data.length * 7;
+    const totalPossible = data.length * 7;
 
-    const totalDone =
-      dailyProgress.reduce(
-        (sum, day) =>
-          sum + day.done,
-        0
-      );
+    const totalDone = dailyProgress.reduce((sum, day) => sum + day.done, 0);
 
     const percentage =
-      totalPossible === 0
-        ? 0
-        : Math.round(
-            (totalDone / totalPossible) *
-              100
-          );
+      totalPossible === 0 ? 0 : Math.round((totalDone / totalPossible) * 100);
 
     return {
       totalPossible,
       totalDone,
       percentage,
     };
-  }, [
-    data.length,
-    dailyProgress,
-  ]);
+  }, [data.length, dailyProgress]);
 
   /*
    * Data used by Recharts.
@@ -473,43 +360,32 @@ const [completionState, setCompletionState] =
         total: day.total,
         percentage: day.percentage,
       })),
-    [dailyProgress]
+    [dailyProgress],
   );
 
-  const goToPreviousWeek =
-    () => {
-      setWeekStart((previous) => {
-        const next =
-          new Date(previous);
+  const goToPreviousWeek = () => {
+    setWeekStart((previous) => {
+      const next = new Date(previous);
 
-        next.setDate(
-          next.getDate() - 7
-        );
+      next.setDate(next.getDate() - 7);
 
-        return next;
-      });
-    };
+      return next;
+    });
+  };
 
-  const goToNextWeek =
-    () => {
-      setWeekStart((previous) => {
-        const next =
-          new Date(previous);
+  const goToNextWeek = () => {
+    setWeekStart((previous) => {
+      const next = new Date(previous);
 
-        next.setDate(
-          next.getDate() + 7
-        );
+      next.setDate(next.getDate() + 7);
 
-        return next;
-      });
-    };
+      return next;
+    });
+  };
 
-  const goToCurrentWeek =
-    () => {
-      setWeekStart(
-        getMonday(new Date())
-      );
-    };
+  const goToCurrentWeek = () => {
+    setWeekStart(getMonday(new Date()));
+  };
 
   if (isApiLoading) {
     return <Loader />;
@@ -517,31 +393,22 @@ const [completionState, setCompletionState] =
 
   return (
     <div className="daily-todos-page">
-
-      {error && (
-        <p className="error">
-          {error}
-        </p>
-      )}
+      {error && <p className="error">{error}</p>}
 
       {/* Existing mobile add button */}
       {isMobile && (
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             gap: 10,
             marginTop: 16,
           }}
         >
           <button
             className="btn-add"
-            onClick={() =>
-              setAddDailyTodoModel(
-                true
-              )
-            }
+            onClick={() => setAddDailyTodoModel(true)}
           >
             Add Daily Todo
           </button>
@@ -549,52 +416,32 @@ const [completionState, setCompletionState] =
       )}
 
       {/* Existing mobile filter modal */}
-      {openFilterModel &&
-        isMobile && (
+      {openFilterModel && isMobile && (
+        <div
+          className="modal-overlay"
+          onClick={() => setOpenFilterModel(false)}
+        >
           <div
-            className="modal-overlay"
-            onClick={() =>
-              setOpenFilterModel(
-                false
-              )
-            }
-          >
-            <div
-              className="modal-container"
-              onClick={(e) =>
-                e.stopPropagation()
-              }
-            />
-          </div>
-        )}
+            className="modal-container"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Existing mobile form modal */}
-      {addDailyTodoModel &&
-        isMobile && (
-          <div
-            className="modal-overlay"
-            onClick={
-              handleFormModelClose
-            }
-          >
-            <div
-              className="modal-container"
-              onClick={(e) =>
-                e.stopPropagation()
-              }
-            >
-              <DailyTodosForm
-                form={form}
-                setForm={setForm}
-                submit={submit}
-                editingId={editingId}
-                onCancelEdit={
-                  onCancelEdit
-                }
-              />
-            </div>
+      {addDailyTodoModel && isMobile && (
+        <div className="modal-overlay" onClick={handleFormModelClose}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <DailyTodosForm
+              form={form}
+              setForm={setForm}
+              submit={submit}
+              editingId={editingId}
+              onCancelEdit={onCancelEdit}
+            />
           </div>
-        )}
+        </div>
+      )}
 
       {/* Existing desktop form - untouched */}
       {!isMobile && (
@@ -603,157 +450,48 @@ const [completionState, setCompletionState] =
           setForm={setForm}
           submit={submit}
           editingId={editingId}
-          onCancelEdit={
-            onCancelEdit
-          }
+          onCancelEdit={onCancelEdit}
         />
       )}
 
-      
+      {/* Weekly task grid */}
+      <div className="common-list-card">
+        {/* Rows */}
+        {data.map((todo) => (
+          <div
+            key={todo._id}
+            style={{
+              display: "contents",
+            }}
+          >
+            <div className="daily-todo-grid-task" title={todo.t ?? ""}>
+              <span className="daily-todo-grid-task-name">{todo.t ?? "-"}</span>
 
-
-
-
-          {/* Weekly task grid */}
-          <div className="daily-todo-grid-wrapper">
-
-            <div
-              className="daily-todo-grid"
-style={{
-  gridTemplateColumns:
-    'minmax(220px, 1fr) repeat(7, minmax(42px, 1fr))',
-}}
-            >
-
-              {/* Header */}
-              <div className="daily-todo-grid-task-header">
-                Task
-              </div>
-
-              {weekDays.map(
-                (day) => (
-                  <div
-                    key={day.key}
-                    className="daily-todo-day-header"
-                    title={
-                      day.label
-                    }
-                  >
-                    <span>
-                      {
-                        day.shortLabel
-                      }
-                    </span>
-
-                    <small>
-                      {day.date.getDate()}
-                    </small>
-                  </div>
-                )
-              )}
-
-              {/* Rows */}
-              {data.map((todo) => (
-                <div
-                  key={todo._id}
-                  className="daily-todo-grid-row"
-                  style={{
-                    display:
-                      'contents',
-                  }}
+              <div className="common-list-actions">
+                <button
+                  type="button"
+                  className="common-list-action edit"
+                  onClick={() => handleEditClick(todo)}
+                  aria-label={`Edit ${todo.t ?? "task"}`}
+                  title="Edit"
                 >
+                  <Pencil size={14} />
+                </button>
 
-<div
-  className="daily-todo-grid-task"
-  title={todo.t ?? ''}
->
-  <span className="daily-todo-grid-task-name">
-    {todo.t ?? '-'}
-  </span>
-
-  <div className="common-list-actions">
-    <button
-      type="button"
-      className="common-list-action edit"
-      onClick={() =>
-        handleEditClick(todo)
-      }
-      aria-label={`Edit ${todo.t ?? 'task'}`}
-      title="Edit"
-    >
-      <Pencil size={14} />
-    </button>
-
-    <button
-      type="button"
-      className="common-list-action delete"
-      onClick={() =>
-        remove(todo._id)
-      }
-      aria-label={`Delete ${todo.t ?? 'task'}`}
-      title="Delete"
-    >
-      <Trash2 size={14} />
-    </button>
-  </div>
-</div>
-
-                  {weekDays.map(
-                    (day) => {
-                      const checked =
-                        completionState[
-                          todo._id
-                        ]?.[
-                          day.key
-                        ] === true;
-
-                      return (
-                        <div
-                          key={`${todo._id}-${day.key}`}
-                          className="daily-todo-checkbox-cell"
-                        >
-                          <button
-                            type="button"
-                            className={`daily-todo-checkbox ${
-                              checked
-                                ? 'checked'
-                                : ''
-                            }`}
-                            onClick={() =>
-                              handleToggle(
-                                todo._id,
-                                day.key
-                              )
-                            }
-                            aria-label={`${checked ? 'Mark incomplete' : 'Mark complete'} ${
-                              todo.t
-                            } for ${
-                              day.label
-                            }`}
-                          >
-                            {checked && (
-                              <Check
-                                size={14}
-                                strokeWidth={
-                                  3
-                                }
-                              />
-                            )}
-                          </button>
-                        </div>
-                      );
-                    }
-                  )}
-
-                </div>
-              ))}
-
+                <button
+                  type="button"
+                  className="common-list-action delete"
+                  onClick={() => remove(todo._id)}
+                  aria-label={`Delete ${todo.t ?? "task"}`}
+                  title="Delete"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
-
           </div>
-
-
-
+        ))}
+      </div>
     </div>
   );
 }

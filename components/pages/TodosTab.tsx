@@ -30,7 +30,6 @@ export default function TodosTab() {
         display: "flex",
         gap: 4,
         flexDirection: isMobile ? "column" : "row",
-        width: "100%",
       }}
     >
       <div>

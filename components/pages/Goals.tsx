@@ -1,150 +1,116 @@
-'use client';
+"use client";
+
+import { useEffect, useRef, useState, useCallback } from "react";
+
+import { api } from "@/lib/api";
+
+import { Goal, Category, PaginatedResponse } from "@/lib/types";
 
 import {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
+  getGoalsCategoryIcon,
+  getPriorityIcon,
+  getStatusIcon,
+  today,
+} from "@/lib/helpers";
 
-import { api } from '@/lib/api';
+import { useGlobalApiLoading, useMediaQuery } from "@/lib/hooks";
 
-import {
-  Goal,
-  Category,
-  PaginatedResponse,
-} from '@/lib/types';
+import "../../components/dashboard/dashboard.css";
 
-import { getGoalsCategoryIcon, getPriorityIcon, getStatusIcon, today } from '@/lib/helpers';
-
-import {
-  useGlobalApiLoading,
-  useMediaQuery,
-} from '@/lib/hooks';
-
-import "../../components/dashboard/dashboard.css"
-
-import { ListFilter, Pencil, Trash2 } from 'lucide-react';
-import TableFilters, { applyFilters, emptyFilters, FilterValues } from '../common/TableFilters';
-import { GoalsForm } from '../forms/GoalsForm';
-import CategoriesModal from './CategoriesModel';
-import TablePlusFiltersLayout from '../common/TablePlusFilters';
-import { Column, CommonTable } from '../common/CommonTable';
-import Loader from '../common/Loader';
-import './data-list.css';
+import { ListFilter, Pencil, Trash2 } from "lucide-react";
+import TableFilters, {
+  applyFilters,
+  emptyFilters,
+  FilterValues,
+} from "../common/TableFilters";
+import { GoalsForm } from "../forms/GoalsForm";
+import CategoriesModal from "./CategoriesModel";
+import TablePlusFiltersLayout from "../common/TablePlusFilters";
+import { Column, CommonTable } from "../common/CommonTable";
+import Loader from "../common/Loader";
+import "./data-list.css";
 
 const initial = {
-  t: '',
-  d: '',
-  c: '',
+  t: "",
+  d: "",
+  c: "",
   td: today(),
-  p: 'medium',
-  s: 'pending',
-  tv: '',
-  cv: '',
+  p: "medium",
+  s: "pending",
+  tv: "",
+  cv: "",
 };
 
 export const goalsColumns: Column<Goal>[] = [
   {
-    key: 't', 
-    label: 'Goal',
-    render: (row) => row.t ?? '-',
+    key: "t",
+    label: "Goal",
+    render: (row) => row.t ?? "-",
   },
   // {
   //   key: 'c',
   //   label: 'Category',
   //   render: (row) => getGoalsCategoryIcon(row.c?.n ?? '') || '-',
   // },
-//   {
-//     key: 'p',
-//     label: 'Priority',
-//     render: (row) =>     getPriorityIcon(row.p ?? '') || '-',
-//   },
-// {
-//   key: 's',
-//   label: 'Status',
-//   render: (row) => getStatusIcon(row?.s?.toLowerCase() ?? '') || '-'  ,
-// },
-  {
-    key: 'td',
-    label: 'Target Date',
-    render: (row) =>
-      row.td
-        ? new Date(row.td).toLocaleDateString()
-        : '-',
-  },
+  // {
+  //   key: 's',
+  //   label: 'Status',
+  //   render: (row) => getStatusIcon(row?.s?.toLowerCase() ?? '') || '-'  ,
+  // },
+  // {
+  //   key: 'td',
+  //   label: 'Target Date',
+  //   render: (row) =>
+  //     row.td
+  //       ? new Date(row.td).toLocaleDateString()
+  //       : '-',
+  // },
 ];
 
 export default function Goals() {
-  const [data, setData] = useState<
-    Goal[]
-  >([]);
+  const [data, setData] = useState<Goal[]>([]);
 
-  const [cats, setCats] = useState<
-    Category[]
-  >([]);
+  const [cats, setCats] = useState<Category[]>([]);
 
-  const [form, setForm] =
-    useState(initial);
+  const [form, setForm] = useState(initial);
 
-  const [filters, setFilters] =
-    useState<FilterValues>({
-      ...emptyFilters,
-    });
+  const [filters, setFilters] = useState<FilterValues>({
+    ...emptyFilters,
+  });
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [editingId, setEditingId] =
-    useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [showCategories, setShowCategories] =
-    useState(false);
+  const [showCategories, setShowCategories] = useState(false);
 
-  const [addGoalModel, setAddGoalModel] =
-    useState(false);
+  const [addGoalModel, setAddGoalModel] = useState(false);
 
+  const [openFilterModel, setOpenFilterModel] = useState(false);
 
-          const [openFilterModel, setOpenFilterModel] = useState(false);
+  const isApiLoading = useGlobalApiLoading();
 
-  const isApiLoading =
-    useGlobalApiLoading();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const isMobile = useMediaQuery(
-    '(max-width: 768px)'
-  );
+  const load = useCallback(async () => {
+    setError(null);
 
-  const load = useCallback(
+    try {
+      const [g, c] = await Promise.all([
+        api.get<PaginatedResponse<Goal>>("/goal?limit=200"),
 
-    async () => {
-              setError(null);
+        api.get<Category[]>("/categories/goal"),
+      ]);
 
-      try {
+      setData(g.data.data);
 
-        const [g, c] =
-          await Promise.all([
-            api.get<
-              PaginatedResponse<Goal>
-            >('/goal?limit=200'),
+      setCats(c.data);
 
-            api.get<Category[]>(
-              '/categories/goal'
-            ),
-          ]);
-
-        setData(g.data.data);
-
-        setCats(c.data);
-
-        setError(null);
-      } catch {
-        setError(
-          'Failed to load goals'
-        );
-      } 
-    },
-    []
-  );
+      setError(null);
+    } catch {
+      setError("Failed to load goals");
+    }
+  }, []);
 
   const mounted = useRef(false);
 
@@ -156,36 +122,22 @@ export default function Goals() {
     load();
   }, [load]);
 
-  const set = (
-    key: string,
-    val: string
-  ) =>
+  const set = (key: string, val: string) =>
     setForm((p) => ({
       ...p,
       [key]: val,
     }));
 
-  const selectedCategory =
-    cats.find(
-      (i) => i._id === form.c
-    );
+  const selectedCategory = cats.find((i) => i._id === form.c);
 
   const isFinance =
-    selectedCategory?.n
-      ?.toLowerCase()
-      .includes('finance') || false;
+    selectedCategory?.n?.toLowerCase().includes("finance") || false;
 
   const submit = async () => {
-            setError(null);
+    setError(null);
 
-    if (
-      !form.t.trim() ||
-      !form.c ||
-      !form.td
-    ) {
-      alert(
-        'Please fill required fields'
-      );
+    if (!form.t.trim() || !form.c || !form.td) {
+      alert("Please fill required fields");
 
       return;
     }
@@ -196,129 +148,89 @@ export default function Goals() {
         d: form.d.trim(),
         c: form.c,
         td: form.td,
-        p: form.p || 'medium',
-        s: form.s || 'pending',
+        p: form.p || "medium",
+        s: form.s || "pending",
         tv: Number(form.tv) || 0,
         cv: Number(form.cv) || 0,
       };
 
       if (editingId) {
-        const res = await api.put(
-          `/goal/${editingId}`,
-          body
-        );
+        const res = await api.put(`/goal/${editingId}`, body);
 
-        setData((p) =>
-          p.map((i) =>
-            i._id === editingId
-              ? res.data
-              : i
-          )
-        );
+        setData((p) => p.map((i) => (i._id === editingId ? res.data : i)));
 
         setEditingId(null);
 
         setAddGoalModel(false);
       } else {
-        const res = await api.post(
-          '/goal',
-          body
-        );
+        const res = await api.post("/goal", body);
 
-        setData((p) => [
-          res.data,
-          ...p,
-        ]);
+        setData((p) => [res.data, ...p]);
       }
 
       setForm(initial);
 
       setAddGoalModel(false);
     } catch {
-      setError('Failed to save goal');
+      setError("Failed to save goal");
     }
   };
 
-  const remove = async (
-    id: string
-  ) => {
-            setError(null);
+  const remove = async (id: string) => {
+    setError(null);
 
     try {
       await api.delete(`/goal/${id}`);
 
-      setData((p) =>
-        p.filter(
-          (i) => i._id !== id
-        )
-      );
+      setData((p) => p.filter((i) => i._id !== id));
     } catch {
-      setError(
-        'Failed to delete goal'
-      );
+      setError("Failed to delete goal");
     }
   };
 
-  const handleFormModelClose =
-    () => {
-      setForm(initial);
+  const handleFormModelClose = () => {
+    setForm(initial);
 
-      setEditingId(null);
+    setEditingId(null);
 
-      setAddGoalModel(false);
-    };
+    setAddGoalModel(false);
+  };
 
-  const handleEditClick = (
-    i: Goal
-  ) => {
+  const handleEditClick = (i: Goal) => {
     setEditingId(i._id);
 
     setAddGoalModel(true);
 
     setForm({
-      t: i.t ?? '',
-      d: i.d ?? '',
-      c: i.c?._id ?? '',
-      td: i.td
-        ? new Date(i.td)
-            .toISOString()
-            .split('T')[0]
-        : today(),
-      p: i.p ?? 'medium',
-      s: i.s ?? 'pending',
-      tv: String(i.tv ?? ''),
-      cv: String(i.cv ?? ''),
+      t: i.t ?? "",
+      d: i.d ?? "",
+      c: i.c?._id ?? "",
+      td: i.td ? new Date(i.td).toISOString().split("T")[0] : today(),
+      p: i.p ?? "medium",
+      s: i.s ?? "pending",
+      tv: String(i.tv ?? ""),
+      cv: String(i.cv ?? ""),
     });
   };
 
-  const filtered = applyFilters(
-    data,
-    filters,
-    'td'
-  );
-    const sortedTodosWrtDate = [...filtered].sort((a, b) =>
+  const filtered = applyFilters(data, filters, "td");
+  const sortedTodosWrtDate = [...filtered].sort((a, b) =>
     a.td.localeCompare(b.td),
   );
   const onCancelEdit = () => {
     setEditingId(null);
     setForm(initial);
     setAddGoalModel(false);
-  }
+  };
   if (isApiLoading) return <Loader />;
 
   return (
     <div>
-      {error && (
-        <p className="error">
-          {error}
-        </p>
-      )}
+      {error && <p className="error">{error}</p>}
 
       <button
         className="btn-view"
-        onClick={() =>
-          setShowCategories(true)
-        }
+        onClick={() => setShowCategories(true)}
         style={{ marginRight: 8 }}
         disabled={isApiLoading}
       >
@@ -326,26 +238,24 @@ export default function Goals() {
       </button>
 
       {isMobile && (
-                                              <div
+        <div
           style={{
             display: "flex",
             alignItems: "center",
-                        justifyContent: "space-between",
+            justifyContent: "space-between",
 
             gap: 10,
             marginTop: 16,
           }}
         >
-        <button
-          className="btn-add"
-          onClick={() =>
-            setAddGoalModel(true)
-          }
-          disabled={isApiLoading}
-        >
-          Add Goal
-        </button>
-            {/* <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} /> */}
+          <button
+            className="btn-add"
+            onClick={() => setAddGoalModel(true)}
+            disabled={isApiLoading}
+          >
+            Add Goal
+          </button>
+          {/* <ListFilter onClick={() => setOpenFilterModel(!openFilterModel)} /> */}
           {Object.values(filters).some((v) => v !== "") && (
             <button
               className="btn-secondary"
@@ -355,8 +265,7 @@ export default function Goals() {
               Clear Filters
             </button>
           )}
-                            </div>
-
+        </div>
       )}
       {openFilterModel && isMobile && (
         <div
@@ -364,62 +273,49 @@ export default function Goals() {
           onClick={() => setOpenFilterModel(!openFilterModel)}
         >
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-    
-    <TableFilters
+            <TableFilters
               config={{
                 categories: cats,
                 showDateRange: true,
                 month: true,
                 year: true,
               }}
-                filters={filters}
-                    close={() => setOpenFilterModel(false)}
-      onChange={setFilters}
-    />
+              filters={filters}
+              close={() => setOpenFilterModel(false)}
+              onChange={setFilters}
+            />
           </div>
         </div>
       )}
       {addGoalModel && isMobile && (
-        <div
-          className="modal-overlay"
-          onClick={
-            handleFormModelClose
-          }
-        >
-          <div
-            className="modal-container"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
-          >
+        <div className="modal-overlay" onClick={handleFormModelClose}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>
-                {editingId
-                  ? 'Edit Goal'
-                  : 'Add Goal'}
-              </h3>
-
-  
+              <h3>{editingId ? "Edit Goal" : "Add Goal"}</h3>
             </div>
 
             <GoalsForm
               form={form}
               set={set}
               cats={cats}
-              isFinance={
-                isFinance
-              }
+              isFinance={isFinance}
               submit={submit}
-              editingId={
-                editingId
-              }
+              editingId={editingId}
               onCancelEdit={onCancelEdit}
             />
           </div>
         </div>
       )}
 
-      {showCategories && <CategoriesModal type="goal" categories={cats} onCategoriesChange={setCats} reload={load} onClose={() => setShowCategories(false)} />}
+      {showCategories && (
+        <CategoriesModal
+          type="goal"
+          categories={cats}
+          onCategoriesChange={setCats}
+          reload={load}
+          onClose={() => setShowCategories(false)}
+        />
+      )}
 
       {!isMobile && (
         <GoalsForm
@@ -429,7 +325,8 @@ export default function Goals() {
           isFinance={isFinance}
           submit={submit}
           editingId={editingId}
-onCancelEdit={onCancelEdit}        />
+          onCancelEdit={onCancelEdit}
+        />
       )}
 
       <div className="table-wrapper">
@@ -453,81 +350,64 @@ onCancelEdit={onCancelEdit}        />
           // }
           filtersPanel={null}
           tablePanel={
-            isMobile ? (
-<section className="common-list-card">
-  <div className="daily-todos-card-header">
-    <div>
-      <h3>Goals</h3>
-      <span>Your financial goals</span>
-    </div>
-  </div>
+            <section className="common-list-card">
+              <div className="daily-todos-card-header">
+                <div>
+                  <h3>Goals</h3>
+                  <span>Your financial goals</span>
+                </div>
+              </div>
 
-  {sortedTodosWrtDate.length === 0 ? (
-    <div className="common-list-empty">
-      <p>No goals found.</p>
-      <span>Add a goal to get started.</span>
-    </div>
-  ) : (
-    <div className="common-list">
-      {sortedTodosWrtDate.map((goal) => (
-        <div
-          key={goal._id}
-          className="common-list-item"
-        >
-          <span
-            className="common-list-title"
-            title={goal.t ?? ''}
-          >
-            {goal.t ?? '-'}
-          </span>
+              {sortedTodosWrtDate.length === 0 ? (
+                <div className="common-list-empty">
+                  <p>No goals found.</p>
+                  <span>Add a goal to get started.</span>
+                </div>
+              ) : (
+                <div className="daily-todo-grid-wrapper">
+                  {sortedTodosWrtDate.map((goal) => (
+                    <div
+                      key={goal._id}
+                      className="daily-todo-grid-row"
+                      style={{
+                        display: "contents",
+                      }}
+                    >
+                      <div
+                        className="daily-todo-grid-task"
+                        title={goal.t ?? ""}
+                      >
+                        <span className="daily-todo-grid-task-name">
+                          {goal.t ?? "-"}
+                        </span>
 
-          <span
-            className="goal-category-symbol"
-            title={goal.c?.n ?? 'Category'}
-          >
-            {getGoalsCategoryIcon(
-              goal.c?.n ?? ''
-            ) || '-'}
-          </span>
+                        <div className="common-list-actions">
+                          <button
+                            type="button"
+                            className="common-list-action edit"
+                            onClick={() => handleEditClick(goal)}
+                            aria-label={`Edit ${goal.t ?? "goal"}`}
+                            title="Edit"
+                          >
+                            <Pencil size={14} />
+                          </button>
 
-          <div className="common-list-actions">
-            <button
-              type="button"
-              className="common-list-action edit"
-              onClick={() =>
-                handleEditClick(goal)
-              }
-              aria-label={`Edit ${goal.t}`}
-              title="Edit"
-            >
-              <Pencil size={14} />
-            </button>
-
-            <button
-              type="button"
-              className="common-list-action delete"
-              onClick={() =>
-                remove(goal._id)
-              }
-              aria-label={`Delete ${goal.t}`}
-              title="Delete"
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</section>
-            ) : (
-              <CommonTable
-                data={sortedTodosWrtDate}
-                columns={goalsColumns}
-                onDeleteClick={remove}
-                onEditClick={handleEditClick}
-              />
-            )
+                          <button
+                            type="button"
+                            className="common-list-action delete"
+                            onClick={() => remove(goal._id)}
+                            aria-label={`Delete ${goal.t ?? "goal"}`}
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           }
         />
       </div>

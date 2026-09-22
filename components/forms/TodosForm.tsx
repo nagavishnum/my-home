@@ -107,8 +107,7 @@ export const TodosForm = ({
             Cancel
           </button>
         )}
-      </div>
-      {!editingId && (
+              {!editingId && (
         <VoiceInput
           parser={parseTodoSpeech}
           onParsed={handleVoiceTodo}
@@ -116,6 +115,8 @@ export const TodosForm = ({
           title="Add todo using voice"
         />
       )}
+      </div>
+
     </div>
   );
 };

@@ -10,7 +10,7 @@ import TableFilters, {
 } from "../common/TableFilters";
 import { TodosForm } from "../forms/TodosForm";
 import TablePlusFiltersLayout from "../common/TablePlusFilters";
-import { ListFilter, Pencil, Trash2 } from "lucide-react";
+import {Pencil, Trash2 } from "lucide-react";
 import "./data-list.css";
 
 const initial = {

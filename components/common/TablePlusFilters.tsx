@@ -19,7 +19,6 @@ export default function TablePlusFiltersLayout({
         display: "flex",
         flexDirection: isMobile ? "column" : "row",
         gap: 20,
-        marginTop: 20,
       }}
     >{filtersPanel && (
       <div className="table-filters-sidebar">
