@@ -128,6 +128,59 @@ export const FINANCE_BUCKETS = {
   OTHER_BUCKET: ["OTHER"],
   TARGET_RELATED_BUCKET: ["ASSETS", "INVESTMENTS", "SAVINGS", "LENT"],
 };
+// Colors are used for category headings and their borders.
+export const FINANCE_BUCKET_STYLES = {
+  INVESTMENTS_BUCKET: {
+    label: 'Investments',
+    color: '#16a34a',
+    background: '#f0fdf4',
+  },
+  RETIREMENT_BUCKET: {
+    label: 'Retirement',
+    color: '#15803d',
+    background: '#f0fdf4',
+  },
+  GOALS_BUCKET: {
+    label: 'Goal-based funds',
+    color: '#7c3aed',
+    background: '#f5f3ff',
+  },
+  LIQUID_ASSETS_BUCKET: {
+    label: 'Liquid assets',
+    color: '#2563eb',
+    background: '#eff6ff',
+  },
+  REAL_ASSETS_BUCKET: {
+    label: 'Physical assets',
+    color: '#d97706',
+    background: '#fffbeb',
+  },
+  RECEIVABLES_BUCKET: {
+    label: 'Receivables',
+    color: '#0d9488',
+    background: '#f0fdfa',
+  },
+  INSURANCE_BUCKET: {
+    label: 'Insurance',
+    color: '#4f46e5',
+    background: '#eef2ff',
+  },
+  LIABILITY_BUCKET: {
+    label: 'Liabilities',
+    color: '#dc2626',
+    background: '#fef2f2',
+  },
+  COMMITMENTS_BUCKET: {
+    label: 'Commitments',
+    color: '#ea580c',
+    background: '#fff7ed',
+  },
+  OTHER_BUCKET: {
+    label: 'Other',
+    color: '#6b7280',
+    background: '#f9fafb',
+  },
+} as const;
 
 export const EXPENSE_BUCKETS = {
   ESSENTIAL_BUCKET: [

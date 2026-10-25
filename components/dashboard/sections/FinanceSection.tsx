@@ -8,6 +8,7 @@ import {
 } from "../calculations/getFinanceCalculations";
 import "./financesection.css";
 import { CURRENT_YEAR } from "@/lib/constants";
+import { formatAmount } from "@/lib/helpers";
 
 type Props = {
   networthValue: number;
@@ -21,14 +22,6 @@ type Props = {
   liquidAssetsValue: number;
   emergencyMonths: number;
   financeHistory: FinanceHistoryItem[];
-};
-
-const formatAmount = (value: number | null | undefined) => {
-  if (value === null || value === undefined) {
-    return "—";
-  }
-
-  return `₹${((Number(value) || 0) / 100000).toFixed(2)} L`;
 };
 
 const formatPercentage = (value: number | null | undefined) => {

@@ -283,3 +283,14 @@ export const getGoalsCategoryIcon = (
       return category;
   }
 };
+
+export const formatAmount = (value: number | null | undefined) => {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  if(Math.abs(Number(value)) < 100000) {
+    return `₹${(Number(value) || 0).toLocaleString()}`;
+  }
+
+  return `₹${((Number(value) || 0) / 100000).toFixed(2)} L`;
+};
