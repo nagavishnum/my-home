@@ -61,6 +61,7 @@ export const ExpensesForm = ({
           max={999999999999}
           step={1}
           inputMode="numeric"
+          autoFocus={true}
           required
         />
 

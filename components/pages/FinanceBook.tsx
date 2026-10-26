@@ -396,7 +396,22 @@ export default function FinanceBook() {
   );
 
   const exportRows = exportData.map((row) => Object.values(row));
+const lastTapRef = useRef<number>(0);
 
+const handleDoubleTap = useCallback(
+  (row: Finance) => {
+    const now = Date.now();
+
+    if (now - lastTapRef.current < 300) {
+      handleEditClick(row);
+      lastTapRef.current = 0;
+      return;
+    }
+
+    lastTapRef.current = now;
+  },
+  [handleEditClick],
+);
   if (isApiLoading) return <Loader />;
 
   return (
@@ -410,23 +425,22 @@ export default function FinanceBook() {
         .finance-toolbar {
           display: flex;
           justify-content: flex-end;
-          margin: 12px 0;
         }
 
-        .finance-grid {
-          display: grid;
-          grid-template-columns: repeat(var(--finance-columns), minmax(0, 1fr));
-          align-items: start;
-          gap: 12px;
-          width: 100%;
-        }
-
+.finance-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
         .finance-card {
           min-width: 0;
           overflow-x: auto;
           border: 1px solid var(--border-color, #dedede);
           border-radius: 8px;
-          padding: 8px;
+          padding: 2px;
           background: var(--card-background, #fff);
         }
 
@@ -436,7 +450,6 @@ export default function FinanceBook() {
           justify-content: space-between;
           gap: 8px;
           padding: 9px 8px;
-          margin: -10px -10px 8px;
           border-bottom: 1px solid var(--border-color, #e5e5e5);
           border-top: 3px solid var(--category-color, #6b7280);
           background: var(--category-background, #f9fafb);
@@ -665,7 +678,6 @@ export default function FinanceBook() {
         >
           {categoryGroups.map((group) => (
             <section
-              className="finance-card"
               key={group.id}
               style={
                 {
@@ -682,38 +694,39 @@ export default function FinanceBook() {
 
               <table className="finance-table">
                 <colgroup>
+                  <col style={{ width: "40%" }} />
+                  {/* <col style={{ width: "15%" }} /> */}
                   <col style={{ width: "25%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
+                  {/* <col style={{ width: "15%" }} /> */}
+                  <col style={{ width: "25%" }} />
+                  <col style={{ width: "10%" }} />
                 </colgroup>
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>Invested</th>
+                    {/* <th>Invested</th> */}
                     <th>Current</th>
-                    <th>Returns</th>
-                    <th>Type / SIP</th>
-                    <th>Actions</th>
+                    {/* <th>Returns</th> */}
+                    <th>Type</th>
+                    <th></th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {group.items.map((row) => (
                     <tr key={row._id}>
-                      <td className="finance-name">{row.n}</td>
+                      <td className="finance-name"              onTouchEnd={() => handleDoubleTap(row)}
+  onDoubleClick={() => handleEditClick(row)}>{row.n}</td>
 
-                      <td className="finance-number">{formatAmount(row.a)}</td>
+                      {/* <td className="finance-number">{formatAmount(row.a)}</td> */}
 
                       <td className="finance-number">
                         {formatAmount(row.cv || row.a)}
                       </td>
 
-                      <td className="finance-number">
+                      {/* <td className="finance-number">
                         {row.rt != null ? `${row.rt}%` : "-"}
-                      </td>
+                      </td> */}
 
                       <td>
                         <div
@@ -738,23 +751,9 @@ export default function FinanceBook() {
 
                       <td>
                         <div className="finance-actions">
-                          <button
-                            type="button"
-                            className="btn-view finance-action"
-                            onClick={() => handleEditClick(row)}
-                            disabled={isApiLoading}
-                          >
-                            <EditIcon size={isMobile ? 7 : 17} />
-                          </button>
-
-                          <button
-                            type="button"
-                            className="btn-view finance-action"
-                            onClick={() => remove(row._id)}
-                            disabled={isApiLoading}
-                          >
-                            <DeleteIcon size={isMobile ? 7 : 17} />
-                          </button>
+                       
+                            <DeleteIcon   style={{ color: "red", stroke: "red", cursor: "pointer" }}
+ onClick={() => remove(row._id)} size={isMobile ? 7 : 17} />
                         </div>
                       </td>
                     </tr>
@@ -780,9 +779,7 @@ export default function FinanceBook() {
 
   <td className="finance-number">-</td>
 
-  <td>-</td>
 
-  <td>-</td>
 </tr>
                 </tbody>
               </table>
